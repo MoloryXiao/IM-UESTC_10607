@@ -6,58 +6,69 @@ package tech.njczh;
 
 import tech.njczh.Server.*;
 import java.net.Socket;
+import java.sql.SQLException;
 
 /**
  * @author 97njczh
  *
  */
-public class LoginServer
-{
-	
-	NetworkForServer loginSock = new NetworkForServer();
-	
-	public void connectDbTest()
-	{
-		
+public class LoginServer {
+
+	private NetworkForServer loginSock = new NetworkForServer();
+
+	public boolean connectDbTest() {
+
 		DatabaseOperator connectDatabase = new DatabaseOperator();
-		connectDatabase.setupDatabase();
-		if (connectDatabase.connectTest()) System.out.println("Datebase is ready!");
-		
+
+		if (connectDatabase.setupDatabase() && connectDatabase.connectTest()) {
+			System.out.println("[ READY ] Database Connection");
+			return true;
+		} else {
+			System.out.println("[ ERROR ] Database Connection");
+			return false;
+		}
+
 	}
-	
-	public void setupServer(int port)	{
-		
+
+	public void setupServer(int port) {
+
+		if (loginSock.setServer(port)) {
+			System.out.println("[ READY ] Server Status");
+			System.out.println("Listening port: [ " + port + " ]");
+		} else {
+			System.out.println("[ ERROR ] Server Status");
+			return;
+		}
+
 		try {
-			
-			if (loginSock.setServer(port)) System.out.println("Server started successfully! Listening port: [ " + port + " ]");
-			
 			while (true) {
-				
+
 				Socket clientSocket = loginSock.waitConnectFromClient();
 				System.out.println("Incoming request， the client address is：" + clientSocket.getRemoteSocketAddress());
-				ServerThread sThread_Client = new ServerThread(clientSocket);
-				sThread_Client.start();
-				
+				ServerThread serverThread_Recv = new ServerThread(clientSocket);
+				serverThread_Recv.start();
+
 			}
-			
 		} catch (Exception e) {
 			e.printStackTrace();
-			System.out.println("oops! 请检查一下端口号：）");
+			return;
 		}
 	}
-	
+
 	public void closeServer() {
-		
+
 	}
-	
-	public static void main(String[] args)
-	{
+
+	public static void main(String[] args) {
 		LoginServer loginServer = new LoginServer();
-		
+
 		/* 检查数据库连接 */
-		loginServer.connectDbTest();
-		
+		if (!loginServer.connectDbTest())
+			return;
+
 		/* 启动服务器并开始监听端口:'9090' */
 		loginServer.setupServer(9090);
+
+		System.out.println("goodbye!");
 	}
 }

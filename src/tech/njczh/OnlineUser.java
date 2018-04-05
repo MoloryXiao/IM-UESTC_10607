@@ -3,10 +3,7 @@
  */
 package tech.njczh;
 
-import java.net.ServerSocket;
 import java.net.Socket;
-
-import tech.njczh.Server.Account;
 
 /**
  * @author 97njczh
@@ -14,22 +11,22 @@ import tech.njczh.Server.Account;
  */
 public class OnlineUser {
 
-	private Account account;
+	private String id;
 	private Socket socket;
 
 	/**
 	 * 
 	 */
-	public OnlineUser(Account account, Socket socket) {
-		this.account = account;
+	public OnlineUser(String id, Socket socket) {
+		this.id = id;
 		this.socket = socket;
 	}
 
 	/**
-	 * @return account
+	 * @return id
 	 */
-	public Account getAccount() {
-		return account;
+	public String getId() {
+		return id;
 	}
 
 	/**
@@ -40,11 +37,11 @@ public class OnlineUser {
 	}
 
 	/**
-	 * @param account
-	 *            要设置的 account
+	 * @param id
+	 *            要设置的 id
 	 */
-	public void setAccount(Account account) {
-		this.account = account;
+	public void setId(String id) {
+		this.id = id;
 	}
 
 	/**

@@ -34,39 +34,49 @@ public class DatabaseOperator {
 
 	}
 
-	public void setupDatabase() {
+	public boolean setupDatabase() {
 		try {
 
 			// Register JDBC driver
 			Class.forName(JDBC_DRIVER);
+			return true;
 
 		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
+			// e.printStackTrace();
+			System.out.println("[ ERROR ] JDBC_DRIVER 加载错误");
+			return false;
+
 		}
 	}
 
 	public boolean connectDatabase() {
 
 		try {
-			connection = DriverManager.getConnection(DB_URL, USER, PASSWORD);
-		} catch (SQLException e) {
-			e.printStackTrace();
-			return false;
-		}
-		return true;
 
+			connection = DriverManager.getConnection(DB_URL, USER, PASSWORD);
+			return true;
+
+		} catch (SQLException e) {
+			// e.printStackTrace();
+			System.out.println("[ ERROR ] 连接数据库时出现错误！");
+			return false;
+
+		}
 	}
 
 	public boolean disconnectDatabase() {
 
 		try {
-			connection.close();
-		} catch (SQLException e) {
-			e.printStackTrace();
-			return false;
-		}
-		return true;
 
+			connection.close();
+			return true;
+
+		} catch (SQLException e) {
+			// e.printStackTrace();
+			System.out.println("[ ERROR ] 关闭数据库时出现错误！");
+			return false;
+
+		}
 	}
 
 	public boolean connectTest() {
@@ -77,17 +87,39 @@ public class DatabaseOperator {
 			return false;
 	}
 
-	public ResultSet query(String sql) throws SQLException {
+	public ResultSet query(String sql) {
 
-		statement = connection.createStatement();
-		return statement.executeQuery(sql);
+		try {
+			statement = connection.createStatement();
+			return statement.executeQuery(sql);
+		} catch (SQLException e) {
+			return null;
+		} finally {
+			try {
+				if (statement != null)
+					statement.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
 
 	}
 
 	public int update(String sql) throws SQLException {
 
-		statement = connection.createStatement();
-		return statement.executeUpdate(sql);
+		try {
+			statement = connection.createStatement();
+			return statement.executeUpdate(sql);
+		} catch (SQLException e) {
+			return -1;
+		} finally {
+			try {
+				if (statement != null)
+					statement.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
 
 	}
 
@@ -95,32 +127,17 @@ public class DatabaseOperator {
 
 		connectDatabase();
 
-		try {
+		ResultSet rs = query("SELECT `id`,`password` FROM `SECD`.`user`"); // Execute a query
 
-			// Execute a query
-			ResultSet rs = query("SELECT `id`,`password` FROM `SECD`.`user`");
+		while (rs.next()) { // Extract data from result set
 
-			// Extract data from result set
-			while (rs.next()) {
-				// Retrieve by column name
-				if ((rs.getString("id").equals(loginInfo.getAccountId()))
-						&& (rs.getString("password").equals(loginInfo.getPassword())))
-					return true;
-			}
-
-		} catch (SQLException e) {
-
-			e.printStackTrace();
-
-		} finally {
-
-			statement.close();
-			disconnectDatabase();
-			// System.out.println("Database is closed ? " + connection.isClosed()
-			// + "\nstatement is closed ? " + statement.isClosed()
-			// + "\n断开数据库！");
-
+			if ((rs.getString("id").equals(loginInfo.getAccountId()))
+					&& (rs.getString("password").equals(loginInfo.getPassword()))) // Retrieve by column name
+				return true;
 		}
+
+		disconnectDatabase();
+
 		return false;
 	}
 
@@ -129,8 +146,9 @@ public class DatabaseOperator {
 		connectDatabase();
 
 		ResultSet rs = query("SELECT * FROM SECD.user where id = " + Id + ";");
+		rs.next();
 
-		Account account = new Account(rs.getString("id"), rs.getString("username"), false, null);
+		Account account = new Account(rs.getString("id"), rs.getString("username"), false, rs.getString("sign"));
 
 		disconnectDatabase();
 
@@ -144,27 +162,15 @@ public class DatabaseOperator {
 
 		connectDatabase();
 
-		try {
+		ResultSet rs = query("SELECT `id`,`username` FROM `SECD`.`user`");// Execute a query
 
-			// Execute a query
-			ResultSet rs = query("SELECT `id`,`username` FROM `SECD`.`user`");
-
-			// Extract data from result set
-			while (rs.next()) {
-				// Retrieve by column name
-				friendsList.add(new Account(rs.getString("id"), rs.getString("username"), false, "HelloWorld!"));
-			}
-
-		} catch (SQLException e) {
-
-			e.printStackTrace();
-
-		} finally {
-
-			statement.close();
-			disconnectDatabase();
-
+		while (rs.next()) { // Extract data from result set
+			// Retrieve by column name
+			friendsList.add(new Account(rs.getString("id"), rs.getString("username"), false, rs.getString("sign")));
 		}
+
+		disconnectDatabase();
+
 		return friendsList;
 	}
 
