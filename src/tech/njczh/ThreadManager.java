@@ -12,20 +12,24 @@ package tech.njczh;
  */
 public class ThreadManager {
 
-	public static void regSendThread(ServerThread serverThread) {
-		ThreadDatabase.sendThreadDb.put(serverThread.getOnlineUser(), serverThread);
+	/*======================================= SendThread =======================================*/
+	
+	public static void regSendThread(SendThread sendThread) {
+		ThreadDatabase.sendThreadDb.put(sendThread.getAccountId(), sendThread);
 	}
 
-	public static void delSendThread(OnlineUser onlineUser) {
-		ThreadDatabase.sendThreadDb.remove(onlineUser);
+	public static void delSendThread(String id) {
+		ThreadDatabase.sendThreadDb.remove(id);
 	}
-
+	
+	/*======================================= ServerThread =======================================*/
+	
 	public static void regRecvThread(ServerThread serverThread) {
-		ThreadDatabase.recvThreadDb.put(serverThread.getOnlineUser(), serverThread);
+		ThreadDatabase.serverThreadDb.put(serverThread.getAccountId(), serverThread);
 	}
 
-	public static void delRecvThread(OnlineUser onlineUser) {
-		ThreadDatabase.recvThreadDb.remove(onlineUser);
+	public static void delRecvThread(String id) {
+		ThreadDatabase.serverThreadDb.remove(id);
 	}
 
 }

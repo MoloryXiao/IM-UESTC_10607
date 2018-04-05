@@ -6,7 +6,6 @@ package tech.njczh;
 
 import tech.njczh.Server.*;
 import java.net.Socket;
-import java.sql.SQLException;
 
 /**
  * @author 97njczh
@@ -45,8 +44,8 @@ public class LoginServer {
 
 				Socket clientSocket = loginSock.waitConnectFromClient();
 				System.out.println("Incoming request， the client address is：" + clientSocket.getRemoteSocketAddress());
-				ServerThread serverThread_Recv = new ServerThread(clientSocket);
-				serverThread_Recv.start();
+				ServerThread serverThread = new ServerThread(clientSocket);
+				serverThread.start();
 
 			}
 		} catch (Exception e) {

@@ -8,10 +8,9 @@ import java.io.IOException;
 import java.net.Socket;
 import java.sql.SQLException;
 
-import com.mysql.fabric.xmlrpc.Client;
-
 import tech.njczh.Server.Account;
 import tech.njczh.Server.CommunicateWithClient;
+import tech.njczh.Server.Envelope;
 import tech.njczh.Server.Login;
 
 /**
@@ -22,28 +21,19 @@ public class ServerThread extends Thread {
 
 	private CommunicateWithClient client;
 	private Account account;
-	private OnlineUser onlineUser; // = account.id + CommunicateWithClient.socket
 
 	private static int onlineCounter = 0;
 
-	public ServerThread(Socket socket) {
-		try {
-			client = new CommunicateWithClient(socket);
-			// System.out.println(client.getSocketInfo());
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+	public ServerThread(Socket socket) throws IOException {
+
+		client = new CommunicateWithClient(socket);
+
 	}
 
 	public String getAccountId() {
-		return account.getID();
-	}
 
-	/**
-	 * @return onlineUser
-	 */
-	public OnlineUser getOnlineUser() {
-		return onlineUser;
+		return account.getID();
+
 	}
 
 	private boolean signIn() throws IOException, SQLException {
@@ -55,7 +45,12 @@ public class ServerThread extends Thread {
 
 		if (databaseOperator.isLoginInfoCorrect(loginInfo)) { // 登录信息与数据库中比对成功
 
-			client.sendFinishMsg(); // 返回确认信息
+			// 在服务器服务子线程数据库中注册该线程
+			ThreadManager.regRecvThread(this);
+
+			// 创建该客户对应的转发线程
+			SendThread sendThread = new SendThread(client.getSocket());
+			sendThread.start();
 
 			account = databaseOperator.getAccountById(loginInfo.getAccountId());
 			account.setOnline(true);
@@ -63,13 +58,7 @@ public class ServerThread extends Thread {
 			System.out.println("ID:\"" + loginInfo.getAccountId() + "\" login successful!");
 			System.out.println("The current number of online users is [" + onlineCounter + "]");
 
-			onlineUser = new OnlineUser(account.getID(), client.getSocket());
-
-			ThreadManager.regRecvThread(this); // 在服务器接受子线程数据库中注册该线程
-			ServerThread serverThread_Send = new ServerThread(client.getSocket());
-			serverThread_Send.start();
-			ThreadManager.regSendThread(serverThread_Send); // 在服务器发送子线程数据库中注册该线程
-
+			// TODO 把发送好友列表交给发送线程
 			client.sendFriendList(databaseOperator.getFriendListFromDb());
 
 			return true;
@@ -88,35 +77,43 @@ public class ServerThread extends Thread {
 
 		// 判断请求类型
 		try {
+			
 			String msg = client.recvFromClient();
+			
 			switch (client.getMsgType(msg)) {
 
 			case CommunicateWithClient.LOGIN: // 登录请求
 				signIn();
-//				while (account.getOnlineStatus()) {
-//					switch (client.getMsgType(client.recvFromClient())) {
-//					case client.CHAT:						
-//						
-//						break;
-//					case client.ADDFRIEND:
-//						break;						
-//					case client.DELETE:
-//						break;
-//					case client.SEARCH:
-//						break;
-//					default:
-//						break;
-//					}
-//					{
-//						client.re
-//					}
-//					// 心跳包检查用户状态
-//					if (用户不在线) {
-//						account.setOnline(false);
-//						ThreadManager.delThread(onlineUser);
-//					}
-//				}
-//				break;
+//				// 从客户端获取消息
+//				Envelope envelope = client.recvFromUserMsg();
+//				// 解析消息的收件人
+//				String TargetId = envelope.getTargetAccountId();
+//				// 根据收件人地址 转发给对应的发送线程
+
+				// while (account.getOnlineStatus()) {
+				// switch (client.getMsgType(client.recvFromClient())) {
+				// case client.CHAT:
+				//
+				// break;
+				// case client.ADDFRIEND:
+				// break;
+				// case client.DELETE:
+				// break;
+				// case client.SEARCH:
+				// break;
+				// default:
+				// break;
+				// }
+				// {
+				// client.re
+				// }
+				// // 心跳包检查用户状态
+				// if (用户不在线) {
+				// account.setOnline(false);
+				// ThreadManager.delThread(onlineUser);
+				// }
+				// }
+				// break;
 
 			case CommunicateWithClient.REGISTOR: // 注册请求
 				// Account registorInfo = new Account();

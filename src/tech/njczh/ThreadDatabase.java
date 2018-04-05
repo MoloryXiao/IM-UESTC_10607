@@ -12,8 +12,8 @@ import java.util.Map;
  */
 public class ThreadDatabase {
 
-	public static Map<OnlineUser, ServerThread> sendThreadDb = new HashMap<OnlineUser, ServerThread>();
+	public static Map<String, SendThread> sendThreadDb = new HashMap<String, SendThread>();
 
-	public static Map<OnlineUser, ServerThread> recvThreadDb = new HashMap<OnlineUser, ServerThread>();
+	public static Map<String, ServerThread> serverThreadDb = new HashMap<String, ServerThread>();
 
 }
