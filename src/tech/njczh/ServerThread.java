@@ -45,18 +45,18 @@ public class ServerThread extends Thread {
 
 		if (databaseOperator.isLoginInfoCorrect(loginInfo)) { // 登录信息与数据库中比对成功
 
-			// 在服务器服务子线程数据库中注册该线程
-			ThreadManager.regRecvThread(this);
-
-			// 创建该客户对应的转发线程
-			SendThread sendThread = new SendThread(client.getSocket());
-			sendThread.start();
-
 			account = databaseOperator.getAccountById(loginInfo.getAccountId());
 			account.setOnline(true);
 			onlineCounter++;
 			System.out.println("ID:\"" + loginInfo.getAccountId() + "\" login successful!");
 			System.out.println("The current number of online users is [" + onlineCounter + "]");
+
+			// 在服务器服务子线程数据库中注册该线程
+			ThreadManager.regRecvThread(this);
+
+			// 创建该客户对应的转发线程
+			SendThread sendThread = new SendThread(client.getSocket(), account);
+			sendThread.start();
 
 			// TODO 把发送好友列表交给发送线程
 			client.sendFriendList(databaseOperator.getFriendListFromDb());
@@ -77,18 +77,18 @@ public class ServerThread extends Thread {
 
 		// 判断请求类型
 		try {
-			
+
 			String msg = client.recvFromClient();
-			
+
 			switch (client.getMsgType(msg)) {
 
 			case CommunicateWithClient.LOGIN: // 登录请求
 				signIn();
-//				// 从客户端获取消息
-//				Envelope envelope = client.recvFromUserMsg();
-//				// 解析消息的收件人
-//				String TargetId = envelope.getTargetAccountId();
-//				// 根据收件人地址 转发给对应的发送线程
+				// // 从客户端获取消息
+				// Envelope envelope = client.recvFromUserMsg();
+				// // 解析消息的收件人
+				// String TargetId = envelope.getTargetAccountId();
+				// // 根据收件人地址 转发给对应的发送线程
 
 				// while (account.getOnlineStatus()) {
 				// switch (client.getMsgType(client.recvFromClient())) {

@@ -22,7 +22,7 @@ public class DatabaseOperator {
 
 	// Database credentials
 	private static final String USER = "root";
-	private static final String PASSWORD = "Czh19970319!";
+	private static final String PASSWORD = "root1234";
 
 	private Connection connection;
 	private Statement statement;
@@ -94,14 +94,15 @@ public class DatabaseOperator {
 			return statement.executeQuery(sql);
 		} catch (SQLException e) {
 			return null;
-		} finally {
-			try {
-				if (statement != null)
-					statement.close();
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
 		}
+//		} finally {
+//			try {
+//				if (statement != null)
+//					statement.close();
+//			} catch (SQLException e) {
+//				e.printStackTrace();
+//			}
+//		}
 
 	}
 
@@ -112,14 +113,15 @@ public class DatabaseOperator {
 			return statement.executeUpdate(sql);
 		} catch (SQLException e) {
 			return -1;
-		} finally {
-			try {
-				if (statement != null)
-					statement.close();
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
 		}
+//		 finally {
+//			try {
+//				if (statement != null)
+//					statement.close();
+//			} catch (SQLException e) {
+//				e.printStackTrace();
+//			}
+//		}
 
 	}
 
@@ -162,7 +164,7 @@ public class DatabaseOperator {
 
 		connectDatabase();
 
-		ResultSet rs = query("SELECT `id`,`username` FROM `SECD`.`user`");// Execute a query
+		ResultSet rs = query("SELECT *	 FROM `SECD`.`user`");// Execute a query
 
 		while (rs.next()) { // Extract data from result set
 			// Retrieve by column name

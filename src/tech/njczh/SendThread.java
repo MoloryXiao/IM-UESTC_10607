@@ -23,9 +23,10 @@ public class SendThread extends Thread {
 	 * @throws IOException
 	 * 
 	 */
-	public SendThread(Socket socket) throws IOException {
+	public SendThread(Socket socket,Account account) throws IOException {
 
 		client = new CommunicateWithClient(socket);
+		this.account = account;
 
 		// 在服务器发送子线程数据库中注册该线程
 		ThreadManager.regSendThread(this);
