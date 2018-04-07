@@ -5,6 +5,7 @@ package tech.njczh;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.sql.SQLException;
 
 import tech.njczh.Server.Account;
 import tech.njczh.Server.CommunicateWithClient;
@@ -20,20 +21,6 @@ public class SendThread extends Thread {
 	private Account account;
 
 	/**
-	 * @throws IOException
-	 * 
-	 */
-	public SendThread(Socket socket,Account account) throws IOException {
-
-		client = new CommunicateWithClient(socket);
-		this.account = account;
-
-		// 在服务器发送子线程数据库中注册该线程
-		ThreadManager.regSendThread(this);
-
-	}
-
-	/**
 	 * @return account
 	 */
 	public Account getAccount() {
@@ -47,12 +34,32 @@ public class SendThread extends Thread {
 		return account.getID();
 	}
 
+	/**
+	 * @throws IOException
+	 * 
+	 */
+	public SendThread(Socket socket, Account account) throws IOException {
+
+		client = new CommunicateWithClient(socket);
+		this.account = account;
+
+		// 在服务器发送子线程数据库中注册该线程
+		ThreadManager.regSendThread(this);
+
+	}
+
 	public void run() {
-		
+
 		try {
-			client.sendFinishMsg();			// 返回登陆确认信息			
-		} catch (IOException e) {			
-			e.printStackTrace();			
+
+			DatabaseOperator databaseOperator = new DatabaseOperator();
+
+			client.sendFinishMsg(); // 返回登陆确认信息
+
+			client.sendFriendList(databaseOperator.getFriendListFromDb(account.getID()));
+
+		} catch (IOException | SQLException e) {
+			e.printStackTrace();
 		}
 
 	}

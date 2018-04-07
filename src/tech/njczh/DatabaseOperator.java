@@ -95,14 +95,14 @@ public class DatabaseOperator {
 		} catch (SQLException e) {
 			return null;
 		}
-//		} finally {
-//			try {
-//				if (statement != null)
-//					statement.close();
-//			} catch (SQLException e) {
-//				e.printStackTrace();
-//			}
-//		}
+		// } finally {
+		// try {
+		// if (statement != null)
+		// statement.close();
+		// } catch (SQLException e) {
+		// e.printStackTrace();
+		// }
+		// }
 
 	}
 
@@ -114,33 +114,42 @@ public class DatabaseOperator {
 		} catch (SQLException e) {
 			return -1;
 		}
-//		 finally {
-//			try {
-//				if (statement != null)
-//					statement.close();
-//			} catch (SQLException e) {
-//				e.printStackTrace();
-//			}
-//		}
+		// finally {
+		// try {
+		// if (statement != null)
+		// statement.close();
+		// } catch (SQLException e) {
+		// e.printStackTrace();
+		// }
+		// }
 
 	}
 
-	public boolean isLoginInfoCorrect(Login loginInfo) throws SQLException {
+	/**
+	 * 判断用户登陆信息是否正确
+	 * @param loginInfo
+	 * @return 登陆成功，返回Account用户信息，否则返回null
+	 * @throws SQLException
+	 */
+	public Account isLoginInfoCorrect(Login loginInfo) throws SQLException {
 
 		connectDatabase();
+		
+		Account loginAccount = null;
+		
+		ResultSet rs = query("SELECT `id`, `username`,`sign` " + "FROM `SECD`.`user` WHERE id = "
+				+ loginInfo.getAccountId() + "AND `password` = " + loginInfo.getPassword());// Execute a query
 
-		ResultSet rs = query("SELECT `id`,`password` FROM `SECD`.`user`"); // Execute a query
-
-		while (rs.next()) { // Extract data from result set
-
-			if ((rs.getString("id").equals(loginInfo.getAccountId()))
-					&& (rs.getString("password").equals(loginInfo.getPassword()))) // Retrieve by column name
-				return true;
-		}
+		if (rs.next()) { // Extract data from result set
+		
+			loginAccount = new Account(rs.getString("id"), 
+									rs.getString("username"), 
+									true, rs.getString("sign"));	// Retrieve by column name
+			}
 
 		disconnectDatabase();
 
-		return false;
+		return loginAccount;
 	}
 
 	public Account getAccountById(String Id) throws SQLException {
@@ -149,7 +158,6 @@ public class DatabaseOperator {
 
 		ResultSet rs = query("SELECT * FROM SECD.user where id = " + Id + ";");
 		rs.next();
-
 		Account account = new Account(rs.getString("id"), rs.getString("username"), false, rs.getString("sign"));
 
 		disconnectDatabase();
@@ -158,17 +166,24 @@ public class DatabaseOperator {
 
 	}
 
-	public ArrayList<Account> getFriendListFromDb() throws SQLException {
+	public ArrayList<Account> getFriendListFromDb(String id) throws SQLException {
 
 		ArrayList<Account> friendsList = new ArrayList<Account>();
 
 		connectDatabase();
 
-		ResultSet rs = query("SELECT *	 FROM `SECD`.`user`");// Execute a query
+		ResultSet rs = query(
+				"SELECT 	SlaveID,	username,	sign \n" + "FROM 	SECD.relationship a,	SECD.`user` b \n"
+						+ "WHERE	a.MasterId = " + id + " AND b.id = a.SlaveID;");// Execute a query
 
 		while (rs.next()) { // Extract data from result set
 			// Retrieve by column name
-			friendsList.add(new Account(rs.getString("id"), rs.getString("username"), false, rs.getString("sign")));
+			boolean onlineFlag;
+			if (ThreadDatabase.serverThreadDb.containsKey(rs.getString(1)))
+				onlineFlag = true;
+			else
+				onlineFlag = false;
+			friendsList.add(new Account(rs.getString(1), rs.getString(2), onlineFlag, rs.getString(3)));
 		}
 
 		disconnectDatabase();

@@ -8,9 +8,9 @@ import java.io.IOException;
 import java.net.Socket;
 import java.sql.SQLException;
 
+
 import tech.njczh.Server.Account;
 import tech.njczh.Server.CommunicateWithClient;
-import tech.njczh.Server.Envelope;
 import tech.njczh.Server.Login;
 
 /**
@@ -27,7 +27,7 @@ public class ServerThread extends Thread {
 	public ServerThread(Socket socket) throws IOException {
 
 		client = new CommunicateWithClient(socket);
-
+		account = null;
 	}
 
 	public String getAccountId() {
@@ -40,16 +40,15 @@ public class ServerThread extends Thread {
 
 		DatabaseOperator databaseOperator = new DatabaseOperator();
 
-		Login loginInfo = new Login();
-		loginInfo = client.getLoginAccountInfo();
+		Login loginInfo = client.getLoginAccountInfo(); // 从客户端获取登陆信息
 
-		if (databaseOperator.isLoginInfoCorrect(loginInfo)) { // 登录信息与数据库中比对成功
+		account = databaseOperator.isLoginInfoCorrect(loginInfo); // 在数据库中查询登陆信息
 
-			account = databaseOperator.getAccountById(loginInfo.getAccountId());
-			account.setOnline(true);
-			onlineCounter++;
+		if (account != null) { // 登录信息与数据库中比对成功
+
 			System.out.println("ID:\"" + loginInfo.getAccountId() + "\" login successful!");
 			System.out.println("The current number of online users is [" + onlineCounter + "]");
+			onlineCounter++;
 
 			// 在服务器服务子线程数据库中注册该线程
 			ThreadManager.regRecvThread(this);
@@ -57,9 +56,6 @@ public class ServerThread extends Thread {
 			// 创建该客户对应的转发线程
 			SendThread sendThread = new SendThread(client.getSocket(), account);
 			sendThread.start();
-
-			// TODO 把发送好友列表交给发送线程
-			client.sendFriendList(databaseOperator.getFriendListFromDb());
 
 			return true;
 
@@ -77,13 +73,24 @@ public class ServerThread extends Thread {
 
 		// 判断请求类型
 		try {
+			String msg;
+			do {
+				msg = client.recvFromClient();
 
-			String msg = client.recvFromClient();
+				switch (client.getMsgType(msg)) {
 
-			switch (client.getMsgType(msg)) {
+				case CommunicateWithClient.LOGIN: // 登录请求
+					signIn();
+					break;
 
-			case CommunicateWithClient.LOGIN: // 登录请求
-				signIn();
+				case CommunicateWithClient.CHAT:
+					if (account == null){
+						System.out.println(client.getSocket()+"未登录，试图进行聊天");
+						break;
+					}
+					break;
+				// 登陆成功，持续接受客户端消息，直到判定用户下线
+
 				// // 从客户端获取消息
 				// Envelope envelope = client.recvFromUserMsg();
 				// // 解析消息的收件人
@@ -115,13 +122,15 @@ public class ServerThread extends Thread {
 				// }
 				// break;
 
-			case CommunicateWithClient.REGISTOR: // 注册请求
-				// Account registorInfo = new Account();
-				break;
+				// case CommunicateWithClient.REGISTOR: // 注册请求
+				// // Account registorInfo = new Account();
+				// break;
 
-			default:
-				break;
-			}
+				default:
+					break;
+				}
+			} while (account.getOnlineStatus());
+
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
