@@ -93,6 +93,7 @@ public class DatabaseOperator {
 			statement = connection.createStatement();
 			return statement.executeQuery(sql);
 		} catch (SQLException e) {
+			System.out.println("[ ERROR ] SQL查询时发生错误！请检查语法："+sql);
 			return null;
 		}
 		// } finally {
@@ -127,6 +128,7 @@ public class DatabaseOperator {
 
 	/**
 	 * 判断用户登陆信息是否正确
+	 * 
 	 * @param loginInfo
 	 * @return 登陆成功，返回Account用户信息，否则返回null
 	 * @throws SQLException
@@ -134,19 +136,18 @@ public class DatabaseOperator {
 	public Account isLoginInfoCorrect(Login loginInfo) throws SQLException {
 
 		connectDatabase();
-		
+
 		Account loginAccount = null;
-		
-		ResultSet rs = query("SELECT `id`, `username`,`sign` " + "FROM `SECD`.`user` WHERE id = "
-				+ loginInfo.getAccountId() + "AND `password` = " + loginInfo.getPassword());// Execute a query
 
-		if (rs.next()) { // Extract data from result set
-		
-			loginAccount = new Account(rs.getString("id"), 
-									rs.getString("username"), 
-									true, rs.getString("sign"));	// Retrieve by column name
-			}
+		ResultSet rs = query("SELECT `id`, `username`,`sign` FROM `SECD`.`user` WHERE id = " + loginInfo.getAccountId()
+				+ " AND `password` = \'" + loginInfo.getPassword() + "\'");// Execute a query
 
+		if (rs != null) { // 查询出现错误
+			if (rs.next()) // Extract data from result set
+				// Retrieve by column name
+				loginAccount = new Account(rs.getString("id"), rs.getString("username"), true, rs.getString("sign")); 
+		}
+		
 		disconnectDatabase();
 
 		return loginAccount;

@@ -32,14 +32,19 @@ public class LoginServer {
 	public void setupServer(int port) {
 
 		if (loginSock.setServer(port)) {
+			
 			System.out.println("[ READY ] Server Status");
 			System.out.println("Listening port: [ " + port + " ]");
+			
 		} else {
+			
 			System.out.println("[ ERROR ] Server Status");
 			return;
+			
 		}
 
 		try {
+			
 			while (true) {
 
 				Socket clientSocket = loginSock.waitConnectFromClient();
@@ -48,6 +53,7 @@ public class LoginServer {
 				serverThread.start();
 
 			}
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 			return;
@@ -59,6 +65,7 @@ public class LoginServer {
 	}
 
 	public static void main(String[] args) {
+		
 		LoginServer loginServer = new LoginServer();
 
 		/* 检查数据库连接 */
@@ -69,5 +76,6 @@ public class LoginServer {
 		loginServer.setupServer(9090);
 
 		System.out.println("goodbye!");
+		
 	}
 }

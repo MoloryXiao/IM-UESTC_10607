@@ -17,8 +17,18 @@ import tech.njczh.Server.CommunicateWithClient;
  */
 public class SendThread extends Thread {
 
+	private volatile boolean exit = false;
+
 	private CommunicateWithClient client;
 	private Account account;
+
+	/**
+	 * @param exit
+	 *            要设置的 exit
+	 */
+	public void setExit(boolean exit) {
+		this.exit = exit;
+	}
 
 	/**
 	 * @return account
@@ -58,10 +68,15 @@ public class SendThread extends Thread {
 
 			client.sendFriendList(databaseOperator.getFriendListFromDb(account.getID()));
 
+			while (!exit) {
+
+			}
+			
 		} catch (IOException | SQLException e) {
 			e.printStackTrace();
 		}
 
+		ThreadManager.delSendThread(getAccountId());
 	}
 
 }
