@@ -161,12 +161,9 @@ public class FriendsListWindow extends JFrame{
 	private void twoClick(Object value,int i){
 		if(vec_friend_window.indexOf(i) == -1){
 			vec_friend_window.add(i);
-//			Runnable rnb = ()->{
-				ChatWindow cw = new ChatWindow(value);
-				alist.add(cw);
-				System.out.println("打开与 "+value+" 的聊天窗口...");
-//			};
-//			new Thread(rnb).start();
+			ChatWindow cw = new ChatWindow(value);
+			alist.add(cw);
+			System.out.println("ChatInfo: open the chating window with "+ value);
 		}else{
 			alist.get(i).setVisible(true);
 			alist.get(i).setAlwaysOnTop(true);
