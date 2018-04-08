@@ -1,4 +1,4 @@
-package tech.njczh;
+package Server;
 
 public class Msg {
 }

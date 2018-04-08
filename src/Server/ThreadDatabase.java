@@ -1,7 +1,6 @@
-/**
+package Server; /**
  *
  */
-package tech.njczh;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -20,4 +19,4 @@ public class ThreadDatabase {
 	
 }
 
-// public static Map<String, SendThread> sendThreadDb = new HashMap<String, SendThread>();
+// public static Map<String, Server.SendThread> sendThreadDb = new HashMap<String, Server.SendThread>();

@@ -1,7 +1,7 @@
-package tech.njczh;
+package Server;
 
-import tech.njczh.Network.Server.Account;
-import tech.njczh.Network.Server.CommunicateWithClient;
+import Network.Server.Account;
+import Network.Server.CommunicateWithClient;
 
 import java.io.IOException;
 import java.net.Socket;

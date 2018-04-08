@@ -1,14 +1,13 @@
-/**
+package Server; /**
  *
  */
-package tech.njczh;
 
 import java.io.IOException;
 import java.net.Socket;
 import java.sql.SQLException;
 
-import tech.njczh.Network.Server.Account;
-import tech.njczh.Network.Server.CommunicateWithClient;
+import Network.Server.Account;
+import Network.Server.CommunicateWithClient;
 
 /**
  * 服务器负责接收来自服务子线程的数据 并发送给目标客户端

@@ -1,4 +1,4 @@
-package tech.njczh.Network.Server;
+package Network.Server;
 
 import java.io.IOException;
 import java.net.BindException;
@@ -38,7 +38,7 @@ public class NetworkForServer {
 			return true;
 		} catch (IOException e) {
 			if (e instanceof BindException)
-				System.out.println(port + " 端口已经被使用！绑定失败！");
+				System.out.println("[ ERROR ] 端口：" + port + " 已经被使用！绑定失败！");
 			return false;
 		}
 	}

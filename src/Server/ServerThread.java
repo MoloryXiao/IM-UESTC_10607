@@ -1,16 +1,14 @@
-/**
+package Server; /**
  *
  */
-
-package tech.njczh;
 
 import java.io.IOException;
 import java.net.Socket;
 import java.sql.SQLException;
 
-import tech.njczh.Network.Server.Account;
-import tech.njczh.Network.Server.CommunicateWithClient;
-import tech.njczh.Network.Server.Login;
+import Network.Server.Account;
+import Network.Server.CommunicateWithClient;
+import Network.Server.Login;
 
 /**
  * @author 97njczh
@@ -84,7 +82,7 @@ public class ServerThread extends Thread {
 			sendThread.setExit(true);
 			sendThread.join();
 			
-			System.out.println(account.getID() + "：SendThread 线程结束！");
+			System.out.println(account.getID() + "：Server.SendThread 线程结束！");
 			
 		} catch (InterruptedException e) {
 			e.printStackTrace();
@@ -129,7 +127,7 @@ public class ServerThread extends Thread {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		System.out.println("[ ATTENTION ] 用户：" + account.getID() + " 的 ServerThread 线程结束！");
+		System.out.println("[ ATTENTION ] 用户：" + account.getID() + " 的 Server.ServerThread 线程结束！");
 	}
 
 }

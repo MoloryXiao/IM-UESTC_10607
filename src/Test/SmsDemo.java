@@ -1,4 +1,4 @@
-package tech.njczh.Test;
+package Test;
 
 
 import com.aliyuncs.DefaultAcsClient;

@@ -1,11 +1,10 @@
-package tech.njczh;
+package Server;
+
+import Network.Server.Account;
+import Network.Server.Login;
 
 import java.sql.*;
 import java.util.ArrayList;
-
-import com.sun.org.apache.bcel.internal.generic.NEW;
-import tech.njczh.Network.Server.Account;
-import tech.njczh.Network.Server.Login;
 
 /**
  * @author 97njczh

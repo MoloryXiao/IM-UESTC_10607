@@ -1,10 +1,8 @@
-/**
+package Server; /**
  *
  */
 
-package tech.njczh;
-
-import tech.njczh.Network.Server.NetworkForServer;
+import Network.Server.NetworkForServer;
 
 import java.net.Socket;
 
@@ -35,15 +33,17 @@ public class PortListenThread extends Thread {
 		return listenPort;
 	}
 	
-	private void setupPortListen( int port ) {
+	private boolean setupPortListen( int port ) {
 		
 		if (loginSock.setServer(port)) {
 			
 			System.out.println("[ READY ] 监听线程就绪！正在监听: " + port + " 端口...");
+			return true;
 			
 		} else {
 			
 			System.out.println("[ ERROR ] 监听线程启动出现错误，正在退出...");
+			return false;
 			
 		}
 		
@@ -89,23 +89,23 @@ public class PortListenThread extends Thread {
 	@Override
 	public void run() {
 		
-		setupPortListen(listenPort);
-		
-		while (portListen()) {
+		if (setupPortListen(listenPort)) {
 			
-			try {
+			while (portListen()) {
 				
-				Thread.sleep(SLEEP_TIME);
-				System.out.println("[ READY ] 监听线程重新启动！");
-				
-			} catch (InterruptedException e) {
-				
-				e.printStackTrace();
-				System.out.println("[ ERROR ] 监听线程休眠失败！");
-				break;
-				
+				try {
+					
+					Thread.sleep(SLEEP_TIME);
+					System.out.println("[ READY ] 监听线程重新启动！");
+					
+				} catch (InterruptedException e) {
+					
+					e.printStackTrace();
+					System.out.println("[ ERROR ] 监听线程休眠失败！");
+					break;
+					
+				}
 			}
-			
 		}
 		
 		System.out.println("[ ATTENTION ] 监听线程退出！");

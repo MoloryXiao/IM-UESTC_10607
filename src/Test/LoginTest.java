@@ -1,10 +1,10 @@
 
-package tech.njczh.Test;
+package Test;
 
 import java.util.Scanner;
 
 import com.aliyuncs.exceptions.ClientException;
-import tech.njczh.Test.SmsDemo;
+
 import java.sql.*;
 
 public class LoginTest

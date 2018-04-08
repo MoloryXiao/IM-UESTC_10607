@@ -1,4 +1,4 @@
-package tech.njczh.Network.Server;
+package Network.Server;
 
 /**
  * Class Name: RegistorAccount

@@ -1,8 +1,7 @@
-
+package Server;
 /**
  *
  */
-package tech.njczh;
 
 /**
  * 管理登陆的用户进程，添加或删除
@@ -11,7 +10,7 @@ package tech.njczh;
  */
 public class ThreadManager {
 	
-	/*======================================= ServerThread =======================================*/
+	/*======================================= Server.ServerThread =======================================*/
 	
 	public static void regServerThread( ServerThread serverThread ) {
 		
@@ -25,12 +24,12 @@ public class ThreadManager {
 	
 }
 
-//	/*======================================= SendThread =======================================*/
+//	/*======================================= Server.SendThread =======================================*/
 //
-//	public static void regSendThread(SendThread sendThread) {
-//		ThreadDatabase.sendThreadDb.put(sendThread.getAccountId(), sendThread);
+//	public static void regSendThread(Server.SendThread sendThread) {
+//		Server.ThreadDatabase.sendThreadDb.put(sendThread.getAccountId(), sendThread);
 //	}
 //
 //	public static void delSendThread(String id) {
-//		ThreadDatabase.sendThreadDb.remove(id);
+//		Server.ThreadDatabase.sendThreadDb.remove(id);
 //	}

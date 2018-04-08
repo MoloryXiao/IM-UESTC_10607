@@ -1,4 +1,4 @@
-package tech.njczh.Network.Server;
+package Network.Server;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
