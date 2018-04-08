@@ -1,4 +1,4 @@
-package tech.njczh.Server;
+package tech.njczh.Network.Server;
 
 import java.io.IOException;
 import java.net.BindException;

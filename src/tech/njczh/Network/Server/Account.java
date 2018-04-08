@@ -1,4 +1,4 @@
-package tech.njczh.Server;
+package tech.njczh.Network.Server;
 
 /**
  * Created by ZiQin on 2018/3/25.
