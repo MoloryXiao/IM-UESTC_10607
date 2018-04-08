@@ -24,7 +24,7 @@ public class ChatTool {
 	    }
 		login_wind = new LoginWindow();
 		while(!login_wind.getEnterFlag()){}
-		System.out.println("成功登陆！正在拉取好友列表...");
+		System.out.println("LoginInfo: obtaining the friendList from server.");
 		fd_wind = new FriendsListWindow();
 	}
 }

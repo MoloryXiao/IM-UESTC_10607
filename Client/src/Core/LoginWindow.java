@@ -8,9 +8,8 @@ import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
-
 import javax.swing.*;
-import Network_Client.*;
+import Network_Client.*;;
 
 public class LoginWindow extends JFrame{
 	
@@ -19,12 +18,8 @@ public class LoginWindow extends JFrame{
 	//private final String host_name = "192.168.1.102";	// local area for test
 	private final int contact_port = 9090;
 	
-	private int i_window_width = 520;
-	private int i_window_height = 400;
-	private int i_screen_width;
-	private int i_screen_height;
-	private int i_loc_X;
-	private int i_loc_Y;
+	private static final int i_window_width = 520;
+	private static final int i_window_height = 400;
 	private boolean enter_flag = false;
 	
 	JButton 			login_button;
@@ -36,98 +31,17 @@ public class LoginWindow extends JFrame{
 	JCheckBox 			cbox_remember,cbox_auto_login;	
 	GridBagLayout 		gb_layout;
 	GridBagConstraints 	gb_constraint;
-
-	/**
-	 * 获取是否允许进入好友列表的标识位
-	 * @return enter_flag
-	 */
-	public boolean getEnterFlag(){
-		System.out.print("");
-		return this.enter_flag;
-	}
-	
-    /**
-     * 将窗口居中到屏幕中央
-     */
-	protected void setWindowCenter(){
-		Toolkit kit=Toolkit.getDefaultToolkit();
-		Dimension screenSize=kit.getScreenSize();
-		i_screen_width = screenSize.width;
-		i_screen_height = screenSize.height;
-		i_loc_X = (i_screen_width - i_window_width)/2;
-		i_loc_Y = (i_screen_height - i_window_height)/2;
-		this.setLocation(i_loc_X,i_loc_Y);
-	}
-	
-	/**
-     * 向服务器验证登陆信息
-     * @param yhm 用户名信息
-     * @param psw 登陆密码
-     * @return 服务器连接情况/验证结果
-     */
-	private boolean verifyInfoWithServer(String yhm,String psw){
-		nfc = new NetworkForClient(host_name,contact_port);
-		if(!nfc.connectToServer()){
-			System.out.println("Connection error.");
-			return false;
-		}else{
-			System.out.println("LoginInfo: send to server. yhm: "+yhm);
-			System.out.println("LoginInfo: send to server. psw: "+psw);
-			if(nfc.login(yhm,psw)){
-				System.out.println("Login: successful.");
-				return true;
-			}else{
-				System.out.println("LoginError: Verification does not pass.");
-				JOptionPane.showMessageDialog(null, "信息验证失败！请检查输入的账号与密码！",
-						"Error", JOptionPane.ERROR_MESSAGE);
-				return false;
-			}
-		}
-	}
-	
-	/**
-	 * 对文本框进行检查 符合后进行登陆验证
-	 */
-	private void loginVerify(){		
-		String yhm = text_field.getText();
-		String psw = new String(password_field.getPassword());
-		if(yhm.equals("")){
-			System.out.println("LoginError: yhm is empty.");
-			JOptionPane.showMessageDialog(null, "用户名为空！请检查登陆信息！",
-					"Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
-		if(psw.equals("")){
-			System.out.println("LoginError: psw is empty.");
-			JOptionPane.showMessageDialog(null, "密码为空！请检查登陆信息！",
-					"Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
-		
-		Runnable rnb = () ->{
-			boolean verifyRes = false;
-			verifyRes = verifyInfoWithServer(yhm,psw);
-			if(verifyRes){
-				dispose();
-				enter_flag = true;
-			}
-		};
-		Thread thd = new Thread(rnb);
-		thd.start();
-	}
 	
 	/**
 	 * LoginWindow 构造函数
 	 */
 	public LoginWindow(){
+		this.setTitle("KIM");
+		this.setResizable(false);
+		this.setLocationRelativeTo(null);
+		this.setSize(i_window_width,i_window_height);
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setIconImage((new ImageIcon("image/chick.png")).getImage());
-		this.setSize(i_window_width,i_window_height);
-		this.setResizable(false);
-		this.setTitle("KIM");
-		
-		/* 获取屏幕尺寸 并居中窗口到屏幕 */
-		setWindowCenter();
 		
 		/* ImageIcon图片设置 */
 		head_image_icon = new ImageIcon("image/loginHeadImage.jpg");
@@ -261,4 +175,72 @@ public class LoginWindow extends JFrame{
 		this.setAlwaysOnTop(false);
 		this.setVisible(true);
 	}
+	
+	/**
+	 * 获取是否允许进入好友列表的标识位
+	 * @return enter_flag
+	 */
+	public boolean getEnterFlag(){
+		System.out.print("");
+		return this.enter_flag;
+	}
+	
+	/**
+     * 向服务器验证登陆信息
+     * @param yhm 用户名信息
+     * @param psw 登陆密码
+     * @return 服务器连接情况/验证结果
+     */
+	private boolean verifyInfoWithServer(String yhm,String psw){
+		nfc = new NetworkForClient(host_name,contact_port);
+		if(!nfc.connectToServer()){
+			System.out.println("Connection error.");
+			return false;
+		}else{
+			System.out.println("LoginInfo: send to server. yhm: "+yhm);
+			System.out.println("LoginInfo: send to server. psw: "+psw);
+			if(nfc.login(yhm,psw)){
+				System.out.println("Login: successful.");
+				return true;
+			}else{
+				System.out.println("LoginError: Verification does not pass.");
+				JOptionPane.showMessageDialog(null, "信息验证失败！请检查输入的账号与密码！",
+						"Error", JOptionPane.ERROR_MESSAGE);
+				return false;
+			}
+		}
+	}
+	
+	/**
+	 * 对文本框进行检查 符合后进行登陆验证
+	 */
+	private void loginVerify(){		
+		String yhm = text_field.getText();
+		String psw = new String(password_field.getPassword());
+		if(yhm.equals("")){
+			System.out.println("LoginError: yhm is empty.");
+			JOptionPane.showMessageDialog(null, "用户名为空！请检查登陆信息！",
+					"Error", JOptionPane.ERROR_MESSAGE);
+			return;
+		}
+		if(psw.equals("")){
+			System.out.println("LoginError: psw is empty.");
+			JOptionPane.showMessageDialog(null, "密码为空！请检查登陆信息！",
+					"Error", JOptionPane.ERROR_MESSAGE);
+			return;
+		}
+		
+		Runnable rnb = () ->{
+			boolean verifyRes = false;
+			verifyRes = verifyInfoWithServer(yhm,psw);
+			if(verifyRes){
+				dispose();
+				enter_flag = true;
+			}
+		};
+		Thread thd = new Thread(rnb);
+		thd.start();
+	}
+	
+	
 }
