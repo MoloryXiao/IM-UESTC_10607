@@ -1,4 +1,6 @@
-﻿import java.util.*;
+﻿package Core;
+
+import java.util.*;
 
 import javax.swing.UIManager;
 public class ChatTool {

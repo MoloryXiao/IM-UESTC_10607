@@ -1,9 +1,14 @@
-﻿import java.awt.*;
+﻿package Core;
+
+import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.Vector;
 
 import javax.swing.*;
 import javax.swing.border.Border;
+
+import org.omg.CORBA.Current;
 
 public class FriendsListWindow extends JFrame{
 	private int i_window_width=320,i_window_height=700;
@@ -11,7 +16,8 @@ public class FriendsListWindow extends JFrame{
 	private int i_loc_X,i_loc_Y;
 	private Toolkit tool_kit;
 	private Dimension screenSize;
-//	private static boolean pluginFlag = true;
+	private int chat_wind_count = 0;
+	private Vector vec_friend_window;
 	
 	private JPanel top_panel,bottom_panel,middle_panel,
 		middle_friends_panel,middle_groups_panel,middle_else_panel;
@@ -20,16 +26,6 @@ public class FriendsListWindow extends JFrame{
 	private JList<String> friends_list;
 	private GridBagLayout top_gbLayout,middle_gbLayout;
 	private GridBagConstraints top_gbConstr,middle_gbConstr;
-	
-//	public static void main(String []args){
-//		try {
-//			if(pluginFlag)
-//				org.jb2011.lnf.beautyeye.BeautyEyeLNFHelper.launchBeautyEyeLNF();
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//		}
-//		FriendsListWindow friendWindow = new FriendsListWindow();
-//	}
 	
 	private void setWindowSize(){
 		//i_window_height = (int)(screenSize.height/3*2);		// 取2/3倍屏幕高度
@@ -82,8 +78,15 @@ public class FriendsListWindow extends JFrame{
 		/* 将面板添加到容器中 */
 		this.add(top_panel,BorderLayout.NORTH);
 	}
-	private void twoClick(Object value){
-		System.out.println(value);
+	private void twoClick(Object value,int i){
+		String name = (String) value;
+		if(vec_friend_window.indexOf(i) == -1){
+			vec_friend_window.add(i);
+			ChatWindow cw = new ChatWindow(name);
+			System.out.println("打开与 "+value+" 的聊天窗口...");
+		}else{
+			
+		}
 	}
 	private void middlePaneSet(){
 		/* 组件初始化 */
@@ -101,7 +104,7 @@ public class FriendsListWindow extends JFrame{
 			public void mouseClicked(MouseEvent e){
 				if(friends_list.getSelectedIndex() != -1) {
 					if(e.getClickCount() == 2){
-						twoClick(friends_list.getSelectedValue());
+						twoClick(friends_list.getSelectedValue(),friends_list.getSelectedIndex());
 					}
 				}
 			}
@@ -126,6 +129,7 @@ public class FriendsListWindow extends JFrame{
 		
 	}
 	public FriendsListWindow(){
+		vec_friend_window = new Vector();
 		/* 获取屏幕相关信息 */
 		tool_kit=Toolkit.getDefaultToolkit();
 		screenSize=tool_kit.getScreenSize();

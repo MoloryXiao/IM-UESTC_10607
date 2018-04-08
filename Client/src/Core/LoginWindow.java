@@ -1,11 +1,13 @@
-﻿import java.awt.*;
+﻿package Core;
+import Network_Client.*;
+
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.awt.geom.Ellipse2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -15,6 +17,11 @@ import javax.imageio.ImageIO;
 import javax.swing.*;
 
 public class LoginWindow extends JFrame{
+	
+	private NetworkForClient nfc;
+	private final String host_name = "39.108.95.130";
+	private final int contact_port = 9090;
+	
 	private int i_window_width = 520;
 	private int i_window_height = 400;
 	private int i_screen_width;
@@ -69,29 +76,50 @@ public class LoginWindow extends JFrame{
 		this.setLocation(i_loc_X,i_loc_Y);
 	}
 	private boolean verifyInfoWithServer(String yhm,String psw){
-		System.out.println("向服务器发送用户名："+yhm);
-		System.out.println("向服务器发送用户密码："+psw);
-		return true;
+		nfc = new NetworkForClient(host_name,contact_port);
+		if(!nfc.connectToServer()){
+			System.out.println("Connection error.");
+			return false;
+		}else{
+			System.out.println("向服务器发送用户名："+yhm);
+			System.out.println("向服务器发送用户密码："+psw);
+			if(nfc.login(yhm,psw)){
+				System.out.println("密码正确！");
+				return true;
+			}
+			else{
+				System.out.println("密码错误");
+				return false;
+			}
+		}
 	}
 	public boolean getEnterFlag(){
-		System.out.print("");		// 用于抢占CPU
+		System.out.print("");
 		return this.enter_flag;
 	}
 	private void loginVerify(){
+		
 		String yhm = text_field.getText();
 		String psw = new String(password_field.getPassword());
-		boolean verifyRes = false;
-		if(yhm.equals("")){
-			System.out.println("用户名为空！");
-		}else if(psw.equals("")){
-			System.out.println("密码为空！");
-		}else{
-			verifyRes = verifyInfoWithServer(yhm,psw);
-		}
-		if(verifyRes){
-			dispose();
-			enter_flag = true;
-		}
+		
+		Runnable rnb = () ->{
+			boolean verifyRes = false;
+			if(yhm.equals("")){
+				System.out.println("用户名为空！");
+			}else if(psw.equals("")){
+				System.out.println("密码为空！");
+			}else{
+				verifyRes = verifyInfoWithServer(yhm,psw);
+			}
+			if(verifyRes){
+				dispose();
+				enter_flag = true;
+			}else{
+				login_button.setEnabled(true);
+			}
+		};
+		Thread thd = new Thread(rnb);
+		thd.start();
 	}
 	public LoginWindow(){
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -138,9 +166,11 @@ public class LoginWindow extends JFrame{
 		//head_image_label.setPreferredSize(new Dimension(50,50));
 			
 		/* Button按钮设置 */
-		login_button = new JButton("登  陆");	login_button.setPreferredSize(new Dimension(i_window_width/3,30));
+		login_button = new JButton("登  陆");
+		login_button.setPreferredSize(new Dimension(i_window_width/3,30));
 		login_button.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				login_button.setEnabled(false);		// 禁用按钮
 				loginVerify();
 			}
 		});
@@ -158,8 +188,10 @@ public class LoginWindow extends JFrame{
 			public void keyTyped(KeyEvent e) {}
 			public void keyPressed(KeyEvent e) {}
 			public void keyReleased(KeyEvent e) {
-				if(e.getKeyChar() == KeyEvent.VK_ENTER )
+				if(e.getKeyChar() == KeyEvent.VK_ENTER ){
+					login_button.setEnabled(false);		// 禁用按钮
 					loginVerify();
+				}
 			}
 		});
 				
