@@ -1,7 +1,5 @@
 ﻿package Core;
 
-import java.util.*;
-
 import javax.swing.UIManager;
 public class ChatTool {
 	private static boolean plugin_Flag;
@@ -9,6 +7,7 @@ public class ChatTool {
 	private static FriendsListWindow fd_wind;
 	
 	public static void main(String []args){
+		@SuppressWarnings("unused")
 		ChatTool ct = new ChatTool();
 	}
 	public ChatTool(){
