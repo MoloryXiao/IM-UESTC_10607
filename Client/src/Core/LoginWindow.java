@@ -1,5 +1,4 @@
 ﻿package Core;
-
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -9,19 +8,16 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
 import javax.swing.*;
-import Network_Client.*;;
+import Network_Client.*;
 
 public class LoginWindow extends JFrame{
-	
-	private NetworkForClient nfc;
-	private final String host_name = "39.108.95.130";	// server location
-	//private final String host_name = "192.168.1.102";	// local area for test
-	private final int contact_port = 9090;
-	
 	private static final int i_window_width = 520;
 	private static final int i_window_height = 400;
-	private boolean enter_flag = false;
-	
+	private boolean connect_server_flag = false;
+	private boolean remember_btn_flag = false;
+	private boolean auto_btn_flag = false;
+	private String login_yhm=null,login_psw=null;
+		
 	JButton 			login_button;
 	JPanel 				bottom_panel,middle_panel;
 	JLabel 				top_label,head_image_label,register_new_label,forget_psw_label;
@@ -35,11 +31,16 @@ public class LoginWindow extends JFrame{
 	/**
 	 * LoginWindow 构造函数
 	 */
-	public LoginWindow(){
+	public LoginWindow(String yhm,String psw,boolean rememberSelected,boolean autoLoginSelected){
+		this.login_yhm = yhm;
+		this.login_psw = psw;
+		this.remember_btn_flag = rememberSelected;
+		this.auto_btn_flag = autoLoginSelected;
+		
 		this.setTitle("KIM");
-		this.setResizable(false);
-		this.setLocationRelativeTo(null);
 		this.setSize(i_window_width,i_window_height);
+		this.setLocationRelativeTo(null);
+		this.setResizable(false);
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setIconImage((new ImageIcon("image/chick.png")).getImage());
 		
@@ -58,7 +59,7 @@ public class LoginWindow extends JFrame{
 		register_new_label.addMouseListener(new MouseAdapter() {
 			public void mouseClicked(MouseEvent e) {
 				try {
-					Runtime.getRuntime().exec("cmd.exe /c start " + "https://ssl.zc.qq.com/");
+					Runtime.getRuntime().exec("cmd.exe /c start " + "http://39.108.95.130:9000/JavaWeb");
 				} catch (IOException e1) {
 					e1.printStackTrace();
 				}
@@ -70,7 +71,7 @@ public class LoginWindow extends JFrame{
 		forget_psw_label.addMouseListener(new MouseAdapter(){
 			public void mouseClicked(MouseEvent e){
 				try {
-					Runtime.getRuntime().exec("cmd.exe /c start " + "https://aq.qq.com/");
+					Runtime.getRuntime().exec("cmd.exe /c start " + "http://39.108.95.130:9000/FindPasswd");
 				} catch (IOException e1) {
 					e1.printStackTrace();
 				}
@@ -82,14 +83,18 @@ public class LoginWindow extends JFrame{
 		middle_panel = new JPanel();  
 		text_field = new JTextField(10);
 		password_field = new JPasswordField(10);
+		text_field.setText(this.login_yhm);
+		password_field.setText(this.login_psw);
 		password_field.addKeyListener(new KeyListener(){
 			public void keyTyped(KeyEvent e) {}
 			public void keyPressed(KeyEvent e) {}
 			public void keyReleased(KeyEvent e) {
 				if(e.getKeyChar() == KeyEvent.VK_ENTER ){
 					login_button.setEnabled(false);		// 禁用按钮
-					loginVerify();
-					login_button.setEnabled(true);
+					if(checkLoginInfo()) 
+						connect_server_flag = true;
+					else
+						login_button.setEnabled(true);
 				}
 			}
 		});
@@ -100,12 +105,28 @@ public class LoginWindow extends JFrame{
 		login_button.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				login_button.setEnabled(false);		// 禁用按钮
-				loginVerify();
-				login_button.setEnabled(true);
+				if(checkLoginInfo()) 
+					connect_server_flag = true;
+				else
+					login_button.setEnabled(true);
 			}
 		});
 		cbox_remember = new JCheckBox("记住密码");
+		cbox_remember.setSelected(this.remember_btn_flag);
+		cbox_remember.addActionListener(new ActionListener(){
+			public void actionPerformed(ActionEvent e) {
+				if(cbox_remember.isSelected()) remember_btn_flag = true;
+				else remember_btn_flag = false;
+			}
+		});
 		cbox_auto_login = new JCheckBox("自动登陆");
+		cbox_auto_login.setSelected(this.auto_btn_flag);
+		cbox_auto_login.addActionListener(new ActionListener(){
+			public void actionPerformed(ActionEvent e) {
+				if(cbox_auto_login.isSelected()) auto_btn_flag = true;
+				else auto_btn_flag = false;
+			}
+		});
 				
 		/* GridBag 布局 */
 		gb_layout = new GridBagLayout();
@@ -176,70 +197,48 @@ public class LoginWindow extends JFrame{
 		this.setVisible(true);
 	}
 	
-	/**
-	 * 获取是否允许进入好友列表的标识位
-	 * @return enter_flag
-	 */
-	public boolean getEnterFlag(){
+	public boolean isConnectServer(){
 		System.out.print("");
-		return this.enter_flag;
+		return this.connect_server_flag;
 	}
-	
-	/**
-     * 向服务器验证登陆信息
-     * @param yhm 用户名信息
-     * @param psw 登陆密码
-     * @return 服务器连接情况/验证结果
-     */
-	private boolean verifyInfoWithServer(String yhm,String psw){
-		nfc = new NetworkForClient(host_name,contact_port);
-		if(!nfc.connectToServer()){
-			System.out.println("Connection error.");
-			return false;
-		}else{
-			System.out.println("LoginInfo: send to server. yhm: "+yhm);
-			System.out.println("LoginInfo: send to server. psw: "+psw);
-			if(nfc.login(yhm,psw)){
-				System.out.println("Login: successful.");
-				return true;
-			}else{
-				System.out.println("LoginError: Verification does not pass.");
-				JOptionPane.showMessageDialog(null, "信息验证失败！请检查输入的账号与密码！",
-						"Error", JOptionPane.ERROR_MESSAGE);
-				return false;
-			}
-		}
+	public String getYhm(){
+		return this.login_yhm;
+	}
+	public String getPsw(){
+		return this.login_psw;
+	}
+	public void setLoginButtonStatus(boolean status){
+		login_button.setEnabled(status);
+	}
+	public void setConnectFlag(boolean status){
+		this.connect_server_flag = status;
+	}
+	public boolean getRememberBtnFlag(){
+		return this.remember_btn_flag;
+	}
+	public boolean getAutoBtnFlag(){
+		return this.auto_btn_flag;
 	}
 	
 	/**
 	 * 对文本框进行检查 符合后进行登陆验证
 	 */
-	private void loginVerify(){		
-		String yhm = text_field.getText();
-		String psw = new String(password_field.getPassword());
-		if(yhm.equals("")){
+	private boolean checkLoginInfo(){		
+		login_yhm = text_field.getText();
+		login_psw = new String(password_field.getPassword());
+		if(login_yhm.equals("")){
 			System.out.println("LoginError: yhm is empty.");
 			JOptionPane.showMessageDialog(null, "用户名为空！请检查登陆信息！",
 					"Error", JOptionPane.ERROR_MESSAGE);
-			return;
+			return false;
 		}
-		if(psw.equals("")){
+		if(login_psw.equals("")){
 			System.out.println("LoginError: psw is empty.");
 			JOptionPane.showMessageDialog(null, "密码为空！请检查登陆信息！",
 					"Error", JOptionPane.ERROR_MESSAGE);
-			return;
+			return false;
 		}
-		
-		Runnable rnb = () ->{
-			boolean verifyRes = false;
-			verifyRes = verifyInfoWithServer(yhm,psw);
-			if(verifyRes){
-				dispose();
-				enter_flag = true;
-			}
-		};
-		Thread thd = new Thread(rnb);
-		thd.start();
+		return true;
 	}
 	
 	

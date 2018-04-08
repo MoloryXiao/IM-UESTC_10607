@@ -1,12 +1,16 @@
 ﻿package Core;
 
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Vector;
-
 import javax.swing.*;
+import Network_Client.*;
 
 public class FriendsListWindow extends JFrame{
 	private int 		i_window_width=320,i_window_height=700;
@@ -15,14 +19,17 @@ public class FriendsListWindow extends JFrame{
 	private Toolkit 	tool_kit;
 	private Dimension 	screenSize;
 	private Vector<Integer> vec_friend_window;
+	private boolean create_chatWind_flag = false;
+	private ArrayList<Account> friends_arrList;
 	
-	private JPanel 				top_panel,middle_panel,
+	private JPanel 				top_panel,middle_panel,bottom_panel,
 								middle_friends_panel,middle_groups_panel,middle_else_panel;
 	private JLabel 				head_image_label,name_label,sign_label;
 	private JTabbedPane 		tabbed_pane;
-	private JList<String> 		friends_list;
+	private JList<String> 		friends_name_list;
 	private GridBagLayout 		top_gbLayout;
 	private GridBagConstraints 	top_gbConstr;
+	private JButton				logout_btn;
 	
 	ArrayList<ChatWindow> alist;
 	
@@ -40,35 +47,16 @@ public class FriendsListWindow extends JFrame{
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);					// 设置关闭键操作
 		this.setIconImage((new ImageIcon("image/chick.png")).getImage());		// 设置图标
 		setWindowSize();			// 设置窗口尺寸
-		setWindowRight();			// 设置窗口位于屏幕右侧		
+		setWindowRight();			// 设置窗口位于屏幕右侧
 		this.setResizable(false);	// 是否可拖拽
 		this.setTitle("KIM");		// 窗口名称
 		
 		topPaneSet(); 
 		middlePaneSet(); 
+		bottomPaneSet();
 		
 		this.setAlwaysOnTop(true);	// 是否置顶
 		this.setVisible(true);		// 是否可视化
-	}
-	
-	/**
-	 * 设置窗口尺寸
-	 */
-	private void setWindowSize(){
-		//i_window_height = (int)(screenSize.height/3*2);		// 取2/3倍屏幕高度
-		//i_window_width = (int)(screenSize.width/3/3*1.5);
-		this.setSize(i_window_width,i_window_height);
-	}
-	
-	/**
-	 * 设置窗口位置
-	 */
-	private void setWindowRight(){
-		i_screen_width = screenSize.width;
-		i_screen_height = screenSize.height;
-		i_loc_X = (i_screen_width/3*2)+(i_screen_width/3 - i_window_width)/2;	// 位于屏幕右侧
-		i_loc_Y = (i_screen_height - i_window_height)/2;
-		this.setLocation(i_loc_X,i_loc_Y);
 	}
 	
 	/**
@@ -79,6 +67,7 @@ public class FriendsListWindow extends JFrame{
 		top_panel = new JPanel();
 		head_image_label = new JLabel();							// 头像图标
 		head_image_label.setIcon((new ImageIcon("image/p70_piano.jpg")));
+		head_image_label.setToolTipText("123木头人");
 		//head_image_label.setPreferredSize(new Dimension(20,20));
 		name_label = new JLabel("昵称：Piano Duet");					// 昵称
 		sign_label = new JLabel("坚持不是梦想，放弃才是胜利！");		// 个性签名	
@@ -123,20 +112,13 @@ public class FriendsListWindow extends JFrame{
 		middle_friends_panel = new JPanel();
 		middle_groups_panel = new JPanel();
 		middle_else_panel = new JPanel();
-		friends_list = new JList<String>();
+		friends_name_list = new JList<String>();
 		
-		/* List列表设置 */
-		friends_list.setListData(new String[]{"小明","小军","小红","小鬼","乐乐"});
-		friends_list.setPreferredSize(new Dimension(i_window_width-60, (int)(i_window_height*0.7)));
-		friends_list.addMouseListener(new MouseAdapter(){
-			public void mouseClicked(MouseEvent e){
-				if(friends_list.getSelectedIndex() != -1) {
-					if(e.getClickCount() == 2){
-						twoClick(friends_list.getSelectedValue(),friends_list.getSelectedIndex());
-					}
-				}
-			}
-		});
+		friends_name_list.setListData(new String[]{"正在拉取好友列表..."});		
+		JScrollPane friends_list_scroll = new JScrollPane(friends_name_list);
+		friends_list_scroll.setPreferredSize(new Dimension(i_window_width-60,440));
+		friends_list_scroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+		
 		
 		/* Panel面板设置 */
 		middle_groups_panel.setBackground(Color.green);
@@ -147,11 +129,29 @@ public class FriendsListWindow extends JFrame{
 		tabbed_pane.add("好友",middle_friends_panel);
 		tabbed_pane.add("群组",middle_groups_panel);
 		tabbed_pane.add("其他",middle_else_panel);
-		middle_friends_panel.add(friends_list);
+		middle_friends_panel.add(friends_list_scroll);
 		
 		/* 添加到容器  */
 		this.add(middle_panel,BorderLayout.CENTER);
 	}
+	
+	private void bottomPaneSet(){
+		bottom_panel = new JPanel();
+		logout_btn = new JButton("退出");
+		logout_btn.addActionListener(new ActionListener(){
+			public void actionPerformed(ActionEvent e) {
+				System.exit(0);
+			}
+		});
+		
+		FlowLayout flowLayout_Bottom = new FlowLayout();
+		flowLayout_Bottom.setAlignment(FlowLayout.RIGHT);		
+		bottom_panel.setLayout(flowLayout_Bottom);
+		
+		bottom_panel.add(logout_btn);
+		this.add(bottom_panel,BorderLayout.SOUTH);
+	}
+	
 	
 	/**
 	 * 双击好友进行的操作
@@ -168,6 +168,104 @@ public class FriendsListWindow extends JFrame{
 			alist.get(i).setVisible(true);
 			alist.get(i).setAlwaysOnTop(true);
 			alist.get(i).setAlwaysOnTop(false);
+		}
+	}
+	
+	/**
+	 * 设置窗口尺寸
+	 */
+	private void setWindowSize(){
+		//i_window_height = (int)(screenSize.height/3*2);		// 取2/3倍屏幕高度
+		//i_window_width = (int)(screenSize.width/3/3*1.5);
+		this.setSize(i_window_width,i_window_height);
+	}
+	
+	/**
+	 * 设置窗口位置
+	 */
+	private void setWindowRight(){
+		i_screen_width = screenSize.width;
+		i_screen_height = screenSize.height;
+		i_loc_X = (i_screen_width/3*2)+(i_screen_width/3 - i_window_width)/2;	// 位于屏幕右侧
+		i_loc_Y = (i_screen_height - i_window_height)/2;
+		this.setLocation(i_loc_X,i_loc_Y);
+	}
+
+	public boolean isCreateChatWind(){
+		return this.create_chatWind_flag;
+	}
+
+	public void setFriendsList(ArrayList<Account> inArrList){
+		this.friends_arrList = new ArrayList<Account>(inArrList);
+	}
+	
+	public void updateFriendsList(ArrayList<Account> inArrList){
+		setFriendsList(inArrList);
+		sortFriendsListByOnline();
+		int online_count = countOnlineNums();
+		friendsListShow(online_count);
+	}
+	
+	
+	/**
+	 * 将在线好友置顶
+	 * @param inArrList 好友列表
+	 * @return 排好序的好友列表
+	 */
+	private void sortFriendsListByOnline(){
+		Comparator<Account> cmptor = new Comparator<Account>(){
+			public int compare(Account a, Account b) {
+				int status_A = a.getOnlineStatus()?1:-1;
+				int status_B = b.getOnlineStatus()?1:-1;
+				if(status_A <= status_B) return 1;
+				else return -1;
+			}
+		};
+		Collections.sort(friends_arrList,cmptor);		
+	}
+
+	public void friendsListShow(int online_count){
+		/* List列表设置 */
+		Vector<String> fd_name_vec = new Vector<String>();
+		for(int i=0;i<friends_arrList.size();i++)
+			fd_name_vec.add(friends_arrList.get(i).getNikeName());
+		
+		friends_name_list.setListData(fd_name_vec.toArray(new String[fd_name_vec.size()]));
+		friends_name_list.setPreferredSize(new Dimension(i_window_width-60, (int)(i_window_height*0.7)));
+		friends_name_list.addMouseListener(new MouseAdapter(){
+			public void mouseClicked(MouseEvent e){
+				if(friends_name_list.getSelectedIndex() != -1) {
+					if(e.getClickCount() == 2){
+						twoClick(friends_name_list.getSelectedValue(),friends_name_list.getSelectedIndex());
+					}
+				}
+			}
+		});
+		FriendsListCellRenderer flcr = new FriendsListCellRenderer(online_count,Color.RED);
+		friends_name_list.setCellRenderer(flcr);
+	}
+	
+	/**
+	 * 计数在线个数
+	 * 前提：必须调用排序算法
+	 * @param inArrList
+	 * @return count 在线人数
+	 */
+	private int countOnlineNums(){
+		int count = 0;
+		for(int i=0;i<friends_arrList.size();i++){
+			if(friends_arrList.get(i).getOnlineStatus()) count++;
+			else break;
+		}
+		return count;
+	}
+	
+	public void printFriendsArrList(){
+		for(int i=0;i<friends_arrList.size();i++){
+			System.out.println("ListInfo: Get the friend "+(i+1)+" - "+friends_arrList.get(i).getNikeName());
+			System.out.println("ListInfo: Get the friend "+(i+1)+" - "+friends_arrList.get(i).getSignature());
+			System.out.println("ListInfo: Get the friend "+(i+1)+" - "+friends_arrList.get(i).getID());
+			System.out.println("ListInfo: Get the friend "+(i+1)+" - "+friends_arrList.get(i).getOnlineStatus());
 		}
 	}
 }

@@ -1,10 +1,7 @@
 package Core;
-
-
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-
 import javax.swing.*;
 
 public class ChatWindow extends JFrame{
@@ -30,7 +27,6 @@ public class ChatWindow extends JFrame{
 		this.setResizable(false);
 		this.setLocationRelativeTo(null);
 		this.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-		//this.setDefaultLookAndFeelDecorated(true);
 		
 		SetNorthPane(oj);
 		SetSouthPane();
