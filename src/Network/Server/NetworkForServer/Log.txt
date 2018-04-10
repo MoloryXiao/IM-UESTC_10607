@@ -1,0 +1,30 @@
+NetworkForServer.java
+
+2018-3-25 ZiQin
+V1.0.0
+完成基本功能：
+等待客户端发来连接并创建对应的Socket
+
+CommunicateWithClient.java
+
+2018-3-25 ZiQin
+V1.0.0 
+完成基本功能的开发：
+添加好友
+查找好友
+聊天
+登录
+删除好友
+
+2018-3-26 ZiQin
+Java Doc 1.0.0 生成
+
+2018-3-27 ZiQin
+V1.0.1
+修复DataInputStream和DataOutStream没有关闭的情况
+
+2018-4-10
+V1.1.0
+应要求，协议格式更改为每条信息包括信息类型与内容
+（注意：好友列表的协议格式保持不变）
+重新生成JavaDoc
