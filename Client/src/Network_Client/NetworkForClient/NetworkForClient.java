@@ -1,18 +1,18 @@
-﻿package Network_Client;
+package com.qq.NetworkForClient;
 
+import com.qq.BaseClass.*;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.net.Socket;
 import java.util.ArrayList;
 
 /**
  * Class Name:NetworkForClient
- * @author ZiQin
- * @version 1.0.1
  * 客户端的网络通信
- * Created by ZiQin on 2018/3/24.
+ * Created by ZiQin on 2018/4/10.
+ * @author ZiQin
+ * @version 1.1.0
  */
 public class NetworkForClient {
 
@@ -144,9 +144,7 @@ public class NetworkForClient {
      */
     public boolean login(String account, String password) {
         try {
-            sendDataToServer("L");
-            sendDataToServer(account + " " + password);
-            recvDataFromServer();
+            sendDataToServer("L" + account + " " + password);
             if (isOk(recvDataFromServer())) {
                 ID = account;
                 return true;
@@ -172,13 +170,12 @@ public class NetworkForClient {
      * 接受服务器发来的个人信息
      * @return 个人信息
      */
-    public Account getMyself() throws IOException {
-        String temp = recvDataFromServer();
-        int k = 0;
+    public Account getMyself(String temp) throws IOException {
+        int k = 1;
         String ID = new String();
         String nickName = new String();
         String signature = new String();
-        for (int j = 0; j < temp.length(); j++) {
+        for (int j = 1; j < temp.length(); j++) {
             if (temp.charAt(j) == ' ' && k != 4) {
                 ++k;
                 continue;
@@ -215,7 +212,7 @@ public class NetworkForClient {
     /**
      * 从远端服务器获取好友列表
      * 协议格式：
-     * send1: F
+     * recv1: Number
      * recvN: ID nikeName isOnline signature
      * @return 返回好友列表
      * @throws IOException
@@ -270,44 +267,39 @@ public class NetworkForClient {
     /**
      * 向好友发送信息
      * 协议格式：
-     * send1: C
-     * send2: targetID sourceID text
+     * send1: CtargetID sourceID text
      * @param friendId 接收方ID号码
      * @param msg 信息内容
      * @throws IOException
      */
     public void sendMsgToFriend(String friendId, String msg) throws IOException {
-        sendDataToServer("C");
-        sendDataToServer(friendId + " " + ID + " " + msg);
+        sendDataToServer("C" + friendId + " " + ID + " " + msg);
     }
 
     /**
      * 向好友发送信息（重载）
      * 协议格式：
-     * send1: C
-     * send2: targetID sourceID text
+     * send1: CtargetID sourceID text
      * @param envelope 信封封装
      * @throws IOException
      */
     public void sendMsgToFriend(Envelope envelope) throws IOException {
-        sendDataToServer("C");
-        sendDataToServer(envelope.getTargetAccountId() + " " + envelope.getSourceAccountId() + " " + envelope.getText());
+        sendDataToServer("C" + envelope.getTargetAccountId() + " " + envelope.getSourceAccountId() + " " + envelope.getText());
     }
 
     /**
      * 获取好友发来的信息
      * 支持格式：
-     * recv: targetID sourceID text
+     * recv: CtargetID sourceID text
      * @return 返回信封
      * @throws IOException
      */
-    public Envelope getMsgFromFriend() throws IOException {
-        String temp = recvDataFromServer();
+    public Envelope getMsgFromFriend(String temp) throws IOException {
         String friendId = new String();
         String me = new String();
         String msg = new String();
         int k = 1;
-        for (int i = 0; i < temp.length(); i++) {
+        for (int i = 1; i < temp.length(); i++) {
             if (temp.charAt(i) == ' ' && k != 3) {
                 ++k;
                 continue;
@@ -332,25 +324,24 @@ public class NetworkForClient {
     /**
      * 发送添加好友请求
      * 协议格式:
-     * send1: A
-     * send2: targetId sourceId
+     * send1: AtargetId sourceId
      * @param targetID 要添加的好友ID
      * @throws IOException
      */
     public void addFriend(String targetID) throws IOException {
-        sendDataToServer("A");
-        sendDataToServer(targetID + " " + ID);
+        sendDataToServer("A" + targetID + " " + ID);
     }
 
     /**
      * 对对方添加好友的请求的处理结果进行回应
-     * @param envelope
-     * @param ok
+     * 协议格式：
+     * send1: BtargetId sourceId
+     * @param envelope 信封
+     * @param ok 对方好友请求结果
      * @throws IOException
      */
     public void sendAddFriendResult(Envelope envelope, boolean ok) throws IOException {
-        sendDataToServer("B");
-        sendDataToServer(envelope.getTargetAccountId() + " " +  envelope.getSourceAccountId() + " " + ok);
+        sendDataToServer("B" + envelope.getTargetAccountId() + " " +  envelope.getSourceAccountId() + " " + ok);
     }
 
     /**
@@ -360,11 +351,10 @@ public class NetworkForClient {
      * @return 返回添加好友结果
      * @throws IOException
      */
-    public boolean addFriendResult() throws IOException {
-        String temp = recvDataFromServer();
+    public boolean addFriendResult(String temp) throws IOException {
         String result = new String();
         int k = 1;
-        for (int i = 0; i < temp.length(); i++) {
+        for (int i = 1; i < temp.length(); i++) {
             if (temp.charAt(i) == ' ') {
                 ++k;
                 continue;
@@ -387,25 +377,22 @@ public class NetworkForClient {
     /**
      * 发送查找用户的请求
      * 协议格式：
-     * send1: S
-     * send2: targetId sourceId
+     * send2: StargetId sourceId
      * @param AccountId 查找用户的ID号码
      * @throws IOException
      */
     public void sendSearchUser(String AccountId) throws IOException {
-        sendDataToServer("S");
-        sendDataToServer(AccountId + " " + ID);
+        sendDataToServer("S" + AccountId + " " + ID);
     }
 
     /**
      * 获取查找用户的结果
      * 接收类型：
-     * recv1: Id nickName signature
+     * recv1: BId nickName signature
      * @return Account类型，用户信息，若未找到则返回null
      * @throws IOException
      */
-    public Account getSearchResult() throws IOException {
-        String temp = recvDataFromServer();
+    public Account getSearchResult(String temp) throws IOException {
         String target = new String();
         String name = new String();
         String signature = new String();
@@ -440,29 +427,26 @@ public class NetworkForClient {
     /**
      * 发送删除好友请求
      * 协议格式：
-     * send1: D
-     * send2: targetId sourceId
+     * send2: DtargetId sourceId
      * @param account 将要删除的好友ID号码
      * @throws IOException
      */
     public void sendDelFriend(String account) throws IOException {
-        sendDataToServer("D");
-        sendDataToServer(account + " " + ID);
+        sendDataToServer("D" + account + " " + ID);
     }
 
     /**
      * 从服务器端接收删除好友的结果
      * 接收格式：
-     * recv1: targetId sourceId
+     * recv1: DtargetId sourceId
      * @return 返回信封，信封内容为删除结果
      * @throws IOException
      */
-    public Envelope recvDelResult() throws IOException {
-        String temp = recvDataFromServer();
+    public Envelope recvDelResult(String temp) throws IOException {
         String target = new String();
         String result = new String();
         int k = 1;
-        for (int i = 0; i < temp.length(); i++) {
+        for (int i = 1; i < temp.length(); i++) {
             if (temp.charAt(i) == ' ') {
                 ++k;
                 continue;
@@ -484,14 +468,12 @@ public class NetworkForClient {
     /**
      * 发送给注册账户的请求
      * 协议格式：
-     * send1: R
-     * send2: nickName password
+     * send2: RnickName password
      * @param nickName 昵称
      * @throws IOException
      */
     public void sendRegistor(String nickName, String password) throws IOException {
-        sendDataToServer("R");
-        sendDataToServer(nickName + " " + password);
+        sendDataToServer("R" + nickName + " " + password);
     }
 
     /**
@@ -502,7 +484,7 @@ public class NetworkForClient {
      * @throws IOException
      */
     public String recvRegistorId() throws IOException {
-        return recvDataFromServer();
+        return new String(recvDataFromServer());
     }
 
     /**
