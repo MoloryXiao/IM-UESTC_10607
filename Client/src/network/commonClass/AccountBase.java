@@ -1,4 +1,4 @@
-package network.commonClass;
+﻿package network.commonClass;
 
 /**
  * 描述：AccountBase类是用户基本信息类

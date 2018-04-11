@@ -8,7 +8,6 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
 import javax.swing.*;
-import Network_Client.*;
 
 public class LoginWindow extends JFrame{
 	private static final int i_window_width = 520;

@@ -4,10 +4,14 @@ import java.io.IOException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.util.ArrayList;
+
 import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 
-import Network_Client.*;
+import network.NetworkForClient.NetworkForClient;
+import network.commonClass.Account;
+import network.messageOperate.MessageOperate;
+
 public class ChatTool {
 	private static boolean plugin_Flag;
 	private static LoginWindow login_wind;
@@ -125,9 +129,8 @@ public class ChatTool {
 		System.out.println("LoginInfo: obtaining the friendList from server.");
 		fd_wind = new FriendsListWindow();
 		try {
-			nfc.askFriendListFromServer();		// 向服务器请求好友列表
-			nfc.recvFromServer();				// 获取好友列表消息头
-			friend_info_arraylist = new ArrayList<Account>(nfc.getFriendList());	// 拿到最新的好友列表
+			friend_info_arraylist = new ArrayList<Account>(MessageOperate.
+					getFriendList(nfc.recvFromServer()));		// 拉取最新的好友列表
 			printAccountList(friend_info_arraylist);
 			fd_wind.updateFriendsList(friend_info_arraylist);
 		} catch (IOException e) {
@@ -143,7 +146,7 @@ public class ChatTool {
 			System.out.println("ListInfo: Get the friend "+(i+1)+" - "+arrList.get(i).getNikeName());
 			System.out.println("ListInfo: Get the friend "+(i+1)+" - "+arrList.get(i).getSignature());
 			System.out.println("ListInfo: Get the friend "+(i+1)+" - "+arrList.get(i).getID());
-			System.out.println("ListInfo: Get the friend "+(i+1)+" - "+arrList.get(i).getOnlineStatus());
+			System.out.println("ListInfo: Get the friend "+(i+1)+" - "+arrList.get(i).getOnLine());
 		}
 	}
 	/** 

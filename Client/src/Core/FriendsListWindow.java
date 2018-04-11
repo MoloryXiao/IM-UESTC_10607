@@ -9,8 +9,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Vector;
+
 import javax.swing.*;
-import Network_Client.*;
+
+import network.commonClass.Account;
 
 public class FriendsListWindow extends JFrame{
 	private int 		i_window_width=320,i_window_height=700;
@@ -215,8 +217,8 @@ public class FriendsListWindow extends JFrame{
 	private void sortFriendsListByOnline(){
 		Comparator<Account> cmptor = new Comparator<Account>(){
 			public int compare(Account a, Account b) {
-				int status_A = a.getOnlineStatus()?1:-1;
-				int status_B = b.getOnlineStatus()?1:-1;
+				int status_A = a.getOnLine()?1:-1;
+				int status_B = b.getOnLine()?1:-1;
 				if(status_A <= status_B) return 1;
 				else return -1;
 			}
@@ -254,7 +256,7 @@ public class FriendsListWindow extends JFrame{
 	private int countOnlineNums(){
 		int count = 0;
 		for(int i=0;i<friends_arrList.size();i++){
-			if(friends_arrList.get(i).getOnlineStatus()) count++;
+			if(friends_arrList.get(i).getOnLine()) count++;
 			else break;
 		}
 		return count;
@@ -265,7 +267,7 @@ public class FriendsListWindow extends JFrame{
 			System.out.println("ListInfo: Get the friend "+(i+1)+" - "+friends_arrList.get(i).getNikeName());
 			System.out.println("ListInfo: Get the friend "+(i+1)+" - "+friends_arrList.get(i).getSignature());
 			System.out.println("ListInfo: Get the friend "+(i+1)+" - "+friends_arrList.get(i).getID());
-			System.out.println("ListInfo: Get the friend "+(i+1)+" - "+friends_arrList.get(i).getOnlineStatus());
+			System.out.println("ListInfo: Get the friend "+(i+1)+" - "+friends_arrList.get(i).getOnLine());
 		}
 	}
 }

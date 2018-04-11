@@ -1,4 +1,4 @@
-package network.commonClass;
+﻿package network.commonClass;
 
 /**
  * 描述：Account类是用户信息的封装，继承AccountBase类

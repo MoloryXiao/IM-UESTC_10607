@@ -1,4 +1,4 @@
-package network.commonClass;
+﻿package network.commonClass;
 
 /**
  * 描述：Login类用于封装登录信息

@@ -1,4 +1,4 @@
-package network.commonClass;
+﻿package network.commonClass;
 
 /**
  * 描述：Envelope类用于打包发送方和接收方的信息
