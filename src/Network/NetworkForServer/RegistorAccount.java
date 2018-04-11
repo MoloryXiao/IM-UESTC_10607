@@ -1,11 +1,11 @@
-package Network.Server;
+package network.NetworkForServer;
 
 /**
  * Class Name: RegistorAccount
- * @author ZiQin
- * @version 1.0.0
  * 账户注册类
  * Created by ZiQin on 2018/3/26.
+ * @author ZiQin
+ * @version 1.0.0
  */
 public class RegistorAccount {
 
