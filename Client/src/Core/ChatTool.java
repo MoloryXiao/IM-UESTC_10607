@@ -137,9 +137,7 @@ public class ChatTool {
 		arrList_friends_chatWind = new ArrayList<ChatWindow>();
 		
 		while(true){
-			if(fd_wind.getCreateChatWindFlag()){
-				new ChatWindow("小明");
-				/*
+			if(fd_wind.getCreateChatWindFlag()){				
 				String str_chatName = (String)fd_wind.getNewWindowValue();
 				int i_orderNum = fd_wind.getNewWindowOrderNum();
 				if(vec_friend_orderNum.indexOf(i_orderNum) == -1){
@@ -150,7 +148,7 @@ public class ChatTool {
 					arrList_friends_chatWind.get(i_orderNum).setVisible(true);
 					arrList_friends_chatWind.get(i_orderNum).setAlwaysOnTop(true);
 					arrList_friends_chatWind.get(i_orderNum).setAlwaysOnTop(false);
-				}*/
+				}
 				fd_wind.setCreateChatWindFlag(false);
 			}
 		}		
