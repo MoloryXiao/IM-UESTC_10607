@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.util.ArrayList;
+import java.util.Vector;
+
 import javax.swing.UIManager;
 
 import Network_Client.*;
@@ -16,6 +18,8 @@ public class ChatTool {
 	private ArrayList<Account> friend_info_arraylist;
 	private boolean login_success_flag = false;
 	private NetworkController nkc;
+	private Vector vec_friend_orderNum;
+	private ArrayList<ChatWindow> arrList_friends_chatWind;
 	
 	public static void main(String []args){
 		@SuppressWarnings("unused")
@@ -129,9 +133,26 @@ public class ChatTool {
 		printAccountList(friend_info_arraylist);
 		
 		fd_wind.updateFriendsList(friend_info_arraylist);
+		vec_friend_orderNum = new Vector();
+		arrList_friends_chatWind = new ArrayList<ChatWindow>();
 		
-		while(!fd_wind.isCreateChatWind()){
-			
+		while(true){
+			if(fd_wind.getCreateChatWindFlag()){
+				new ChatWindow("小明");
+				/*
+				String str_chatName = (String)fd_wind.getNewWindowValue();
+				int i_orderNum = fd_wind.getNewWindowOrderNum();
+				if(vec_friend_orderNum.indexOf(i_orderNum) == -1){
+					vec_friend_orderNum.add(i_orderNum);
+					arrList_friends_chatWind.add(new ChatWindow(str_chatName));
+					System.out.println("ChatInfo: open the chating window with "+ str_chatName);
+				}else{
+					arrList_friends_chatWind.get(i_orderNum).setVisible(true);
+					arrList_friends_chatWind.get(i_orderNum).setAlwaysOnTop(true);
+					arrList_friends_chatWind.get(i_orderNum).setAlwaysOnTop(false);
+				}*/
+				fd_wind.setCreateChatWindFlag(false);
+			}
 		}		
 	}
 	public void printAccountList(ArrayList<Account> arrList){

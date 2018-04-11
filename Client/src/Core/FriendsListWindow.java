@@ -9,7 +9,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Vector;
+
 import javax.swing.*;
+
 import Network_Client.*;
 
 public class FriendsListWindow extends JFrame{
@@ -18,8 +20,7 @@ public class FriendsListWindow extends JFrame{
 	private int 		i_loc_X,i_loc_Y;
 	private Toolkit 	tool_kit;
 	private Dimension 	screenSize;
-	private Vector<Integer> vec_friend_window;
-	private boolean create_chatWind_flag = false;
+	private boolean 	flag_create_chatWind = false;
 	private ArrayList<Account> friends_arrList;
 	
 	private JScrollPane 		friends_list_scroll;
@@ -32,15 +33,14 @@ public class FriendsListWindow extends JFrame{
 	private GridBagConstraints 	top_gbConstr;
 	private JButton				logout_btn;
 	
-	ArrayList<ChatWindow> alist;
+	private Object new_window_value;
+	private int new_window_orderNum;
 	private int i_friends_sum;
 	
 	/**
 	 * FriendsListWindow 构造函数
 	 */
 	public FriendsListWindow(){
-		vec_friend_window = new Vector();
-		alist = new ArrayList();
 		/* 获取屏幕相关信息 */
 		tool_kit=Toolkit.getDefaultToolkit();
 		screenSize=tool_kit.getScreenSize();
@@ -172,16 +172,26 @@ public class FriendsListWindow extends JFrame{
 	 * @param i
 	 */
 	private void twoClick(Object value,int i){
-		if(vec_friend_window.indexOf(i) == -1){
-			vec_friend_window.add(i);
-			ChatWindow cw = new ChatWindow(value);
-			alist.add(cw);
-			System.out.println("ChatInfo: open the chating window with "+ value);
-		}else{
-			alist.get(i).setVisible(true);
-			alist.get(i).setAlwaysOnTop(true);
-			alist.get(i).setAlwaysOnTop(false);
-		}
+		setNewWindowResource(value,i);
+		this.flag_create_chatWind = true;
+	}
+	
+	public boolean getCreateChatWindFlag(){		
+		System.out.print("");
+		return this.flag_create_chatWind;
+	}
+	public void setCreateChatWindFlag(boolean flag){
+		this.flag_create_chatWind = flag;
+	}
+	private void setNewWindowResource(Object value,int orderNumber){
+		this.new_window_value = value;
+		this.new_window_orderNum = orderNumber;
+	}
+	public Object getNewWindowValue(){
+		return this.new_window_value;
+	}
+	public int getNewWindowOrderNum(){
+		return this.new_window_orderNum;
 	}
 	
 	/**
@@ -204,9 +214,6 @@ public class FriendsListWindow extends JFrame{
 		this.setLocation(i_loc_X,i_loc_Y);
 	}
 
-	public boolean isCreateChatWind(){
-		return this.create_chatWind_flag;
-	}
 
 	public void setFriendsList(ArrayList<Account> inArrList){
 		this.friends_arrList = new ArrayList<Account>(inArrList);
@@ -240,11 +247,15 @@ public class FriendsListWindow extends JFrame{
 	public void friendsListShow(int online_count){
 		/* List列表设置 */
 		Vector<String> fd_name_vec = new Vector<String>();
+		//Vector<Account> fd_account_vec = new Vector<Account>();
 		this.i_friends_sum =  friends_arrList.size();
-		for(int i=0;i<this.i_friends_sum;i++)
+		for(int i=0;i<this.i_friends_sum;i++){
 			fd_name_vec.add(friends_arrList.get(i).getNikeName());
+			//fd_account_vec.add(friends_arrList.get(i));
+		}
 		
-		friends_name_list.setListData(fd_name_vec.toArray(new String[fd_name_vec.size()]));
+		//friends_name_list.setListData(fd_name_vec.toArray(new String[fd_name_vec.size()]));
+		friends_name_list.setListData(fd_name_vec);
 		FriendsListCellRenderer flcr = new FriendsListCellRenderer(online_count,Color.RED);
 		friends_name_list.setCellRenderer(flcr);
 		if(this.i_friends_sum >= 15)
