@@ -1,7 +1,7 @@
 package Server;
 
-import Network.Server.Account;
-import Network.Server.Login;
+import Network.Server.BaseClass.Account;
+import Network.Server.BaseClass.Login;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -197,11 +197,10 @@ public class DatabaseOperator {
 			
 			while (rs.next()) { // Extract data from result set
 				
-				// 判断好友是否在线
-				boolean onlineFlag = ThreadDatabase.serverThreadDb.containsKey(rs.getString(1));
-				
-				friendsList.add(new Account(rs.getString(1),
-						rs.getString(2), onlineFlag,
+				friendsList.add(new Account(
+						rs.getString(1),
+						rs.getString(2),
+						Server.isUserOnline(rs.getString(1)), // 判断好友是否在线
 						rs.getString(3)));
 				
 			}
@@ -211,5 +210,5 @@ public class DatabaseOperator {
 		
 		return friendsList;
 	}
-
+	
 }

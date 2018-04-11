@@ -5,10 +5,10 @@ package Server; /**
 import java.io.IOException;
 import java.net.Socket;
 import java.sql.SQLException;
+import java.util.Vector;
 
-import Network.Server.Account;
-import Network.Server.CommunicateWithClient;
-import Network.Server.Login;
+import Network.Server.BaseClass.*;
+import Network.Server.NetworkForServer.*;
 
 /**
  * @author 97njczh
@@ -21,6 +21,19 @@ public class ServerThread extends Thread {
 	
 	private RecvThread recvThread;
 	private SendThread sendThread;
+	
+	private Vector<String> recvQueue;
+	private Vector<String> sendQueue;
+	
+	public synchronized void putMsgToSendQueue( String message ) {
+		
+		sendQueue.add(message);
+	}
+	
+	public synchronized void putMsgToRecvQueue( String message ) {
+		
+		recvQueue.add(message);
+	}
 	
 	public ServerThread( Socket socket ) throws IOException {
 		
@@ -43,18 +56,18 @@ public class ServerThread extends Thread {
 		
 		if (account != null) { // 登录信息与数据库中比对成功
 			
-			// 在服务器服务子线程数据库中注册该线程
-			ThreadManager.regServerThread(this);
+			// 在服务器的服务子线程数据库中注册该线程
+			Server.regServerThread(this);
 			
 			System.out.println("[ RUNNING ] ID:" + loginInfo.getAccountId() + " login successful!");
 			System.out.println("[ RUNNING ] The current number of online users is ["
-					                   + ThreadDatabase.getOnlineCounter() + "]");
+					                   + Server.getOnlineCounter() + "]");
 			
 			// 客户服务子线程创建其子线程：收线程和发线程，注意：收应该首先创建
 			// 由于在发线程中返回登录成功信息，因此放在后面创建以确保，收发线程都已创建
-			recvThread = new RecvThread(client.getSocket(), account);
+			recvThread = new RecvThread(client, account.getID(), this);
 			recvThread.start(); // 负责监听有没有消息到达，有则把这些消息加入到接受队列中，由ServerThread处理
-			sendThread = new SendThread(client.getSocket(), account);
+			sendThread = new SendThread(client, account.getID(), this);
 			sendThread.start(); // 负责监听消息发送队列中有没有消息
 			
 			return true;
@@ -74,10 +87,10 @@ public class ServerThread extends Thread {
 		try {
 			System.out.println("[ RUNNING ] ID:\"" + account.getID() + "\" logout!");
 			System.out.println("[ RUNNING ] The current number of online users is ["
-					                   + ThreadDatabase.getOnlineCounter() + "]");
+					                   + Server.getOnlineCounter() + "]");
 			
 			// 在服务器服务子线程数据库中注销该线程
-			ThreadManager.delServerThread(account.getID());
+			Server.delServerThread(account.getID());
 			
 			sendThread.setExit(true);
 			sendThread.join();
@@ -94,33 +107,57 @@ public class ServerThread extends Thread {
 	
 	public void run() {
 		
+		
 		// 判断请求类型
 		try {
 			String msg;
 			do {
-				msg = client.recvFromClient();
-				
-				switch (client.getMsgType(msg)) {
+				if (!recvQueue.isEmpty()) {
 					
-					case CommunicateWithClient.LOGIN: // 登录请求
-						signIn();
-						break;
-					
-					case CommunicateWithClient.CHAT:
-						if (account == null) {
-							System.out.println(client.getSocket() + "未登录，试图进行聊天");
+					Message message = recvQueue.firstElement();
+					recvQueue.removeElementAt(0);
+					switch (message.getMsgType()) {
+						case CommunicateWithClient.LOGIN: // 登录请求
+							signIn();
 							break;
-						}
-						// client.recvFromUserMsg();
 						
-						break;
-					
-					default:
-						break;
+						case CommunicateWithClient.CHAT:
+							if (account == null) {
+								System.out.println(client.getClientSocket() + "未登录，试图进行聊天");
+								break;
+							}
+							Server.sendToOne(account.getID(), message);
+							break;
+							
+						default:
+							break;
+					}
+
+
+//					msg = client.recvFromClient();
+//
+//					switch (client.getMsgType(msg)) {
+//
+//						case CommunicateWithClient.LOGIN: // 登录请求
+//							signIn();
+//							break;
+//
+//						case CommunicateWithClient.CHAT:
+//							if (account == null) {
+//								System.out.println(client.getSocket() + "未登录，试图进行聊天");
+//								break;
+//							}
+//							// client.recvFromUserMsg();
+//
+//							break;
+//
+//						default:
+//							break;
+//					}
+				
 				}
 				// 登陆成功用户为登录状态，线程持续接受客户端消息，直到判定用户下线
-				
-			} while (account != null && account.getOnlineStatus());
+			} while (account != null && account.getOnline());
 			
 			logout();
 			
@@ -129,5 +166,5 @@ public class ServerThread extends Thread {
 		}
 		System.out.println("[ ATTENTION ] 用户：" + account.getID() + " 的 Server.ServerThread 线程结束！");
 	}
-
+	
 }

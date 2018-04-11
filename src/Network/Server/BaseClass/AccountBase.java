@@ -1,4 +1,4 @@
-package com.qq.BaseClass;
+package Network.Server.BaseClass;
 
 /**
  * 描述：AccountBase类是用户基本信息类

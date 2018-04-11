@@ -2,8 +2,16 @@ package Server;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Server {
+	
+	/*======================================= ServerThread Database =======================================*/
+	
+	private static Map<String, ServerThread> serverThreadDb = new HashMap<String, ServerThread>();
+	
+	/*======================================= ServerThread Manager  =======================================*/
 	
 	public static boolean newServerThread( Socket clientSocket ) {
 		
@@ -25,15 +33,48 @@ public class Server {
 		
 	}
 	
-	private static void sendToAll() {
+	public static void regServerThread( ServerThread serverThread ) {
+		
+		serverThreadDb.put(serverThread.getAccountId(), serverThread);
+	}
+	
+	public static void delServerThread( String id ) {
+		
+		serverThreadDb.remove(id);
+	}
+	
+	/**
+	 * @return int 在客户服务子线程中的线程数，即在线用户数；
+	 */
+	public static int getOnlineCounter() {
+		
+		return serverThreadDb.size();
+	}
+	
+	/**
+	 * 判断该id的用户是否在线状态，即通过查询是否在客户服务子线程中来判断
+	 *
+	 * @param id
+	 * @return 在客户服务子线程数据库中即在线，返回true；否则，返回false.
+	 */
+	public static boolean isUserOnline( String id ) {
+		
+		return serverThreadDb.containsKey(id);
+		
+	}
+	
+	public static void sendToAll() {
 	
 	}
 	
-	private static void sendToOne() {
+	// 参数
+	public static void sendToOne( String targetId ,Message message) {
+	
+		serverThreadDb.get(targetId).putMsgToSendQueue(message);
 	
 	}
 	
-	private static void sendToGroup() {
+	public static void sendToGroup() {
 	
 	}
 	

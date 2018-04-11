@@ -6,8 +6,9 @@ import java.io.IOException;
 import java.net.Socket;
 import java.sql.SQLException;
 
-import Network.Server.Account;
-import Network.Server.CommunicateWithClient;
+import Network.Server.BaseClass.Account;
+import Network.Server.NetworkForServer.CommunicateWithClient;
+import Network.Server.BaseClass.Envelope;
 
 /**
  * 服务器负责接收来自服务子线程的数据 并发送给目标客户端
@@ -19,7 +20,8 @@ public class SendThread extends Thread {
 	private volatile boolean exit = false;
 	
 	private CommunicateWithClient client;
-	private Account account;
+	private String userId;
+	private ServerThread serverThread;
 	
 	/**
 	 * @param exit 要设置的 exit
@@ -29,35 +31,16 @@ public class SendThread extends Thread {
 		this.exit = exit;
 	}
 	
-	/**
-	 * @return account
-	 */
-	public Account getAccount() {
+	public SendThread( CommunicateWithClient client, String userId, ServerThread serverThread ) throws IOException {
 		
-		return account;
-	}
-	
-	/**
-	 * @return account ID
-	 */
-	public String getAccountId() {
-		
-		return account.getID();
-	}
-	
-	/**
-	 * @throws IOException
-	 */
-	public SendThread( Socket socket, Account account ) throws IOException {
-		
-		client = new CommunicateWithClient(socket);
-		this.account = account;
-		
+		this.client = client;
+		this.userId = userId;
+		this.serverThread = serverThread;
 	}
 	
 	public void run() {
 		
-		System.out.println("[ READY ] 用户ID：" + account.getID() + " 发送子线程已创建！");
+		System.out.println("[ READY ] 用户ID：" + userId + " 发送子线程已创建！");
 		
 		try {
 			
@@ -68,13 +51,23 @@ public class SendThread extends Thread {
 			client.sendFriendList(databaseOperator.getFriendListFromDb(account.getID()));
 			
 			while (!exit) {
-			
+				if (!serverThread.sendQueue.isEmpty()) {
+					try {
+						Message message = serverThread.sendQueue.firstElement();
+						serverThread.sendQueue.removeElementAt(0);
+						client.sendToClient(message.getEnvelope());
+					} catch (IOException e) {
+						System.out.println("[ ERROR ] 消息发送失败！");
+					}
+					
+				}
 			}
 			
 		} catch (IOException | SQLException e) {
 			e.printStackTrace();
 		}
 		
+		System.out.println("[ READY ] 用户ID：" + userId + " 发送子线程已结束！");
 	}
 	
 }

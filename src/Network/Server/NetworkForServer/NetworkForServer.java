@@ -1,4 +1,4 @@
-package com.qq.NetworkForServer;
+package Network.Server.NetworkForServer;
 
 import java.io.IOException;
 import java.net.ServerSocket;

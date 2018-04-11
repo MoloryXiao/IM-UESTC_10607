@@ -1,4 +1,4 @@
-package com.qq.NetworkForServer;
+package Network.Server.NetworkForServer;
 
 /**
  * Class Name: RegistorAccount

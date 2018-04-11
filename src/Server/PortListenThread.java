@@ -2,7 +2,7 @@ package Server; /**
  *
  */
 
-import Network.Server.NetworkForServer;
+import Network.Server.NetworkForServer.NetworkForServer;
 
 import java.net.Socket;
 
