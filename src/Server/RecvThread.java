@@ -1,16 +1,17 @@
 package Server;
 
-import Network.Server.BaseClass.Account;
-import Network.Server.NetworkForServer.CommunicateWithClient;
+import network.NetworkForServer.*;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class RecvThread extends Thread {
 	
 	private volatile boolean exit = false;
 	
-	private CommunicateWithClient client;
 	private String userId;
+	private CommunicateWithClient client;
 	private ServerThread serverThread;
 	
 	/**
@@ -36,16 +37,30 @@ public class RecvThread extends Thread {
 		while (!exit) {
 			
 			try {
+
+//				//************************************************
+//				String msg = client.recvFromClient();
+//				System.out.println("recv from client : "+ msg);
+//				System.out.flush();
+//				serverThread.putMsgToRecvQueue(msg);
+//				//**************************************************
 				
+				// 从客户端接受一条消息，并加入接受消息队列，交给ServerThread解析及处理
 				serverThread.putMsgToRecvQueue(client.recvFromClient());
 				
 			} catch (IOException e) {
 				
-				e.printStackTrace();
-				System.out.println(" [ ERROR ] 接受客户端信息发生错误！");
-				
+				if (e.getMessage().equals("Connection reset")) {
+					serverThread.setAccountOffline();
+					System.out.println("[ ERROR ] 客户端已断开连接！");
+					break;
+				} else {
+					System.out.println("[ ERROR ] 接受客户端信息发生错误！");
+				}
 			}
 		}
+		
+		while(!exit);
 		System.out.println("[ READY ] 用户ID：" + userId + " 接受子线程已结束！");
 	}
 	

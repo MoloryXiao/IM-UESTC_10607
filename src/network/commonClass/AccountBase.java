@@ -22,7 +22,7 @@ public class AccountBase {
 	 * @param Id 用户ID
 	 */
 	public AccountBase(String Id) {
-		ID = new String(Id);
+		ID = Id;
 	}
 	/**
 	 * 描述：构造函数，获取新的账号
@@ -37,5 +37,10 @@ public class AccountBase {
 	 */
 	public String getID() {
 		return new String(ID);
+	}
+	
+	public void setID( String ID ) {
+		
+		this.ID = ID;
 	}
 }

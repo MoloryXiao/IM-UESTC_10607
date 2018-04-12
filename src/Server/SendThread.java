@@ -3,12 +3,11 @@ package Server; /**
  */
 
 import java.io.IOException;
-import java.net.Socket;
-import java.sql.SQLException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
-import Network.Server.BaseClass.Account;
-import Network.Server.NetworkForServer.CommunicateWithClient;
-import Network.Server.BaseClass.Envelope;
+import com.sun.org.apache.bcel.internal.generic.InstructionConstants;
+import network.NetworkForServer.*;
 
 /**
  * 服务器负责接收来自服务子线程的数据 并发送给目标客户端
@@ -19,8 +18,8 @@ public class SendThread extends Thread {
 	
 	private volatile boolean exit = false;
 	
-	private CommunicateWithClient client;
 	private String userId;
+	private CommunicateWithClient client;
 	private ServerThread serverThread;
 	
 	/**
@@ -42,29 +41,34 @@ public class SendThread extends Thread {
 		
 		System.out.println("[ READY ] 用户ID：" + userId + " 发送子线程已创建！");
 		
-		try {
+		while (!exit) {
 			
-			DatabaseOperator databaseOperator = new DatabaseOperator();
-			
-			client.sendFinishMsg(); // 返回登陆确认信息
-			
-			client.sendFriendList(databaseOperator.getFriendListFromDb(account.getID()));
-			
-			while (!exit) {
-				if (!serverThread.sendQueue.isEmpty()) {
-					try {
-						Message message = serverThread.sendQueue.firstElement();
-						serverThread.sendQueue.removeElementAt(0);
-						client.sendToClient(message.getEnvelope());
-					} catch (IOException e) {
-						System.out.println("[ ERROR ] 消息发送失败！");
-					}
+			if (!serverThread.isSendQueueEmpty()) {
+				
+				try {
+//				    //************************************************
+//					String msg = serverThread.getMsgFromSendQueue();
+//					System.out.println("send to client : "+ msg);
+//					System.out.flush();
+//					client.sendToClient(msg);
+//				    //************************************************
 					
+					// 从待发送队列中取出一条消息发送给客户端
+					client.sendToClient(serverThread.getMsgFromSendQueue());
+					
+				} catch (IOException e) {
+					
+					System.out.println("[ ERROR ] 消息发送失败！");
 				}
+			} else {
+				
+				try {
+					sleep(200);
+				} catch (InterruptedException e) {
+					System.out.println("[ ERROR ]  用户ID：" + userId + "发送线程休眠失败！");
+				}
+				
 			}
-			
-		} catch (IOException | SQLException e) {
-			e.printStackTrace();
 		}
 		
 		System.out.println("[ READY ] 用户ID：" + userId + " 发送子线程已结束！");

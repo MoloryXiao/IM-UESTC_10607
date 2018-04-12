@@ -1,5 +1,7 @@
 package network.NetworkForServer;
 
+import sun.reflect.generics.tree.VoidDescriptor;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -46,9 +48,19 @@ public class CommunicateWithClient {
      * @throws IOException
      */
     public String recvFromClient() throws IOException {
+        
         return new String(recvDataFromClient());
     }
-
+    
+    /**
+     * 将信息发送给客户端
+     * @param msg 要被发送的信息
+     * @throws IOException
+     */
+    public void sendToClient(String msg) throws IOException {
+        sendDataToClient(msg);
+    }
+    
     /**
      * 与客户端结束连接
      * @throws IOException

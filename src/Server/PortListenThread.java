@@ -2,9 +2,11 @@ package Server; /**
  *
  */
 
-import Network.Server.NetworkForServer.NetworkForServer;
+import network.NetworkForServer.*;
 
 import java.net.Socket;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  * @author 97njczh
@@ -59,9 +61,11 @@ public class PortListenThread extends Thread {
 				
 				Socket clientSocket = loginSock.waitConnectFromClient();
 				
-				System.out.println("[ RUNNING ] 请求传入！远端地址为：" + clientSocket.getRemoteSocketAddress());
+				System.out.println("============================================");
+				System.out.println("[  NEW  ] 请求传入！远端地址为："
+									+ clientSocket.getRemoteSocketAddress());
 				
-				if (Server.newServerThread(clientSocket)) // 转交由Server处理
+				if (Server.newServerThread(clientSocket))   // 转交由Server处理
 					errorCounter = (errorCounter > 0) ? errorCounter-- : errorCounter;
 				else
 					errorCounter++;
@@ -70,13 +74,14 @@ public class PortListenThread extends Thread {
 			
 			// TODO 查一下java线程连接的数量限制
 			System.out.println("[ ERROR ] 连续 " + MAX_ERROR + " 次服务线程创建失败，"
-					                   + "监听暂停" + SLEEP_TIME / 1000 + "秒！");
+					                   + "监听暂停，于" + SLEEP_TIME / 1000 + "秒后重启");
 			return true;
 			
 		} catch (Exception e) {
 			
 			System.out.println("[ ERROR ] Socket建立失败！监听停止！！");
 			e.printStackTrace();
+			
 			return false;
 		}
 	}
@@ -89,13 +94,13 @@ public class PortListenThread extends Thread {
 	@Override
 	public void run() {
 		
-		if (setupPortListen(listenPort)) {
-			
-			while (portListen()) {
-				
+		if (setupPortListen(listenPort))  // 启动监听
+		{
+			while (portListen()) // 监听端口，并与客户端创建连接
+			{
 				try {
 					
-					Thread.sleep(SLEEP_TIME);
+					Thread.sleep(SLEEP_TIME);   // 无法创建连接，等待SLEEP_TIME后重试
 					System.out.println("[ READY ] 监听线程重新启动！");
 					
 				} catch (InterruptedException e) {
@@ -107,9 +112,7 @@ public class PortListenThread extends Thread {
 				}
 			}
 		}
-		
 		System.out.println("[ ATTENTION ] 监听线程退出！");
-		
 	}
 	
 }

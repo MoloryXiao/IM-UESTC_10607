@@ -6,10 +6,7 @@ package network.commonClass;
  * @version 1.0.0
  */
 public class Account extends AccountBase{
-	/**
-	 * 描述：用户的ID
-	 */
-	protected String ID;
+
 	/**
 	 * 描述：用户的昵称
 	 */
@@ -50,8 +47,11 @@ public class Account extends AccountBase{
 	 * @return 返回ID号
 	 */
 	public String getID() {
-		return new String(ID);
+		return super.ID;
 	}
+	
+
+	
 	/**
 	 * 描述：设置昵称
 	 * @param nName 新昵称
