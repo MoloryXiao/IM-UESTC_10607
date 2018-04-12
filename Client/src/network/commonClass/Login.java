@@ -29,7 +29,7 @@ public class Login {
 	 * @param pw 账户的密码
 	 */
 	public Login(String id,String pw) {
-		Account.ID = new String(id);
+		Account = new AccountBase(id);
 		passWord = new String(pw);
 	}
 	/**

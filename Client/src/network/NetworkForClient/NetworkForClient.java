@@ -87,7 +87,14 @@ public class NetworkForClient {
     public boolean login(String account, String password) {
         try {
             sendDataToServer("L" + account + " " + password);
-            if (isOk(recvDataFromServer())) {
+            String temp = recvDataFromServer();
+            String res = new String();
+            int i = 1;
+            while (i < temp.length()) {
+            	res += temp.charAt(i);
+            	++i;
+            }
+            if (isOk(res)) {
                 ID = account;
                 return true;
             }
@@ -107,6 +114,14 @@ public class NetworkForClient {
      */
     public String recvFromServer() throws IOException {
         return new String(recvDataFromServer());
+    }
+    /**
+     * 将信息发送给远程服务器
+     * @param msg 将要发送的信息
+     * @throws IOException
+     */
+    public void sendToServer(String msg) throws IOException {
+    	sendDataToServer(msg);
     }
 
     public String getId() {

@@ -134,7 +134,7 @@ public class MessageOperate {
             String nikeName = new String();
             String isOnline = new String();
             String signature = new String();
-            while (k < 5) {
+            while (k < 5 && i < temp.length()) {
                 if (temp.charAt(i) == ' ') {
                     ++k;
                     ++i;
@@ -165,6 +165,7 @@ public class MessageOperate {
             else {
                 online = false;
             }
+            
             Account ac = new Account(ID, nikeName, online, signature);
             list.add(ac);
         }
