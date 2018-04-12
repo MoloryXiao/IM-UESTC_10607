@@ -4,15 +4,9 @@ import java.io.IOException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.util.ArrayList;
-
-import javax.swing.JOptionPane;
 import javax.swing.UIManager;
-
-import network.NetworkForClient.NetworkForClient;
 import network.commonClass.Account;
-import network.messageOperate.MessageOperate;
 import java.util.Vector;
-import javax.swing.UIManager;
 import Core.Controll.*;
 
 public class ChatTool {
@@ -22,7 +16,7 @@ public class ChatTool {
 	private ArrayList<Account> friend_info_arraylist;
 	private boolean login_success_flag = false;
 	private NetworkController nkc;
-	private Vector vec_friend_orderNum;
+	private Vector<Integer> vec_friend_orderNum;
 	private ArrayList<ChatWindow> arrList_friends_chatWind;
 	
 	public static void main(String []args){
@@ -138,7 +132,7 @@ public class ChatTool {
 		printAccountList(friend_info_arraylist);
 		
 		fd_wind.updateFriendsList(friend_info_arraylist);
-		vec_friend_orderNum = new Vector();
+		vec_friend_orderNum = new Vector<Integer>();
 		arrList_friends_chatWind = new ArrayList<ChatWindow>();
 		
 		while(true){

@@ -4,8 +4,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.*;
 
-public class ChatWindow extends JFrame{
-	
+public class ChatWindow extends JFrame{	
 	private static final String ChatWindow_TITLE = "Chating";
 	private static final int WINDOW_WIDTH = 935;
 	private static final int WINDOW_HEIGHT = 680;

@@ -4,7 +4,6 @@ import java.awt.Component;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JList;
 
-
 public class FriendsListCellRenderer extends DefaultListCellRenderer{
 	private int []rows;
 	private int count;

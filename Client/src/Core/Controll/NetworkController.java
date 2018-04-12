@@ -2,10 +2,10 @@
 
 import java.io.IOException;
 import java.util.ArrayList;
-
 import javax.swing.JOptionPane;
-
-import Network_Client.*;
+import network.NetworkForClient.*;
+import network.commonClass.*;
+import network.messageOperate.MessageOperate;
 
 public class NetworkController {
 	private static NetworkForClient nfc;
@@ -42,9 +42,9 @@ public class NetworkController {
 	public ArrayList<Account> askFriendListFromServer(){
 		ArrayList<Account> friend_info_arraylist;
 		try {
-			nfc.askFriendListFromServer();		// 向服务器请求好友列表
-			nfc.recvFromServer();				// 获取好友列表消息头
-			friend_info_arraylist = new ArrayList<Account>(nfc.getFriendList());	// 拿到最新的好友列表
+			
+			friend_info_arraylist = new ArrayList<Account>(MessageOperate.
+					getFriendList(nfc.recvFromServer()));	// 拿到最新的好友列表
 		} catch (IOException e) {
 			friend_info_arraylist = null;
 			e.printStackTrace();
