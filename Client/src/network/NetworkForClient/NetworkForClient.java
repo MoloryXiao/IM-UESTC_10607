@@ -115,6 +115,14 @@ public class NetworkForClient {
     public String recvFromServer() throws IOException {
         return new String(recvDataFromServer());
     }
+    /**
+     * 将信息发送给远程服务器
+     * @param msg 将要发送的信息
+     * @throws IOException
+     */
+    public void sendToServer(String msg) throws IOException {
+    	sendDataToServer(msg);
+    }
 
     public String getId() {
         return new String(ID);

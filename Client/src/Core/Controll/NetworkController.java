@@ -9,8 +9,8 @@ import network.messageOperate.MessageOperate;
 
 public class NetworkController {
 	private static NetworkForClient nfc;
-	private final String host_name = "39.108.95.130";	// server location
-//	private final String host_name = "192.168.1.106";	// local area for test
+//	private final String host_name = "39.108.95.130";	// server location
+	private final String host_name = "192.168.1.103";	// local area for test
 	private final int contact_port = 9090;
 	
 	/** 
@@ -41,8 +41,9 @@ public class NetworkController {
 	
 	public ArrayList<Account> askFriendListFromServer(){
 		ArrayList<Account> friend_info_arraylist;
-		try {
-			
+		try {			
+			String askMessage = MessageOperate.askFriendListFromServer();
+			nfc.sendToServer(askMessage);
 			friend_info_arraylist = new ArrayList<Account>(MessageOperate.
 					getFriendList(nfc.recvFromServer()));	// 拿到最新的好友列表
 		} catch (IOException e) {
