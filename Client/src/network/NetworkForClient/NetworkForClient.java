@@ -87,7 +87,14 @@ public class NetworkForClient {
     public boolean login(String account, String password) {
         try {
             sendDataToServer("L" + account + " " + password);
-            if (isOk(recvDataFromServer())) {
+            String temp = recvDataFromServer();
+            String res = new String();
+            int i = 1;
+            while (i < temp.length()) {
+            	res += temp.charAt(i);
+            	++i;
+            }
+            if (isOk(res)) {
                 ID = account;
                 return true;
             }

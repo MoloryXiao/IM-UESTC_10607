@@ -7,10 +7,6 @@
  */
 public class Account extends AccountBase{
 	/**
-	 * 描述：用户的ID
-	 */
-	protected String ID;
-	/**
 	 * 描述：用户的昵称
 	 */
 	protected String Name;
@@ -50,7 +46,7 @@ public class Account extends AccountBase{
 	 * @return 返回ID号
 	 */
 	public String getID() {
-		return new String(ID);
+		return new String(super.ID);
 	}
 	/**
 	 * 描述：设置昵称
