@@ -2,23 +2,38 @@ package Core;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+
 import javax.swing.*;
 
-public class ChatWindow extends JFrame{	
+public class ChatWindow extends JFrame{
+	
 	private static final String ChatWindow_TITLE = "Chating";
 	private static final int WINDOW_WIDTH = 935;
 	private static final int WINDOW_HEIGHT = 680;
+	final static String[] allFontSize={
+			"8" ,"9", "10","12","14","16","18",
+			"20","24","28","32","36","40","44",
+			"48","54","60","66","72","80","88"  
+    };  
 	private JLabel 		head_img_label,friend_name_label,signature_label;
 	private JPanel 		panel_north,panel_south,panel_north_center;
 	private JPanel 		panelUnderSplit,panelUnderSplit_UpPanel,panelUnderSplit_BottomPanel;
-	private JButton 	menu_font_btn,send_button,close_button;
+	private JButton 	send_button,close_button;
 	private JTextArea 	inputTextArea,showTextArea;
 	private ImageIcon 	head_img_icon;
 	private FlowLayout 	flowLayout_Bottom;
 	private JSplitPane 	splitPane;
 	private FlowLayout 	flowLayout;
-	private JScrollPane scrollPane,inputPanel;
+	private JScrollPane inputpanel,showPanel;
+	private JComboBox	fontType;
+	private JComboBox 	fontSize;
+	private Font 		font;
 	
+	private JScrollBar sbar;
+	
+
 	public ChatWindow(Object oj) {		
 		this.setTitle(ChatWindow_TITLE);
 		this.setSize(WINDOW_WIDTH, WINDOW_HEIGHT);
@@ -30,7 +45,15 @@ public class ChatWindow extends JFrame{
 		SetNorthPane(oj);
 		SetSouthPane();
 		
-		this.setVisible(true);
+		this.addKeyListener(new KeyListener() {
+			public void keyTyped(KeyEvent e) {}
+			public void keyReleased(KeyEvent e) {}
+			public void keyPressed(KeyEvent e) {
+				if(e.getKeyChar() == KeyEvent.VK_F1) {
+					ChatWindow.this.dispose();
+				}
+			}
+		});
 		
 	}
 	private void SetNorthPane(Object oj){
@@ -59,7 +82,7 @@ public class ChatWindow extends JFrame{
 		this.add(panel_north,BorderLayout.NORTH);
 	}
 	
-	private void SetSouthPane(){
+	private void SetSouthPane( ){
 		panel_south = new JPanel();
 		panel_south.setLayout(new BorderLayout());
 		
@@ -76,15 +99,40 @@ public class ChatWindow extends JFrame{
 		flowLayout = new FlowLayout();
 		flowLayout.setAlignment(FlowLayout.LEFT);		//set alignment to left
 		panelUnderSplit_UpPanel.setLayout(flowLayout);
-		//-----------Button-------------
+		//-----------ComboBox-------------
+		/*
 		menu_font_btn = new JButton();					
-		menu_font_btn.setText("×ÖÌå");
-		panelUnderSplit_UpPanel.add(menu_font_btn);
+		menu_font_btn.setText("×Ö");
+		*/
+		GraphicsEnvironment graphicsEnvironment = GraphicsEnvironment.getLocalGraphicsEnvironment();
+		final String[] allFontType;
+		allFontType = graphicsEnvironment.getAvailableFontFamilyNames();
+		fontType = new JComboBox(allFontType);
+		fontSize = new JComboBox(allFontSize);
+		fontSize.setPreferredSize(new Dimension(80, 30));
+		
+		ActionListener fontListener = new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// TODO Auto-generated method stub
+				String fontTypeChosen = (String)fontType.getSelectedItem();
+				int	   fontSizeChosen = Integer.parseInt((String)fontSize.getSelectedItem());
+				font = new Font(fontTypeChosen, Font.PLAIN, fontSizeChosen);
+				inputTextArea.setFont(font);
+				showTextArea.setFont(font);
+			}
+		};
+		fontType.addActionListener(fontListener);
+		fontSize.addActionListener(fontListener);
+		
+		panelUnderSplit_UpPanel.add(fontType);
+		panelUnderSplit_UpPanel.add(fontSize);
 		//------------------------------
 		panelUnderSplit.add(panelUnderSplit_UpPanel,BorderLayout.NORTH);
 		
-		scrollPane = new JScrollPane();
-		panelUnderSplit.add(scrollPane,BorderLayout.CENTER);
+		inputpanel = new JScrollPane();
+		panelUnderSplit.add(inputpanel,BorderLayout.CENTER);
 				
 		panelUnderSplit_BottomPanel = new JPanel();
 		flowLayout_Bottom = new FlowLayout();
@@ -102,33 +150,106 @@ public class ChatWindow extends JFrame{
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				// TODO Auto-generated method stub
+				if(!inputTextArea.getText().equals("")){
 				showTextArea.append(inputTextArea.getText()+"\r\n");
-				showTextArea.setLineWrap(true);
+				//showTextArea.setLineWrap(true);
 				inputTextArea.setText("");
+				sbar.setValue(sbar.getMaximum());
+				}
 			}
 		};
-		ActionListener close_listener = new ActionListener(){
-			public void actionPerformed(ActionEvent e) {
+		
+		KeyListener enter_Listener = new KeyListener() {
+			public void keyTyped(KeyEvent e) {}
+			public void keyReleased(KeyEvent e) {}
+			public void keyPressed(KeyEvent e) {
+				if(e.getKeyChar() == KeyEvent.VK_ENTER && e.isControlDown())
+				{
+					if(!inputTextArea.getText().equals("")){
+						showTextArea.append(inputTextArea.getText()+"\r\n");
+						//showTextArea.setLineWrap(true);
+						inputTextArea.setText("");
+					}
+				}
 				
-			};
+			}
+			
 		};
-		//--------------------------------
 		send_button.addActionListener(send_listener);
-		close_button.addActionListener(close_listener);
-		 
+		//-----------close_listener----------
+		closeChatWindowButton_Listener closeChatWindowButton_Listener = new closeChatWindowButton_Listener(this);
+		close_button.addActionListener(closeChatWindowButton_Listener);
+		//--------------------------------
+		
 		panelUnderSplit.add(panelUnderSplit_BottomPanel,BorderLayout.SOUTH);
 
 		inputTextArea = new JTextArea();
+		inputTextArea.addKeyListener(enter_Listener);
+		inputTextArea.setLineWrap(true);				//set inputext line wrap
 		
-		scrollPane.setViewportView(inputTextArea);
+		inputpanel.setViewportView(inputTextArea);
 		
-		inputPanel = new JScrollPane();
-		splitPane.setLeftComponent(inputPanel);
+		showPanel = new JScrollPane();
+		sbar = showPanel.getVerticalScrollBar();
+		splitPane.setLeftComponent(showPanel);
 		
 		showTextArea = new JTextArea();
 		showTextArea.setEditable(false);
-		inputPanel.setViewportView(showTextArea);
+		showTextArea.setLineWrap(true);					//set showText line wrap
+		
+		showPanel.setViewportView(showTextArea);
 		
 		this.add(panel_south,BorderLayout.CENTER);
 	}
+	private void sentMessageToShowtextfield(String Message)
+	{
+		showTextArea.append(Message+"\r\n");
+	}
+	
+	public class closeChatWindowButton_Listener implements ActionListener{
+		private JFrame jFrame;
+		private JButton button;
+		
+		public closeChatWindowButton_Listener (JFrame jFrame) {
+			this.jFrame = jFrame;
+		}
+		public void actionPerformed(ActionEvent e) {
+			jFrame.dispose();
+		}
+	}
+	
+	public class closeChatWindowEseKey_Listener implements KeyListener{
+		private JFrame jFrame;
+		
+		public closeChatWindowEseKey_Listener(JFrame jFrame) {
+			this.jFrame = jFrame;
+		}
+		public void keyPressed(KeyEvent e) {}
+		public void keyReleased(KeyEvent e) {}
+		public void keyTyped(KeyEvent e) {
+			if(e.getKeyChar() == KeyEvent.VK_ESCAPE)
+			{
+				jFrame.dispose();
+			}
+			
+		}
+		
+	}
+	/*
+	 * 		KeyListener enter_Listener = new KeyListener() {
+			public void keyTyped(KeyEvent e) {}
+			public void keyReleased(KeyEvent e) {}
+			public void keyPressed(KeyEvent e) {
+				if(e.getKeyChar() == KeyEvent.VK_ENTER && e.isControlDown())
+				{
+					if(!inputTextArea.getText().equals("")){
+						showTextArea.append(inputTextArea.getText()+"\r\n");
+						//showTextArea.setLineWrap(true);
+						inputTextArea.setText("");
+					}
+				}
+				
+			}
+			
+		};*/
 }
