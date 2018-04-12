@@ -11,7 +11,6 @@ import java.util.Comparator;
 import java.util.Vector;
 
 import javax.swing.*;
-
 import network.commonClass.Account;
 
 public class FriendsListWindow extends JFrame{
@@ -20,10 +19,10 @@ public class FriendsListWindow extends JFrame{
 	private int 		i_loc_X,i_loc_Y;
 	private Toolkit 	tool_kit;
 	private Dimension 	screenSize;
-	private Vector<Integer> vec_friend_window;
-	private boolean create_chatWind_flag = false;
+	private boolean 	flag_create_chatWind = false;
 	private ArrayList<Account> friends_arrList;
 	
+	private JScrollPane 		friends_list_scroll;
 	private JPanel 				top_panel,middle_panel,bottom_panel,
 								middle_friends_panel,middle_groups_panel,middle_else_panel;
 	private JLabel 				head_image_label,name_label,sign_label;
@@ -33,14 +32,14 @@ public class FriendsListWindow extends JFrame{
 	private GridBagConstraints 	top_gbConstr;
 	private JButton				logout_btn;
 	
-	ArrayList<ChatWindow> alist;
+	private Object new_window_value;
+	private int new_window_orderNum;
+	private int i_friends_sum;
 	
 	/**
 	 * FriendsListWindow 构造函数
 	 */
 	public FriendsListWindow(){
-		vec_friend_window = new Vector();
-		alist = new ArrayList();
 		/* 获取屏幕相关信息 */
 		tool_kit=Toolkit.getDefaultToolkit();
 		screenSize=tool_kit.getScreenSize();
@@ -116,10 +115,21 @@ public class FriendsListWindow extends JFrame{
 		middle_else_panel = new JPanel();
 		friends_name_list = new JList<String>();
 		
-		friends_name_list.setListData(new String[]{"正在拉取好友列表..."});		
-		JScrollPane friends_list_scroll = new JScrollPane(friends_name_list);
-		friends_list_scroll.setPreferredSize(new Dimension(i_window_width-60,440));
+		friends_name_list.setListData(new String[]{"正在拉取好友列表..."});	
+		friends_name_list.setPreferredSize(new Dimension(i_window_width-60, (int)(i_window_height*0.7)));
+		friends_name_list.addMouseListener(new MouseAdapter(){
+			public void mouseClicked(MouseEvent e){
+				if(friends_name_list.getSelectedIndex() != -1) {
+					if(e.getClickCount() == 2){
+						twoClick(friends_name_list.getSelectedValue(),friends_name_list.getSelectedIndex());
+					}
+				}
+			}
+		});	
+		friends_list_scroll = new JScrollPane(friends_name_list);
+		friends_list_scroll.setPreferredSize(new Dimension(i_window_width-60,440));	//440
 		friends_list_scroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+		friends_list_scroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_NEVER);
 		
 		
 		/* Panel面板设置 */
@@ -161,24 +171,34 @@ public class FriendsListWindow extends JFrame{
 	 * @param i
 	 */
 	private void twoClick(Object value,int i){
-		if(vec_friend_window.indexOf(i) == -1){
-			vec_friend_window.add(i);
-			ChatWindow cw = new ChatWindow(value);
-			alist.add(cw);
-			System.out.println("ChatInfo: open the chating window with "+ value);
-		}else{
-			alist.get(i).setVisible(true);
-			alist.get(i).setAlwaysOnTop(true);
-			alist.get(i).setAlwaysOnTop(false);
-		}
+		setNewWindowResource(value,i);
+		this.flag_create_chatWind = true;
+	}
+	
+	public boolean getCreateChatWindFlag(){		
+		System.out.print("");
+		return this.flag_create_chatWind;
+	}
+	public void setCreateChatWindFlag(boolean flag){
+		this.flag_create_chatWind = flag;
+	}
+	private void setNewWindowResource(Object value,int orderNumber){
+		this.new_window_value = value;
+		this.new_window_orderNum = orderNumber;
+	}
+	public Object getNewWindowValue(){
+		return this.new_window_value;
+	}
+	public int getNewWindowOrderNum(){
+		return this.new_window_orderNum;
 	}
 	
 	/**
 	 * 设置窗口尺寸
 	 */
 	private void setWindowSize(){
-		//i_window_height = (int)(screenSize.height/3*2);		// 取2/3倍屏幕高度
-		//i_window_width = (int)(screenSize.width/3/3*1.5);
+		//i_window_height = (screenSize.height/3*2);		// 取2/3倍屏幕高度
+		//i_window_width = (screenSize.width/3/3*1.5);
 		this.setSize(i_window_width,i_window_height);
 	}
 	
@@ -193,17 +213,14 @@ public class FriendsListWindow extends JFrame{
 		this.setLocation(i_loc_X,i_loc_Y);
 	}
 
-	public boolean isCreateChatWind(){
-		return this.create_chatWind_flag;
-	}
 
 	public void setFriendsList(ArrayList<Account> inArrList){
 		this.friends_arrList = new ArrayList<Account>(inArrList);
 	}
 	
 	public void updateFriendsList(ArrayList<Account> inArrList){
-		setFriendsList(inArrList);
-		sortFriendsListByOnline();
+		setFriendsList(inArrList);			// 将传进来的好友列表设置到成员属性中
+		sortFriendsListByOnline();			// 对成员属性进行排序 依据在线情况
 		int online_count = countOnlineNums();
 		friendsListShow(online_count);
 	}
@@ -229,22 +246,21 @@ public class FriendsListWindow extends JFrame{
 	public void friendsListShow(int online_count){
 		/* List列表设置 */
 		Vector<String> fd_name_vec = new Vector<String>();
-		for(int i=0;i<friends_arrList.size();i++)
+		//Vector<Account> fd_account_vec = new Vector<Account>();
+		this.i_friends_sum =  friends_arrList.size();
+		for(int i=0;i<this.i_friends_sum;i++){
 			fd_name_vec.add(friends_arrList.get(i).getNikeName());
+			//fd_account_vec.add(friends_arrList.get(i));
+		}
 		
-		friends_name_list.setListData(fd_name_vec.toArray(new String[fd_name_vec.size()]));
-		friends_name_list.setPreferredSize(new Dimension(i_window_width-60, (int)(i_window_height*0.7)));
-		friends_name_list.addMouseListener(new MouseAdapter(){
-			public void mouseClicked(MouseEvent e){
-				if(friends_name_list.getSelectedIndex() != -1) {
-					if(e.getClickCount() == 2){
-						twoClick(friends_name_list.getSelectedValue(),friends_name_list.getSelectedIndex());
-					}
-				}
-			}
-		});
+		//friends_name_list.setListData(fd_name_vec.toArray(new String[fd_name_vec.size()]));
+		friends_name_list.setListData(fd_name_vec);
 		FriendsListCellRenderer flcr = new FriendsListCellRenderer(online_count,Color.RED);
 		friends_name_list.setCellRenderer(flcr);
+		if(this.i_friends_sum >= 15)
+			friends_list_scroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+		else
+			friends_list_scroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_NEVER);
 	}
 	
 	/**
