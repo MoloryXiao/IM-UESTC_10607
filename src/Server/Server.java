@@ -94,7 +94,11 @@ public class Server {
 		
 		String targetId = MessageOperate.recvFromUserMsg(message).getTargetAccountId();
 		
-		serverThreadDb.get(targetId).putMsgToSendQueue(message);
+		if (isUserOnline(targetId))
+			serverThreadDb.get(targetId).putMsgToSendQueue(message);
+		else{
+			// TODO 目标ID用户不在线，需保存离线消息
+		}
 	}
 	
 	public static void sendToGroup() {

@@ -8,6 +8,8 @@ import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Vector;
+import java.util.concurrent.BlockingDeque;
+import java.util.concurrent.LinkedBlockingDeque;
 
 import network.commonClass.*;
 import network.networkDataPacketOperate.*;
@@ -34,23 +36,21 @@ public class ServerThread extends Thread {
 	/*======================================= related to RecvThread =======================================*/
 	
 	private RecvThread recvThread;
-	private Vector<String> recvQueue;
+	private BlockingDeque<String> recvQueue;
 	
 	public boolean isRecvQueueEmpty() {
 		
 		return recvQueue.isEmpty();
 	}
 	
-	public synchronized String getMsgFromRecvQueue() {
+	public String getMsgFromRecvQueue() throws InterruptedException {
 		
-		String message = recvQueue.firstElement();
-		recvQueue.removeElementAt(0);
-		return message;
+		return recvQueue.take();    // 阻塞取
 	}
 	
-	public synchronized void putMsgToRecvQueue( String message ) {
+	public void putMsgToRecvQueue( String message ) {
 		
-		recvQueue.add(message);
+		recvQueue.add(message);     // 阻塞存
 	}
 	
 	
@@ -58,21 +58,19 @@ public class ServerThread extends Thread {
 	/*======================================= related to sendThread =======================================*/
 	
 	private SendThread sendThread;
-	private Vector<String> sendQueue;
+	private BlockingDeque<String> sendQueue;
 	
 	public boolean isSendQueueEmpty() {
 		
 		return sendQueue.isEmpty();
 	}
 	
-	public synchronized String getMsgFromSendQueue() {
+	public String getMsgFromSendQueue() throws InterruptedException {
 		
-		String message = this.sendQueue.firstElement();
-		this.sendQueue.removeElementAt(0);
-		return message;
+		return sendQueue.take();
 	}
 	
-	public synchronized void putMsgToSendQueue( String message ) {
+	public void putMsgToSendQueue( String message ) {
 		
 		sendQueue.add(message);
 	}
@@ -84,8 +82,8 @@ public class ServerThread extends Thread {
 	public ServerThread( Socket socket ) throws IOException {
 		
 		client = new CommunicateWithClient(socket);
-		recvQueue = new Vector<String>();
-		sendQueue = new Vector<String>();
+		recvQueue = new LinkedBlockingDeque<String>();
+		sendQueue = new LinkedBlockingDeque<String>();
 		account = null;
 	}
 	
@@ -168,7 +166,7 @@ public class ServerThread extends Thread {
 		
 		try {
 			
-			// 在服务器服务子线程数据库中注销该线程
+			/* 在服务器用户服务子线程数据库中注销该线程 */
 			Server.delServerThread(account.getID());
 			
 			System.out.println("[ LOGIN ] 用户ID：" + account.getID() + " logout!");
@@ -217,43 +215,51 @@ public class ServerThread extends Thread {
 		
 		if (signInStatus < 0) {
 			
-			// 登陆成功用户为登录状态，线程持续接受客户端消息，直到判定用户下线
+			/* 登陆成功用户为登录状态，线程持续接受客户端消息，直到判定用户下线 */
 			while (account.getOnLine()) {
 				
-				if (!recvQueue.isEmpty()) {
+				String message = null;
+				
+				try {
+					/* 阻塞接受用户消息，直到被中断 */
+					message = getMsgFromRecvQueue();
 					
-					String message = getMsgFromRecvQueue();
-					switch (MessageOperate.getMsgType(message)) {        // 判断请求类型
-						
-						// 客户端请求好友列表，返回好友列表；
-						case MessageOperate.FRIENDLIST:
-							sendFriendsList();
-							break;
-						
-						case MessageOperate.MYSELF: // 请求个人信息
-							sendMyselfInfo();
-							break;
-						
-						case MessageOperate.CHAT:   // 转发消息
-							Server.sendToOne(message);
-							break;
-						
-						default:
-							break;
-					} // end switch
-				} // end if - !recvQueue.isEmpty()
+				} catch (InterruptedException e) {
+					// TODO if sendQueue not empty 需要保存这些消息
+					sendThread.interrupt();
+					break;
+				}
+				/* 判断请求类型 */
+				switch (MessageOperate.getMsgType(message)) {
+					
+					case MessageOperate.FRIENDLIST: // 请求好友列表
+						sendFriendsList();
+						break;
+					
+					case MessageOperate.MYSELF:     // 请求个人信息
+						sendMyselfInfo();
+						break;
+					
+					case MessageOperate.CHAT:       // 转发消息
+						Server.sendToOne(message);
+						break;
+					
+					default:
+						break;
+				} // end switch
+				
 			} // end while;
 			
 			logout();
 		} // end if - sign in
 		
-		try {   // 关闭套接字
+		try {
 			
-			client.endConnect();
+			client.endConnect();    // 关闭套接字
 			
 		} catch (IOException e) {
 			e.printStackTrace();
-			System.out.println("[ ERROR ] 客户端地址：" + client.getClientSocket() +"套接字关闭失败！");
+			System.out.println("[ ERROR ] 客户端地址：" + client.getClientSocket() + "套接字关闭失败！");
 		}
 		
 		if (signInStatus >= 10000)
@@ -262,6 +268,8 @@ public class ServerThread extends Thread {
 			System.out.println("[ READY ] 用户ID：" + account.getID() + " 服务子线程已结束！");
 		else
 			System.out.println("[ READY ] 用户服务子线程已结束！");
+		System.out.println("===============================================================");
+		
 	}
 	
 }

@@ -45,18 +45,17 @@ public class RecvThread extends Thread {
 //				serverThread.putMsgToRecvQueue(msg);
 //				//**************************************************
 				
-				// 从客户端接受一条消息，并加入接受消息队列，交给ServerThread解析及处理
+				/* 从客户端接受一条消息，并加入接受消息队列，交给ServerThread解析及处理 */
 				serverThread.putMsgToRecvQueue(client.recvFromClient());
 				
 			} catch (IOException e) {
 				
 				if (e.getMessage().equals("Connection reset")) {
-					serverThread.setAccountOffline();
+					serverThread.interrupt();
 					System.out.println("[ ERROR ] 客户端已断开连接！");
 					break;
 				} else {
 					e.getMessage();
-					serverThread.setAccountOffline();
 					System.out.println("[ ERROR ] 接受客户端信息发生错误！");
 				}
 			}
