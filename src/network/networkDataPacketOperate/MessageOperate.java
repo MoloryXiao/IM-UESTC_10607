@@ -85,7 +85,7 @@ public class MessageOperate {
 	 *
 	 * @throws IOException
 	 */
-	public static String sendFinishMsg() throws IOException {
+	public static String sendFinishMsg() {
 		
 		return new String("M" + OK);
 	}
@@ -98,7 +98,7 @@ public class MessageOperate {
 	 *
 	 * @throws IOException
 	 */
-	public static String sendNotFinishMsg() throws IOException {
+	public static String sendNotFinishMsg() {
 		
 		return new String("M" + FALSE);
 	}
@@ -111,7 +111,7 @@ public class MessageOperate {
 	 * @return 返回用户的ID号码和密码
 	 * @throws IOException
 	 */
-	public static Login getLoginAccountInfo( String account ) throws IOException {
+	public static Login getLoginAccountInfo( String account ) {
 		
 		String ID = new String();
 		String password = new String();
@@ -136,14 +136,6 @@ public class MessageOperate {
 		return login;
 	}
 	
-	public static String getTargetId( String msg ) {
-		
-		String targetId = "";
-		for (int i = 1; msg.charAt(i) != ' '; i++)
-			targetId += msg.charAt(i);
-		return targetId;
-	}
-	
 	
 	/**
 	 * 发送用户个人信息给客户端
@@ -151,7 +143,7 @@ public class MessageOperate {
 	 *
 	 * @param ac 个人信息
 	 */
-	public static String sendUserInfo( Account ac ) throws IOException {
+	public static String sendUserInfo( Account ac ) {
 		
 		return new String("I" + ac.getID() + " " + ac.getNikeName() + " true " + ac.getSignature());
 	}
@@ -166,7 +158,7 @@ public class MessageOperate {
 	 * @param list 好友列表
 	 * @throws IOException
 	 */
-	public static String sendFriendList( ArrayList<Account> list ) throws IOException {
+	public static String sendFriendList( ArrayList<Account> list ) {
 		
 		String msg = new String();
 		msg += "F";
@@ -189,7 +181,7 @@ public class MessageOperate {
 	 * @return 信封
 	 * @throws IOException
 	 */
-	public static Envelope recvFromUserMsg( String temp ) throws IOException {
+	public static Envelope recvFromUserMsg( String temp ) {
 		
 		String targetAccount = new String();
 		String sourceAccount = new String();

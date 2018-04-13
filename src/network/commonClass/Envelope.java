@@ -9,24 +9,24 @@ public class Envelope {
 	/**
 	 * 描述：发送方，AccountBase类型
 	 */
-	protected AccountBase Rece;
+	protected AccountBase target;
 	/**
 	 * 描述：接收方，AccountBase类型
 	 */
-	protected AccountBase Send;
+	protected AccountBase source;
 	/**
 	 * 描述：收发的信内容，String类型
 	 */
 	protected String Text;
 	/**
 	 * 描述：构造函数
-	 * @param receId 发送方的id
-	 * @param sendId 接收方的id
+	 * @param receId 发件方的id
+	 * @param sendId 收件方的id
 	 * @param text 信的内容
 	 */
 	public Envelope(String receId,String sendId,String text) {
-		Rece.ID = new String(receId);
-		Send.ID = new String(sendId);
+		target = new AccountBase(receId);
+		source = new AccountBase(sendId);
 		Text = new String(text);
 
 	}
@@ -35,8 +35,8 @@ public class Envelope {
 	 * @param other 其他的对象
 	 */
 	public Envelope(Envelope other) {
-		Rece = new AccountBase(other.getSourceAccountId());
-		Send = new AccountBase(other.getTargetAccountId());
+		target = new AccountBase(other.getTargetAccountId());
+		source = new AccountBase(other.getSourceAccountId());
 		Text = new String(other.getText());
 	}
 	/**
@@ -44,14 +44,14 @@ public class Envelope {
 	 * @return id 接收方的id
 	 */
 	public String getTargetAccountId() {
-		return new String(Rece.getID());
+		return new String(target.getID());
 	}
 	/**
 	 * 描述：获取发送方的id
 	 * @return id 发送方的id
 	 */
 	public String getSourceAccountId() {
-		return new String(Send.getID());
+		return new String(source.getID());
 	}
 	/**
 	 * 描述：获取信的内容

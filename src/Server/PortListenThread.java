@@ -61,7 +61,7 @@ public class PortListenThread extends Thread {
 				
 				Socket clientSocket = loginSock.waitConnectFromClient();
 				
-				System.out.println("============================================");
+				System.out.println("===============================================================");
 				System.out.println("[  NEW  ] 请求传入！远端地址为："
 									+ clientSocket.getRemoteSocketAddress());
 				

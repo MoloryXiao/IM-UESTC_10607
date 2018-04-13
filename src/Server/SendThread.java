@@ -30,7 +30,7 @@ public class SendThread extends Thread {
 		this.exit = exit;
 	}
 	
-	public SendThread( CommunicateWithClient client, String userId, ServerThread serverThread ) throws IOException {
+	public SendThread( CommunicateWithClient client, String userId, ServerThread serverThread ) {
 		
 		this.client = client;
 		this.userId = userId;
@@ -48,7 +48,7 @@ public class SendThread extends Thread {
 				try {
 //				    //************************************************
 //					String msg = serverThread.getMsgFromSendQueue();
-//					System.out.println("send to client : "+ msg);
+//					System.out.println("send  to  " + userId + ": " + msg);
 //					System.out.flush();
 //					client.sendToClient(msg);
 //				    //************************************************
@@ -57,9 +57,9 @@ public class SendThread extends Thread {
 					client.sendToClient(serverThread.getMsgFromSendQueue());
 					
 				} catch (IOException e) {
-					
 					System.out.println("[ ERROR ] 消息发送失败！");
 				}
+				
 			} else {
 				
 				try {

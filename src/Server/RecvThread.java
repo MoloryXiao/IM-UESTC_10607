@@ -22,7 +22,7 @@ public class RecvThread extends Thread {
 		this.exit = exit;
 	}
 	
-	public RecvThread( CommunicateWithClient client, String userId, ServerThread serverThread ) throws IOException {
+	public RecvThread( CommunicateWithClient client, String userId, ServerThread serverThread ) {
 		
 		this.client = client;
 		this.userId = userId;
@@ -40,7 +40,7 @@ public class RecvThread extends Thread {
 
 //				//************************************************
 //				String msg = client.recvFromClient();
-//				System.out.println("recv from client : "+ msg);
+//				System.out.println("recv from " + userId + ": " + msg);
 //				System.out.flush();
 //				serverThread.putMsgToRecvQueue(msg);
 //				//**************************************************
@@ -55,12 +55,14 @@ public class RecvThread extends Thread {
 					System.out.println("[ ERROR ] 客户端已断开连接！");
 					break;
 				} else {
+					e.getMessage();
+					serverThread.setAccountOffline();
 					System.out.println("[ ERROR ] 接受客户端信息发生错误！");
 				}
 			}
 		}
 		
-		while(!exit);
+		while (!exit) ; // 等待主线程发送结束信号
 		System.out.println("[ READY ] 用户ID：" + userId + " 接受子线程已结束！");
 	}
 	

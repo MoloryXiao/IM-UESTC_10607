@@ -88,4 +88,9 @@ public class CommunicateWithClient {
     private String recvDataFromClient() throws IOException {
         return in.readUTF();
     }
+    
+    public Socket getClientSocket() {
+        
+        return client;
+    }
 }
