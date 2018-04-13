@@ -38,4 +38,7 @@ public class AccountBase {
 	public String getID() {
 		return new String(ID);
 	}
+	public void setID(String id) {
+		this.ID = id;
+	}
 }

@@ -13,6 +13,13 @@ import javax.swing.*;
 import network.commonClass.Account;
 
 public class FriendsListWindow extends JFrame{
+	
+	private String 		mine_ID;
+	private String 		mine_nickName;
+	private String		mine_signature;
+	private boolean		mine_online;
+	
+	
 	private int 		i_window_width=320,i_window_height=700;
 	private int 		i_screen_width,i_screen_height;
 	private int 		i_loc_X,i_loc_Y;
@@ -31,14 +38,19 @@ public class FriendsListWindow extends JFrame{
 	private GridBagConstraints 	top_gbConstr;
 	private JButton				logout_btn;
 	
-	private Object new_window_value;
-	private int new_window_orderNum;
+	private Account new_window_account;
 	private int i_friends_sum;
 	
 	/**
 	 * FriendsListWindow 构造函数
 	 */
-	public FriendsListWindow(){
+	public FriendsListWindow(Account myselfAccount){
+		
+		this.mine_ID = myselfAccount.getID();
+		this.mine_nickName = myselfAccount.getNikeName();
+		this.mine_online = myselfAccount.getOnLine();
+		this.mine_signature = myselfAccount.getSignature();
+		
 		/* 获取屏幕相关信息 */
 		tool_kit=Toolkit.getDefaultToolkit();
 		screenSize=tool_kit.getScreenSize();
@@ -69,8 +81,8 @@ public class FriendsListWindow extends JFrame{
 		head_image_label.setIcon((new ImageIcon("image/p70_piano.jpg")));
 		head_image_label.setToolTipText("123木头人");
 		//head_image_label.setPreferredSize(new Dimension(20,20));
-		name_label = new JLabel("昵称：Piano Duet");					// 昵称
-		sign_label = new JLabel("坚持不是梦想，放弃才是胜利！");		// 个性签名	
+		name_label = new JLabel("昵称："+this.mine_nickName);					// 昵称
+		sign_label = new JLabel(this.mine_signature);		// 个性签名	
 		// 面板布局设置
 		top_gbLayout = new GridBagLayout();
 		top_gbConstr = new GridBagConstraints();
@@ -120,7 +132,8 @@ public class FriendsListWindow extends JFrame{
 			public void mouseClicked(MouseEvent e){
 				if(friends_name_list.getSelectedIndex() != -1) {
 					if(e.getClickCount() == 2){
-						twoClick(friends_name_list.getSelectedValue(),friends_name_list.getSelectedIndex());
+						setNewWindowResource(friends_arrList.get(friends_name_list.getSelectedIndex()));
+						setCreateChatWindFlag(true);
 					}
 				}
 			}
@@ -162,34 +175,22 @@ public class FriendsListWindow extends JFrame{
 		bottom_panel.add(logout_btn);
 		this.add(bottom_panel,BorderLayout.SOUTH);
 	}
-	
-	
-	/**
-	 * 双击好友进行的操作
-	 * @param 双击的对象
-	 * @param i
-	 */
-	private void twoClick(Object value,int i){
-		setNewWindowResource(value,i);
-		this.flag_create_chatWind = true;
-	}
+
 	
 	public boolean getCreateChatWindFlag(){		
 		System.out.print("");
 		return this.flag_create_chatWind;
 	}
+	private void setNewWindowResource(Account friend_account){
+		this.new_window_account = new Account();
+		this.new_window_account = friend_account;
+	}
+	
+	public Account getNewWindowResource(){
+		return this.new_window_account;
+	}
 	public void setCreateChatWindFlag(boolean flag){
 		this.flag_create_chatWind = flag;
-	}
-	private void setNewWindowResource(Object value,int orderNumber){
-		this.new_window_value = value;
-		this.new_window_orderNum = orderNumber;
-	}
-	public Object getNewWindowValue(){
-		return this.new_window_value;
-	}
-	public int getNewWindowOrderNum(){
-		return this.new_window_orderNum;
 	}
 	
 	/**

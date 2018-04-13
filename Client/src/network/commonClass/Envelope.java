@@ -18,6 +18,13 @@ public class Envelope {
 	 * 描述：收发的信内容，String类型
 	 */
 	protected String Text;
+	
+	public Envelope() {
+		Rece = null;
+		Send = null;
+		Text = null;
+	}
+	
 	/**
 	 * 描述：构造函数
 	 * @param receId 发送方的id
@@ -25,8 +32,8 @@ public class Envelope {
 	 * @param text 信的内容
 	 */
 	public Envelope(String receId,String sendId,String text) {
-		Rece.ID = new String(receId);
-		Send.ID = new String(sendId);
+		Rece = new AccountBase(receId);
+		Send = new AccountBase(sendId);
 		Text = new String(text);
 
 	}
@@ -35,8 +42,8 @@ public class Envelope {
 	 * @param other 其他的对象
 	 */
 	public Envelope(Envelope other) {
-		Rece = new AccountBase(other.getSourceAccountId());
-		Send = new AccountBase(other.getTargetAccountId());
+		Rece = new AccountBase(other.getTargetAccountId());
+		Send = new AccountBase(other.getSourceAccountId());
 		Text = new String(other.getText());
 	}
 	/**

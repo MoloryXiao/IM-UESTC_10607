@@ -4,8 +4,13 @@ import java.io.IOException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.util.ArrayList;
+import java.util.HashMap;
+
 import javax.swing.UIManager;
 import network.commonClass.Account;
+import network.commonClass.Envelope;
+import network.messageOperate.MessageOperate;
+
 import java.util.Vector;
 import Core.Controll.*;
 
@@ -17,7 +22,7 @@ public class ChatTool {
 	private boolean login_success_flag = false;
 	private NetworkController nkc;
 	private Vector<Integer> vec_friend_orderNum;
-	private ArrayList<ChatWindow> arrList_friends_chatWind;
+	private HashMap<Integer, ChatWindow> arrList_friends_chatWind;
 	
 	public static void main(String []args){
 		@SuppressWarnings("unused")
@@ -37,7 +42,7 @@ public class ChatTool {
 	    }catch(Exception e){
 	    	e.printStackTrace();
 	    }
-		
+		/******************** 记住密码与自动登陆 ********************/
 		String lnotePath = "resource/lnote.data";
 		String file_context = "";
 		/* 文件读取器 */
@@ -54,8 +59,7 @@ public class ChatTool {
 			return;
 		} catch (IOException e) {
 			e.printStackTrace();
-		}
-		
+		}		
 		if(file_context.isEmpty()){
 			System.out.println("LoginInfo: Create a empty login Window");
 			login_wind = new LoginWindow(null,null,false,false);
@@ -84,7 +88,7 @@ public class ChatTool {
 				login_wind = new LoginWindow(yhm,psw,rmSelected,autoSelected);
 			}			
 		}
-		
+		/******************** 密码验证逻辑 ********************/
 		while(!login_success_flag){
 			while(!login_wind.isConnectServer()){}		// 检查输入合法后再进行连接服务器
 			String login_yhm = login_wind.getYhm();
@@ -124,29 +128,54 @@ public class ChatTool {
 				login_wind.setConnectFlag(false);
 			}			
 		}
-		System.out.println("LoginInfo: obtaining the friendList from server.");
 		
-		fd_wind = new FriendsListWindow();
-
+		/******************** 创建好友列表窗口 ********************/
+		Account myselfAccount = new Account();
+		myselfAccount = nkc.askMySelfAccFromServer();
+		fd_wind = new FriendsListWindow(myselfAccount);
+		
+		System.out.println("LoginInfo: obtaining the friendList from server.");
 		friend_info_arraylist = nkc.askFriendListFromServer();
 		printAccountList(friend_info_arraylist);
 		
 		fd_wind.updateFriendsList(friend_info_arraylist);
 		vec_friend_orderNum = new Vector<Integer>();
-		arrList_friends_chatWind = new ArrayList<ChatWindow>();
+		arrList_friends_chatWind = new HashMap<Integer, ChatWindow>();
 		
+		/******************** 接收消息线程 ********************/
+		Runnable rnb = ()->{
+			while(true) {
+				Envelope evp = new Envelope();
+				evp = nkc.recvEnvelope();
+				String sourceID = evp.getSourceAccountId();
+				String sendID = evp.getTargetAccountId();
+				String message = evp.getText();
+				arrList_friends_chatWind.get(Integer.parseInt(sourceID)).
+					sendMessageToShowtextfield(message);	// 根据发送方的ID定位到好友窗口并显示
+				System.out.println("chatInfo: " + sourceID + " send /" + message + "/ to " + sendID);
+			}
+		};
+		Thread thd = new Thread(rnb);
+		thd.start();
+		
+		
+		/******************** 创建好友聊天窗口 ********************/
 		while(true){
 			if(fd_wind.getCreateChatWindFlag()){				
-				String str_chatName = (String)fd_wind.getNewWindowValue();
-				int i_orderNum = fd_wind.getNewWindowOrderNum();
-				if(vec_friend_orderNum.indexOf(i_orderNum) == -1){
-					vec_friend_orderNum.add(i_orderNum);
-					arrList_friends_chatWind.add(new ChatWindow(str_chatName));
-					System.out.println("ChatInfo: open the chating window with "+ str_chatName);
+				Account friend_account = new Account();
+				friend_account = fd_wind.getNewWindowResource();
+				String friend_ID = friend_account.getID();
+				int friend_id = Integer.parseInt(friend_ID);
+				if(vec_friend_orderNum.indexOf(friend_id) == -1){
+					vec_friend_orderNum.add(friend_id);
+					arrList_friends_chatWind.put(friend_id,new ChatWindow(friend_account,myselfAccount.getID()));
+					System.out.println("ChatInfo: open the chating window with "+ 
+							friend_account.getNikeName());
 				}else{
-					arrList_friends_chatWind.get(i_orderNum).setVisible(true);
-					arrList_friends_chatWind.get(i_orderNum).setAlwaysOnTop(true);
-					arrList_friends_chatWind.get(i_orderNum).setAlwaysOnTop(false);
+					// 此处有bug friend_id值不是索引号 考虑键值模板类
+					arrList_friends_chatWind.get(friend_id).setVisible(true);
+					arrList_friends_chatWind.get(friend_id).setAlwaysOnTop(true);
+					arrList_friends_chatWind.get(friend_id).setAlwaysOnTop(false);
 				}
 				fd_wind.setCreateChatWindFlag(false);
 			}

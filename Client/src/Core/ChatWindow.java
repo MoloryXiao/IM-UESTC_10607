@@ -4,10 +4,20 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.io.IOException;
 
 import javax.swing.*;
+import Core.Controll.NetworkController;
+import network.commonClass.Account;
+import network.commonClass.Envelope;
+import network.messageOperate.MessageOperate;
 
 public class ChatWindow extends JFrame{
+	private String 		mine_ID;
+	private String 		friend_ID;
+	private String 		friend_signature;
+	private String 		friend_nickName;
+	private boolean 	friend_online;
 	
 	private static final String ChatWindow_TITLE = "Chating";
 	private static final int WINDOW_WIDTH = 935;
@@ -31,10 +41,16 @@ public class ChatWindow extends JFrame{
 	private JComboBox 	fontSize;
 	private Font 		font;
 	
-	private JScrollBar sbar;
-	
+	private JScrollBar 	sbar;
+	private NetworkController nkc;
 
-	public ChatWindow(Object oj) {		
+	public ChatWindow(Account myself,String parent_ID) {	
+		this.friend_ID = myself.getID();
+		this.friend_online = myself.getOnLine();
+		this.friend_nickName = myself.getNikeName();
+		this.friend_signature = myself.getSignature();
+		this.mine_ID = parent_ID;
+		
 		this.setTitle(ChatWindow_TITLE);
 		this.setSize(WINDOW_WIDTH, WINDOW_HEIGHT);
 		
@@ -42,22 +58,12 @@ public class ChatWindow extends JFrame{
 		this.setLocationRelativeTo(null);
 		this.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		
-		SetNorthPane(oj);
+		SetNorthPane();
 		SetSouthPane();
 		
-		this.addKeyListener(new KeyListener() {
-			public void keyTyped(KeyEvent e) {}
-			public void keyReleased(KeyEvent e) {}
-			public void keyPressed(KeyEvent e) {
-				if(e.getKeyChar() == KeyEvent.VK_F1) {
-					ChatWindow.this.dispose();
-				}
-			}
-		});
-		
+		this.setVisible(true);
 	}
-	private void SetNorthPane(Object oj){
-		String contactOject = (String)oj;
+	private void SetNorthPane(){
 		
 		panel_north = new JPanel();
 		panel_north.setLayout(new BorderLayout(5,5));
@@ -73,16 +79,16 @@ public class ChatWindow extends JFrame{
 		panel_north.add(panel_north_center,BorderLayout.CENTER);
 		
 		friend_name_label = new JLabel();
-		friend_name_label.setText(contactOject);
+		friend_name_label.setText(this.friend_nickName);
 		panel_north_center.add(friend_name_label,BorderLayout.CENTER);
 		
 		signature_label = new JLabel();
-		signature_label.setText("Never waste time any more");
+		signature_label.setText(this.friend_nickName);
 		panel_north_center.add(signature_label,BorderLayout.SOUTH);
 		this.add(panel_north,BorderLayout.NORTH);
 	}
 	
-	private void SetSouthPane( ){
+	private void SetSouthPane(){
 		panel_south = new JPanel();
 		panel_south.setLayout(new BorderLayout());
 		
@@ -151,10 +157,13 @@ public class ChatWindow extends JFrame{
 			public void actionPerformed(ActionEvent e) {
 				// TODO Auto-generated method stub
 				if(!inputTextArea.getText().equals("")){
-				showTextArea.append(inputTextArea.getText()+"\r\n");
-				//showTextArea.setLineWrap(true);
-				inputTextArea.setText("");
-				sbar.setValue(sbar.getMaximum());
+					String sendStr = inputTextArea.getText()+"\n";
+					showTextArea.append(sendStr);
+					inputTextArea.setText("");
+					sbar.setValue(sbar.getMaximum());
+					sendMessageToServer(sendStr.substring(0,sendStr.length()-1));
+					System.out.println("chatInfo: " + ChatWindow.this.mine_ID + " send ¡°" 
+							+ sendStr + "¡± to " + ChatWindow.this.friend_ID);
 				}
 			}
 		};
@@ -166,9 +175,12 @@ public class ChatWindow extends JFrame{
 				if(e.getKeyChar() == KeyEvent.VK_ENTER && e.isControlDown())
 				{
 					if(!inputTextArea.getText().equals("")){
-						showTextArea.append(inputTextArea.getText()+"\r\n");
-						//showTextArea.setLineWrap(true);
+						String sendStr = inputTextArea.getText()+"\n";
+						showTextArea.append(sendStr);
 						inputTextArea.setText("");
+						sendMessageToServer(sendStr.substring(0,sendStr.length()-1));
+						System.out.println("chatInfo: " + ChatWindow.this.mine_ID + " send ¡°"
+								+ sendStr + "¡± to " + ChatWindow.this.friend_ID);
 					}
 				}
 				
@@ -201,12 +213,18 @@ public class ChatWindow extends JFrame{
 		
 		this.add(panel_south,BorderLayout.CENTER);
 	}
-	private void sentMessageToShowtextfield(String Message)
+	
+	private void sendMessageToServer(String message) {
+		Envelope evp = new Envelope(this.friend_ID,this.mine_ID,message);
+		NetworkController.sendEnvelope(evp);
+	}
+	
+	public void sendMessageToShowtextfield(String Message)
 	{
 		showTextArea.append(Message+"\r\n");
 	}
 	
-	public class closeChatWindowButton_Listener implements ActionListener{
+	private class closeChatWindowButton_Listener implements ActionListener{
 		private JFrame jFrame;
 		private JButton button;
 		
@@ -218,7 +236,7 @@ public class ChatWindow extends JFrame{
 		}
 	}
 	
-	public class closeChatWindowEseKey_Listener implements KeyListener{
+	private class closeChatWindowEseKey_Listener implements KeyListener{
 		private JFrame jFrame;
 		
 		public closeChatWindowEseKey_Listener(JFrame jFrame) {
@@ -232,24 +250,6 @@ public class ChatWindow extends JFrame{
 				jFrame.dispose();
 			}
 			
-		}
-		
+		}		
 	}
-	/*
-	 * 		KeyListener enter_Listener = new KeyListener() {
-			public void keyTyped(KeyEvent e) {}
-			public void keyReleased(KeyEvent e) {}
-			public void keyPressed(KeyEvent e) {
-				if(e.getKeyChar() == KeyEvent.VK_ENTER && e.isControlDown())
-				{
-					if(!inputTextArea.getText().equals("")){
-						showTextArea.append(inputTextArea.getText()+"\r\n");
-						//showTextArea.setLineWrap(true);
-						inputTextArea.setText("");
-					}
-				}
-				
-			}
-			
-		};*/
 }
