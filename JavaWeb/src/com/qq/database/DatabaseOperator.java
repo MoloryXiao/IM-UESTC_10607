@@ -36,7 +36,7 @@ public class DatabaseOperator {
 			
 		} catch (ClassNotFoundException e) {
 			
-			System.out.println("[ ERROR ] JDBC_DRIVER ¼ÓÔØ´íÎó£¬Êı¾İ¿âÇı¶¯Æô¶¯Ê§°Ü£¡");
+			System.out.println("[ ERROR ] JDBC_DRIVER åŠ è½½é”™è¯¯ï¼Œæ•°æ®åº“é©±åŠ¨å¯åŠ¨å¤±è´¥ï¼");
 			return false;
 			
 		}
@@ -51,7 +51,7 @@ public class DatabaseOperator {
 			
 		} catch (SQLException e) {
 			
-			System.out.println("[ ERROR ] Á¬½ÓÊı¾İ¿âÊ±³öÏÖ´íÎó£¡");
+			System.out.println("[ ERROR ] è¿æ¥æ•°æ®åº“æ—¶å‡ºç°é”™è¯¯ï¼");
 			return false;
 			
 		}
@@ -66,7 +66,7 @@ public class DatabaseOperator {
 			
 		} catch (SQLException e) {
 			
-			System.out.println("[ ERROR ] ¹Ø±ÕÊı¾İ¿âÊ±³öÏÖ´íÎó£¡");
+			System.out.println("[ ERROR ] å…³é—­æ•°æ®åº“æ—¶å‡ºç°é”™è¯¯ï¼");
 			return false;
 			
 		}
@@ -87,7 +87,7 @@ public class DatabaseOperator {
 			
 		} catch (SQLException e) {
 			
-			System.out.println("[ ERROR ] SQL Query ²éÑ¯Ê±·¢Éú´íÎó£¡Çë¼ì²éÓï·¨£º" + sql);
+			System.out.println("[ ERROR ] SQL Query æŸ¥è¯¢æ—¶å‘ç”Ÿé”™è¯¯ï¼è¯·æ£€æŸ¥è¯­æ³•ï¼š" + sql);
 			return null;
 			
 		}
@@ -103,7 +103,7 @@ public class DatabaseOperator {
 			
 		} catch (SQLException e) {
 			
-			System.out.println("[ ERROR ] SQL Update ²éÑ¯Ê±·¢Éú´íÎó£¡Çë¼ì²éÓï·¨£º" + sql);
+			System.out.println("[ ERROR ] SQL Update æŸ¥è¯¢æ—¶å‘ç”Ÿé”™è¯¯ï¼è¯·æ£€æŸ¥è¯­æ³•ï¼š" + sql);
 			return -1;
 			
 		}
@@ -126,7 +126,7 @@ public class DatabaseOperator {
 						rs.getString("username"), false,
 						rs.getString("sign"));
 			else {
-				System.out.println("[ ERROR ] Êı¾İ¿âÖĞ²éÎŞ´ËID£º" + Id);
+				System.out.println("[ ERROR ] æ•°æ®åº“ä¸­æŸ¥æ— æ­¤IDï¼š" + Id);
 			}
 			
 		}
