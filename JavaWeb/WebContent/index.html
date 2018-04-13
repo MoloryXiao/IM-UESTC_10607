@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en" class="no-js">
+<head>
+<meta charset="UTF-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge"> 
+<meta name="viewport" content="width=device-width, initial-scale=1"> 
+<title>Registor</title>
+<link rel="stylesheet" type="text/css" href="css/normalize.css" />
+<link rel="stylesheet" type="text/css" href="css/demo.css" />
+<!--必要样式-->
+<link rel="stylesheet" type="text/css" href="css/component.css" />
+<!--[if IE]>
+<script src="js/html5.js"></script>
+<![endif]-->
+</head>
+	<body>
+		<div class="container demo-1">
+			<div class="content">
+				<div id="large-header" class="large-header">
+					<canvas id="demo-canvas"></canvas>
+					<div class="message">
+						<div class="one_line">
+							<p id="p_name"></p>
+						</div>
+						<div class="one_line">
+							<p id="p_passwd"></p>
+						</div>
+						<div class="one_line">
+							<p id="p_phoneNumber"></p>
+						</div>
+					</div>
+					<div class="logo_box">
+						<h3>Welcome</h3>
+						<form action="hi" name="userInfo" method="post">
+							<div class="input_outer">
+								<span class="u_user"></span>
+								<input name="nickname" class="text" onBlur="checkNickname()" style="color: #FFFFFF !important" type="text" placeholder="Nickname">
+							</div>
+							<div class="input_outer">
+								<span class="us_uer"></span>
+								<input name="password" class="text" onBlur="checkPasswd()" style="color: #FFFFFF !important; position:absolute; z-index:100;"type="password" placeholder="Password">
+							</div>
+							<div class="input_outer">
+								<span class="u_user"></span>
+								<input name="phoneNumber" class="text" onBlur="checkPhoneNumber()" style="color: #FFFFFF !important" type="text" placeholder="PhoneNumber">	
+							</div>
+							<div class="mb2">
+								<input type="submit" class="act-but submit" onclick="return checkSubmit()" value="Registor" style="color: #FFFFFF;">
+							</div>
+						</form>
+					</div>
+				</div>
+			</div>
+		</div><!-- /container -->
+		<script src="js/TweenLite.min.js"></script>
+		<script src="js/EasePack.min.js"></script>
+		<script src="js/rAF.js"></script>
+		<script src="js/demo-1.js"></script>
+		<script src="js/Check.js"></script>
+	</body>
+</html>
