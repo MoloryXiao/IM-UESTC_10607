@@ -13,7 +13,7 @@ import javax.servlet.http.HttpServletResponse;
 import com.qq.database.DatabaseOperator;
 
 /**
- * ´¦Àí×¢²áKIMºÅµÄServlet·şÎñ
+ * å¤„ç†æ³¨å†ŒKIMå·çš„ServletæœåŠ¡
  * @author ZiQin
  * @version V1.0.0
  */
@@ -22,7 +22,7 @@ public class RegistorID extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	
 	/**
-	 * ×´Ì¬³£Á¿
+	 * çŠ¶æ€å¸¸é‡
 	 */
 	private static final byte OK = 1;
 	private static final byte ERROR_ID_CREATEFAILE = 2;
@@ -76,13 +76,13 @@ public class RegistorID extends HttpServlet {
 	}
 	
 	/**
-	 * ´¦Àí×¢²áÊÂÎñ
-	 * @param request HTTPÇëÇó
-	 * @param response HTTPÏìÓ¦
-	 * @return ²Ù×÷½á¹û×´Ì¬
-	 * @throws IOException 		IOÒì³£
-	 * @throws SQLException 	Êı¾İ¿âÒì³£
-	 * @throws ServletException ServletÒì³£
+	 * å¤„ç†æ³¨å†Œäº‹åŠ¡
+	 * @param request HTTPè¯·æ±‚
+	 * @param response HTTPå“åº”
+	 * @return æ“ä½œç»“æœçŠ¶æ€
+	 * @throws IOException 		IOå¼‚å¸¸
+	 * @throws SQLException 	æ•°æ®åº“å¼‚å¸¸
+	 * @throws ServletException Servletå¼‚å¸¸
 	 */
 	private byte registor(HttpServletRequest request, HttpServletResponse response) throws IOException, SQLException, ServletException {
 		String nickName = request.getParameter("nickname");
