@@ -8,9 +8,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 /**
- * ´¦ÀíÓÃ»§ÊäÈëÑéÖ¤ÂëµÄServlet
+ * å¤„ç†ç”¨æˆ·è¾“å…¥éªŒè¯ç çš„Servlet
  * @author ZiQin
- * @version V1.0.0
+ * @version V1.0.1
  */
 @WebServlet("/CheckVCodeServlet")
 public class CheckVCodeServlet extends HttpServlet {
@@ -32,11 +32,11 @@ public class CheckVCodeServlet extends HttpServlet {
 			checkVcode(request, response);
 		}
 		catch (ServletException servletException) {
-			System.out.println("[ERROR] Servlet Òì³£");
+			System.out.println("[ERROR] Servlet å¼‚å¸¸");
 			servletException.printStackTrace();
 		}
 		catch (IOException ioException) {
-			System.out.println("[ERROR] IO Òì³£");
+			System.out.println("[ERROR] IO å¼‚å¸¸");
 			ioException.printStackTrace();
 		}
 	
@@ -50,11 +50,11 @@ public class CheckVCodeServlet extends HttpServlet {
 	}
 
 	/**
-	 * ¼ì²éÓÃ»§ÊäÈëµÄÑéÖ¤Âë·şÎñº¯Êı
-	 * @param request ÇëÇó
-	 * @param response ÏìÓ¦
-	 * @throws ServletException servletÒì³£
-	 * @throws IOException IOÒì³£
+	 * æ£€æŸ¥ç”¨æˆ·è¾“å…¥çš„éªŒè¯ç æœåŠ¡å‡½æ•°
+	 * @param request è¯·æ±‚
+	 * @param response å“åº”
+	 * @throws ServletException servletå¼‚å¸¸
+	 * @throws IOException IOå¼‚å¸¸
 	 */
 	private void checkVcode(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		

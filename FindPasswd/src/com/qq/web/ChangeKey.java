@@ -12,16 +12,16 @@ import javax.servlet.http.HttpServletResponse;
 import com.qq.database.DatabaseOperator;
 
 /**
- * ´¦ÀíĞŞ¸ÄÃÜÂëµÄServlet·şÎñ
+ * å¤„ç†ä¿®æ”¹å¯†ç çš„ServletæœåŠ¡
  * @author ZiQin
- * @version V 1.0.0
+ * @version V 1.0.1
  */
 @WebServlet("/ChangeKey")
 public class ChangeKey extends HttpServlet {
 	private static final long serialVersionUID = 1L;
        
 	/**
-	 * ×´Ì¬³£Á¿
+	 * çŠ¶æ€å¸¸é‡
 	 */
 	private static final byte SUCCESS = 0;
 	private static final byte FAIL = 1;
@@ -71,13 +71,13 @@ public class ChangeKey extends HttpServlet {
 	}
 	
 	/**
-	 * ĞŞ¸ÄÊı¾İ¿â¶ËÃÜÂëµÄÂß¼­·şÎñ
-	 * @param request ÇëÇó
-	 * @param response ÏìÓ¦
-	 * @return ²Ù×÷½á¹û×´Ì¬Âë
-	 * @throws ServletException ServletÒì³£
-	 * @throws IOException IOÒì³£
-	 * @throws SQLException SQLÒì³£
+	 * ä¿®æ”¹æ•°æ®åº“ç«¯å¯†ç çš„é€»è¾‘æœåŠ¡
+	 * @param request è¯·æ±‚
+	 * @param response å“åº”
+	 * @return æ“ä½œç»“æœçŠ¶æ€ç 
+	 * @throws ServletException Servletå¼‚å¸¸
+	 * @throws IOException IOå¼‚å¸¸
+	 * @throws SQLException SQLå¼‚å¸¸
 	 */
 	private byte change(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException, SQLException {
 		String id = (String) this.getServletContext().getAttribute("id");
