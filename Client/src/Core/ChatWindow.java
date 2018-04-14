@@ -1,55 +1,67 @@
-package Core;
+﻿package Core;
+
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
-import java.io.IOException;
-
 import javax.swing.*;
+
 import Core.Controll.NetworkController;
 import network.commonClass.Account;
 import network.commonClass.Envelope;
-import network.messageOperate.MessageOperate;
 
+/**
+ * 好友聊天窗口
+ * @author LeeKadima
+ * @version 2.0
+ */
 public class ChatWindow extends JFrame{
-	private String 		mine_ID;
-	private String 		friend_ID;
-	private String 		friend_signature;
-	private String 		friend_nickName;
-	private boolean 	friend_online;
+	private String 		str_mine_ID;
+	private String 		str_friend_ID;
+	private String 		str_friend_signature;
+	private String 		str_friend_nickName;
+	private boolean 	flag_friend_online;
 	
-	private static final String ChatWindow_TITLE = "Chating";
-	private static final int WINDOW_WIDTH = 935;
-	private static final int WINDOW_HEIGHT = 680;
+	private static final String 	ChatWindow_TITLE = "Chating...";
+	private static final int 		WINDOW_WIDTH = 935;
+	private static final int 		WINDOW_HEIGHT = 680;
 	final static String[] allFontSize={
 			"8" ,"9", "10","12","14","16","18",
 			"20","24","28","32","36","40","44",
 			"48","54","60","66","72","80","88"  
     };  
-	private JLabel 		head_img_label,friend_name_label,signature_label;
-	private JPanel 		panel_north,panel_south,panel_north_center;
-	private JPanel 		panelUnderSplit,panelUnderSplit_UpPanel,panelUnderSplit_BottomPanel;
-	private JButton 	send_button,close_button;
-	private JTextArea 	inputTextArea,showTextArea;
-	private ImageIcon 	head_img_icon;
-	private FlowLayout 	flowLayout_Bottom;
-	private JSplitPane 	splitPane;
-	private FlowLayout 	flowLayout;
-	private JScrollPane inputpanel,showPanel;
-	private JComboBox	fontType;
-	private JComboBox 	fontSize;
-	private Font 		font;
 	
-	private JScrollBar 	sbar;
-	private NetworkController nkc;
+	private Font 				font;
+	private JLabel 				head_img_label,friend_name_label,signature_label;
+	private JPanel 				panel_north,panel_south,panel_north_center;
+	private JPanel 				panelUnderSplit,panelUnderSplit_UpPanel,panelUnderSplit_BottomPanel;
+	private JButton 			send_button,close_button;
+	private JTextArea 			inputTextArea,showTextArea;
+	private ImageIcon 			head_img_icon;
+	private FlowLayout 			flowLayout_Bottom;
+	private JSplitPane 			splitPane;
+	private FlowLayout 			flowLayout;
+	private JScrollBar 			sbar;
+	private JScrollPane 		inputpanel,showPanel;	
+	private NetworkController 	nkc;
+	private JComboBox<String>	fontType;
+	private JComboBox<String> 	fontSize;
 
-	public ChatWindow(Account myself,String parent_ID) {	
-		this.friend_ID = myself.getID();
-		this.friend_online = myself.getOnLine();
-		this.friend_nickName = myself.getNikeName();
-		this.friend_signature = myself.getSignature();
-		this.mine_ID = parent_ID;
+	/**
+	 * 构造函数
+	 * @param myself 自身账号
+	 * @param parent_ID
+	 */
+	public ChatWindow(Account myself,String parent_ID) {
+		nkc = new NetworkController();
+		
+		/* 设置窗口定位信息 */
+		this.setMine_ID(parent_ID);
+		this.setFriend_ID(myself.getID());
+		this.setFriend_online(myself.getOnLine());
+		this.setFriend_nickName(myself.getNikeName());
+		this.setFriend_signature(myself.getSignature());
 		
 		this.setTitle(ChatWindow_TITLE);
 		this.setSize(WINDOW_WIDTH, WINDOW_HEIGHT);
@@ -63,6 +75,10 @@ public class ChatWindow extends JFrame{
 		
 		this.setVisible(true);
 	}
+	
+	/**
+	 * 设置北部内容
+	 */
 	private void SetNorthPane(){
 		
 		panel_north = new JPanel();
@@ -79,15 +95,18 @@ public class ChatWindow extends JFrame{
 		panel_north.add(panel_north_center,BorderLayout.CENTER);
 		
 		friend_name_label = new JLabel();
-		friend_name_label.setText(this.friend_nickName);
+		friend_name_label.setText(this.getFriend_nickName());
 		panel_north_center.add(friend_name_label,BorderLayout.CENTER);
 		
 		signature_label = new JLabel();
-		signature_label.setText(this.friend_nickName);
+		signature_label.setText(this.getFriend_nickName());
 		panel_north_center.add(signature_label,BorderLayout.SOUTH);
 		this.add(panel_north,BorderLayout.NORTH);
 	}
 	
+	/**
+	 * 设置南部内容
+	 */
 	private void SetSouthPane(){
 		panel_south = new JPanel();
 		panel_south.setLayout(new BorderLayout());
@@ -105,23 +124,16 @@ public class ChatWindow extends JFrame{
 		flowLayout = new FlowLayout();
 		flowLayout.setAlignment(FlowLayout.LEFT);		//set alignment to left
 		panelUnderSplit_UpPanel.setLayout(flowLayout);
-		//-----------ComboBox-------------
-		/*
-		menu_font_btn = new JButton();					
-		menu_font_btn.setText("��");
-		*/
+
 		GraphicsEnvironment graphicsEnvironment = GraphicsEnvironment.getLocalGraphicsEnvironment();
 		final String[] allFontType;
 		allFontType = graphicsEnvironment.getAvailableFontFamilyNames();
-		fontType = new JComboBox(allFontType);
-		fontSize = new JComboBox(allFontSize);
+		fontType = new JComboBox<String>(allFontType);
+		fontSize = new JComboBox<String>(allFontSize);
 		fontSize.setPreferredSize(new Dimension(80, 30));
 		
 		ActionListener fontListener = new ActionListener() {
-			
-			@Override
 			public void actionPerformed(ActionEvent e) {
-				// TODO Auto-generated method stub
 				String fontTypeChosen = (String)fontType.getSelectedItem();
 				int	   fontSizeChosen = Integer.parseInt((String)fontSize.getSelectedItem());
 				font = new Font(fontTypeChosen, Font.PLAIN, fontSizeChosen);
@@ -129,6 +141,7 @@ public class ChatWindow extends JFrame{
 				showTextArea.setFont(font);
 			}
 		};
+		
 		fontType.addActionListener(fontListener);
 		fontSize.addActionListener(fontListener);
 		
@@ -146,25 +159,15 @@ public class ChatWindow extends JFrame{
 		panelUnderSplit_BottomPanel.setLayout(flowLayout_Bottom);
 		//-----------Button-------------
 		send_button = new JButton();
-		send_button.setText("����");
+		send_button.setText("发送");
 		panelUnderSplit_BottomPanel.add(send_button);
 		close_button = new JButton();
-		close_button.setText("�ر�");
+		close_button.setText("关闭");
 		panelUnderSplit_BottomPanel.add(close_button);
 		//-----------send_listener----------
 		ActionListener send_listener = new ActionListener() {
-			@Override
 			public void actionPerformed(ActionEvent e) {
-				// TODO Auto-generated method stub
-				if(!inputTextArea.getText().equals("")){
-					String sendStr = inputTextArea.getText()+"\n";
-					showTextArea.append(sendStr);
-					inputTextArea.setText("");
-					sbar.setValue(sbar.getMaximum());
-					sendMessageToServer(sendStr.substring(0,sendStr.length()-1));
-					System.out.println("chatInfo: " + ChatWindow.this.mine_ID + " send ��" 
-							+ sendStr + "�� to " + ChatWindow.this.friend_ID);
-				}
+				submitMessage();
 			}
 		};
 		
@@ -172,20 +175,10 @@ public class ChatWindow extends JFrame{
 			public void keyTyped(KeyEvent e) {}
 			public void keyReleased(KeyEvent e) {}
 			public void keyPressed(KeyEvent e) {
-				if(e.getKeyChar() == KeyEvent.VK_ENTER && e.isControlDown())
-				{
-					if(!inputTextArea.getText().equals("")){
-						String sendStr = inputTextArea.getText()+"\n";
-						showTextArea.append(sendStr);
-						inputTextArea.setText("");
-						sendMessageToServer(sendStr.substring(0,sendStr.length()-1));
-						System.out.println("chatInfo: " + ChatWindow.this.mine_ID + " send ��"
-								+ sendStr + "�� to " + ChatWindow.this.friend_ID);
-					}
-				}
-				
-			}
-			
+				if(e.getKeyChar() == KeyEvent.VK_ENTER && e.isControlDown()){
+					submitMessage();
+				}				
+			}			
 		};
 		send_button.addActionListener(send_listener);
 		//-----------close_listener----------
@@ -197,7 +190,7 @@ public class ChatWindow extends JFrame{
 
 		inputTextArea = new JTextArea();
 		inputTextArea.addKeyListener(enter_Listener);
-		inputTextArea.setLineWrap(true);				//set inputext line wrap
+		inputTextArea.setLineWrap(true);				//set inputText line wrap
 		
 		inputpanel.setViewportView(inputTextArea);
 		
@@ -214,20 +207,38 @@ public class ChatWindow extends JFrame{
 		this.add(panel_south,BorderLayout.CENTER);
 	}
 	
-	private void sendMessageToServer(String message) {
-		Envelope evp = new Envelope(this.friend_ID,this.mine_ID,message);
-		NetworkController.sendEnvelope(evp);
+	/**
+	 * 触发发送事件时 将内容打印到显示框并转发到服务器
+	 */
+	private void submitMessage() {
+		if(!inputTextArea.getText().equals("")){
+			/* 打印到显示框 */
+			String sendStr = inputTextArea.getText();
+			showTextArea.append(sendStr+"\n");
+			inputTextArea.setText("");
+			sbar.setValue(sbar.getMaximum());
+			/* 转发到服务器 */
+			Envelope evp = new Envelope(this.getFriend_ID(),this.getMine_ID(),sendStr);
+			nkc.sendEnvelope(evp);
+			System.out.println("ChatInfoSend: " + ChatWindow.this.getMine_ID() + " send “" 
+					+ sendStr + "” to " + ChatWindow.this.getFriend_ID());
+		}
 	}
 	
+	/**
+	 * 将内容显示到窗口上并换行
+	 * @param Message 需要显示的信息
+	 */
 	public void sendMessageToShowtextfield(String Message)
 	{
 		showTextArea.append(Message+"\r\n");
 	}
-	
+		
+	/**
+	 * 关闭按钮监听类
+	 */
 	private class closeChatWindowButton_Listener implements ActionListener{
 		private JFrame jFrame;
-		private JButton button;
-		
 		public closeChatWindowButton_Listener (JFrame jFrame) {
 			this.jFrame = jFrame;
 		}
@@ -236,20 +247,38 @@ public class ChatWindow extends JFrame{
 		}
 	}
 	
-	private class closeChatWindowEseKey_Listener implements KeyListener{
-		private JFrame jFrame;
-		
-		public closeChatWindowEseKey_Listener(JFrame jFrame) {
-			this.jFrame = jFrame;
-		}
-		public void keyPressed(KeyEvent e) {}
-		public void keyReleased(KeyEvent e) {}
-		public void keyTyped(KeyEvent e) {
-			if(e.getKeyChar() == KeyEvent.VK_ESCAPE)
-			{
-				jFrame.dispose();
-			}
-			
-		}		
+	/**************** setter and getter ****************/
+	public String getMine_ID() {
+		return str_mine_ID;
+	}
+	public void setMine_ID(String mine_ID) {
+		this.str_mine_ID = mine_ID;
+	}
+
+	public String getFriend_ID() {
+		return str_friend_ID;
+	}
+	public void setFriend_ID(String friend_ID) {
+		this.str_friend_ID = friend_ID;
+	}
+
+	public String getFriend_signature() {
+		return str_friend_signature;
+	}
+	public void setFriend_signature(String friend_signature) {
+		this.str_friend_signature = friend_signature;
+	}
+
+	public String getFriend_nickName() {
+		return str_friend_nickName;
+	}
+	public void setFriend_nickName(String friend_nickName) {
+		this.str_friend_nickName = friend_nickName;
+	}
+	public boolean isFriend_online() {
+		return flag_friend_online;
+	}
+	public void setFriend_online(boolean friend_online) {
+		this.flag_friend_online = friend_online;
 	}
 }

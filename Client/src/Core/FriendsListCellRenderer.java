@@ -1,9 +1,16 @@
-package Core;
+﻿package Core;
+
 import java.awt.Color;
 import java.awt.Component;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JList;
 
+/**
+ * 用于自定义好友信息列表显示的样式
+ * @author Murrey
+ * @version 1.0
+ *
+ */
 public class FriendsListCellRenderer extends DefaultListCellRenderer{
 	private int []rows;
 	private int count;

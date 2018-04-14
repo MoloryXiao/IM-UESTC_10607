@@ -1,4 +1,5 @@
-package Core;
+ï»¿package Core;
+
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
@@ -7,18 +8,23 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import javax.imageio.ImageIO;
-
+/**
+ * å·¥å…·é›†
+ * @author Murrey
+ * @version 1.0
+ */
 public class HandyTool {
 	public static void imgCutToCircle(File orginal_img,String save_path) throws IOException {
         // BufferedImage bi1 = ImageIO.read(new File("image/02.png"));
 		BufferedImage bi1 = ImageIO.read(orginal_img);        
-        BufferedImage bi2 = new BufferedImage(bi1.getWidth(), bi1.getHeight(),BufferedImage.TYPE_INT_RGB);// ¸ù¾İĞèÒªÊÇ·ñÊ¹ÓÃ BufferedImage.TYPE_INT_ARGB
+        BufferedImage bi2 = new BufferedImage(bi1.getWidth(), 
+        			bi1.getHeight(),BufferedImage.TYPE_INT_RGB);// æ ¹æ®éœ€è¦æ˜¯å¦ä½¿ç”¨ BufferedImage.TYPE_INT_ARGB
         Ellipse2D.Double shape = new Ellipse2D.Double(0, 0, bi1.getWidth(), bi1.getHeight());
         Graphics2D g2 = bi2.createGraphics();
         g2.setBackground(Color.WHITE);
         g2.fill(new Rectangle(bi2.getWidth(), bi2.getHeight()));
         g2.setClip(shape);
-        // Ê¹ÓÃ setRenderingHint ÉèÖÃ¿¹¾â³İ
+        // ä½¿ç”¨ setRenderingHint è®¾ç½®æŠ—é”¯é½¿
         g2.drawImage(bi1, 0, 0, null);
         g2.dispose();
  
