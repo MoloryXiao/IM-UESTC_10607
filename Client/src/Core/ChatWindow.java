@@ -5,6 +5,11 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+import javax.print.DocFlavor.STRING;
 import javax.swing.*;
 
 import Core.Controll.NetworkController;
@@ -26,6 +31,9 @@ public class ChatWindow extends JFrame{
 	private static final String 	ChatWindow_TITLE = "Chating...";
 	private static final int 		WINDOW_WIDTH = 935;
 	private static final int 		WINDOW_HEIGHT = 680;
+	
+	private static 	SimpleDateFormat DATE_FORMAT;
+	
 	final static String[] allFontSize={
 			"8" ,"9", "10","12","14","16","18",
 			"20","24","28","32","36","40","44",
@@ -55,6 +63,7 @@ public class ChatWindow extends JFrame{
 	 */
 	public ChatWindow(Account myself,String parent_ID) {
 		nkc = new NetworkController();
+		DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		
 		/* 设置窗口定位信息 */
 		this.setMine_ID(parent_ID);
@@ -214,7 +223,7 @@ public class ChatWindow extends JFrame{
 		if(!inputTextArea.getText().equals("")){
 			/* 打印到显示框 */
 			String sendStr = inputTextArea.getText();
-			showTextArea.append(sendStr+"\n");
+			showTextArea.append(new String(getTimeStamp()) + sendStr + "\n");
 			inputTextArea.setText("");
 			sbar.setValue(sbar.getMaximum());
 			/* 转发到服务器 */
@@ -226,12 +235,22 @@ public class ChatWindow extends JFrame{
 	}
 	
 	/**
+	 * 获取系统时间
+	 */
+	public String getTimeStamp() {
+		String sendTime = DATE_FORMAT.format(new Date());
+		String sendStamp = "ID:"+this.getMine_ID() + " " + sendTime + "\n";
+		
+		return sendStamp;
+	}
+	
+	/**
 	 * 将内容显示到窗口上并换行
 	 * @param Message 需要显示的信息
 	 */
 	public void sendMessageToShowtextfield(String Message)
 	{
-		showTextArea.append(Message+"\r\n");
+		showTextArea.append(new String(getTimeStamp()) + Message+"\r\n");
 	}
 		
 	/**
