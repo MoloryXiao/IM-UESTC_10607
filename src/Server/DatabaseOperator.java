@@ -3,9 +3,7 @@ package Server;
 import network.commonClass.*;
 
 import java.sql.*;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 
 /**
  * @author 97njczh
@@ -41,6 +39,7 @@ public class DatabaseOperator {
 			
 		} catch (ClassNotFoundException e) {
 			
+			ShowDate.showDate();
 			System.out.println("[ ERROR ] JDBC_DRIVER 加载错误，数据库驱动启动失败！");
 			return false;
 			
@@ -55,7 +54,7 @@ public class DatabaseOperator {
 			return true;
 			
 		} catch (SQLException e) {
-			
+			ShowDate.showDate();
 			System.out.println("[ ERROR ] 连接数据库时出现错误！");
 			return false;
 			
@@ -70,7 +69,7 @@ public class DatabaseOperator {
 			return true;
 			
 		} catch (SQLException e) {
-			
+			ShowDate.showDate();
 			System.out.println("[ ERROR ] 关闭数据库时出现错误！");
 			return false;
 			
@@ -88,9 +87,11 @@ public class DatabaseOperator {
 		DatabaseOperator databaseOperator = new DatabaseOperator();
 		
 		if (setupDatabase() && databaseOperator.connectTest()) {
-			System.out.println("[ READY ] 数据库连接测试成功，数据库已就绪！");
+			ShowDate.showDate();
+			System.out.println("[  O K  ] 数据库连接测试成功，数据库已就绪！");
 			return true;
 		} else {
+			ShowDate.showDate();
 			System.out.println("[ ERROR ] 数据库连接测试失败，无法正确访问数据库！");
 			return false;
 		}
@@ -105,7 +106,7 @@ public class DatabaseOperator {
 			return statement.executeQuery(sql);
 			
 		} catch (SQLException e) {
-			
+			ShowDate.showDate();
 			System.out.println("[ ERROR ] SQL Query 查询时发生错误！请检查语法：" + sql);
 			return null;
 			
@@ -121,7 +122,7 @@ public class DatabaseOperator {
 			return statement.executeUpdate(sql);
 			
 		} catch (SQLException e) {
-			
+			ShowDate.showDate();
 			System.out.println("[ ERROR ] SQL Update 查询时发生错误！请检查语法：" + sql);
 			return -1;
 			
@@ -160,6 +161,7 @@ public class DatabaseOperator {
 		} catch (SQLException e) {
 			
 			loginAccount = null;
+			ShowDate.showDate();
 			System.out.println("[ ERROR ] 数据库查询结果集时出现问题(在函数isLoginInfoCorrect中)");
 			
 		} finally {
@@ -187,6 +189,7 @@ public class DatabaseOperator {
 						rs.getString("username"), false,
 						rs.getString("sign"));
 			else {
+				ShowDate.showDate();
 				System.out.println("[ ERROR ] 数据库中查无此ID：" + Id);
 			}
 			
@@ -226,6 +229,7 @@ public class DatabaseOperator {
 		} catch (SQLException e) {
 			
 			friendsList = null;
+			ShowDate.showDate();
 			System.out.println("[ ERROR ] 数据库查询结果集时出现问题(在函数getFriendListFromDb中)");
 			
 		} finally {

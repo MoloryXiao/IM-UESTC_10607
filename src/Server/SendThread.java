@@ -3,12 +3,8 @@ package Server; /**
  */
 
 import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
-import com.sun.org.apache.bcel.internal.generic.InstructionConstants;
 import network.NetworkForServer.*;
-import sun.plugin2.message.Message;
 
 /**
  * 服务器负责接收来自服务子线程的数据 并发送给目标客户端
@@ -40,7 +36,8 @@ public class SendThread extends Thread {
 	
 	public void run() {
 		
-		System.out.println("[ READY ] 用户ID：" + userId + " 发送子线程已创建！");
+		ShowDate.showDate();
+		System.out.println("[  O K  ] 用户ID：" + userId + " 发送子线程已创建！");
 		
 		while (!exit) {
 			
@@ -61,6 +58,7 @@ public class SendThread extends Thread {
 			} catch (IOException e) {
 				
 				serverThread.putMsgToSendQueue(message);
+				ShowDate.showDate();
 				System.out.println("[ ERROR ] 消息发送失败！等待重试！");
 				
 			} catch (InterruptedException e) {
@@ -70,8 +68,13 @@ public class SendThread extends Thread {
 			
 		}
 		
+		if(!serverThread.isSendQueueEmpty()){
+			// TODO 保存发送队列消息
+		}
+		
 		while (!exit) ;
-		System.out.println("[ READY ] 用户ID：" + userId + " 发送子线程已结束！");
+		ShowDate.showDate();
+		System.out.println("[  O K  ] 用户ID：" + userId + " 发送子线程已结束！");
 		
 	}
 	

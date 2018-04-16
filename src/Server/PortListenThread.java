@@ -5,8 +5,6 @@ package Server; /**
 import network.NetworkForServer.*;
 
 import java.net.Socket;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 /**
  * @author 97njczh
@@ -39,11 +37,13 @@ public class PortListenThread extends Thread {
 		
 		if (loginSock.setServer(port)) {
 			
-			System.out.println("[ READY ] 监听线程就绪！正在监听: " + port + " 端口...");
+			ShowDate.showDate();
+			System.out.println("[  O K  ] 监听线程就绪！正在监听: " + port + " 端口...");
 			return true;
 			
 		} else {
 			
+			ShowDate.showDate();
 			System.out.println("[ ERROR ] 监听线程启动出现错误，正在退出...");
 			return false;
 			
@@ -62,8 +62,9 @@ public class PortListenThread extends Thread {
 				Socket clientSocket = loginSock.waitConnectFromClient();
 				
 				System.out.println("===============================================================");
+				ShowDate.showDate();
 				System.out.println("[  NEW  ] 请求传入！远端地址为："
-									+ clientSocket.getRemoteSocketAddress());
+						                   + clientSocket.getRemoteSocketAddress());
 				
 				if (Server.newServerThread(clientSocket))   // 转交由Server处理
 					errorCounter = (errorCounter > 0) ? errorCounter-- : errorCounter;
@@ -73,12 +74,14 @@ public class PortListenThread extends Thread {
 			} while (errorCounter < MAX_ERROR);
 			
 			// TODO 查一下java线程连接的数量限制
+			ShowDate.showDate();
 			System.out.println("[ ERROR ] 连续 " + MAX_ERROR + " 次服务线程创建失败，"
 					                   + "监听暂停，于" + SLEEP_TIME / 1000 + "秒后重启");
 			return true;
 			
 		} catch (Exception e) {
 			
+			ShowDate.showDate();
 			System.out.println("[ ERROR ] Socket建立失败！监听停止！！");
 			e.printStackTrace();
 			
@@ -101,17 +104,20 @@ public class PortListenThread extends Thread {
 				try {
 					
 					Thread.sleep(SLEEP_TIME);   // 无法创建连接，等待SLEEP_TIME后重试
-					System.out.println("[ READY ] 监听线程重新启动！");
+					ShowDate.showDate();
+					System.out.println("[  O K  ] 监听线程重新启动！");
 					
 				} catch (InterruptedException e) {
 					
 					e.printStackTrace();
+					ShowDate.showDate();
 					System.out.println("[ ERROR ] 监听线程休眠失败！");
 					break;
 					
 				}
 			}
 		}
+		ShowDate.showDate();
 		System.out.println("[ ATTENTION ] 监听线程退出！");
 	}
 	

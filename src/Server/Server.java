@@ -23,11 +23,13 @@ public class Server {
 			
 			ServerThread serverThread = new ServerThread(clientSocket);
 			serverThread.start();
-			System.out.println("[ READY ] 用户服务子线程创建成功！");
+			ShowDate.showDate();
+			System.out.println("[  O K  ] 用户服务子线程创建成功！");
 			return true;
 			
 		} catch (IOException e) {
 			
+			ShowDate.showDate();
 			System.out.println("[ ERROR ] 用户服务子线程创建失败，"
 					                   + "无法为来自：" + clientSocket.getRemoteSocketAddress()
 					                   + "的用户创建服务线程！");
@@ -60,12 +62,55 @@ public class Server {
 	 */
 	public static void showOnlineUser() {
 		
+		ShowDate.showDate();
 		System.out.println("[ ADMIN ] 当前在线人数【 "
 				                   + Server.getOnlineCounter() + " 】");
+		if (Server.getOnlineCounter() == 0) {
+			ShowDate.showDate();
+			System.out.println("[ ADMIN ] 当前无人在线！");
+			return;
+		}
 		for (String key : serverThreadDb.keySet()) {
 			System.out.print("\t" + key);
 		}
 		System.out.println();
+	}
+	
+	private static void kickSomeone( String cmd ) {
+		
+		String kickId = new String();
+		
+		if (cmd.length() >= 9) {
+			for (int i = 4; i < cmd.length(); i++) {
+				if (cmd.charAt(i) != ' ') kickId += cmd.charAt(i);
+			}
+		} else {
+			ShowDate.showDate();
+			System.out.println("[ ADMIN ] 请按照以下格式输入：kick <id>！");
+			return;
+		}
+		try {
+			serverThreadDb.get(kickId).interrupt();
+			ShowDate.showDate();
+			System.out.println("[ ADMIN ] 用户ID：" + kickId + " 被踢！");
+		} catch (Exception e) {
+			ShowDate.showDate();
+			System.out.println("[ ADMIN ] 用户ID：" + kickId + " 不在线，无法踢出！");
+		}
+		
+	}
+	
+	private static void showHelp() {
+		
+		ShowDate.showDate();
+		System.out.println("=========================  现 有 命 令  ========================\n"
+				                   + "\t0. help\t\t显示现有命令\n"
+				                   + "\t1. show\t\t输出当前在线人数，[-a/--all] 显示当前所有登录的用户ID\n"
+				                   + "\t2. exit\t\t终止IM服务器程序\n"
+				                   + "\t3. time\t\t打开/关闭时间戳显示\n"
+				                   + "\t4. kick\t\t登出用户，[id] 用户ID\n"
+				                   + "===============================================================");
+		
 	}
 	
 	/**
@@ -96,7 +141,7 @@ public class Server {
 		
 		if (isUserOnline(targetId))
 			serverThreadDb.get(targetId).putMsgToSendQueue(message);
-		else{
+		else {
 			// TODO 目标ID用户不在线，需保存离线消息
 		}
 	}
@@ -109,13 +154,14 @@ public class Server {
 	public static void main( String[] args ) {
 		
 		
-		System.out.println("==================== IM-Server Version 0.5 ====================");
+		System.out.println("=================== IM-Server Version 0.6.2 ===================");
 		
 		//检查数据库连接
 		if (!DatabaseOperator.connectDbTest())
 			return;
 		
-		System.out.println("[ READY ] 服务器主线程正在初始化监听线程...");
+		ShowDate.showDate();
+		System.out.println("[  O K  ] 服务器主线程正在初始化监听线程...");
 		
 		// 启动服务器并开始监听端口:'9090'
 		PortListenThread portListenThread = new PortListenThread(9090);
@@ -124,31 +170,49 @@ public class Server {
 		// 运行时带cmd参数，进入命令行控制模式
 		if (args.length == 1 && args[0].equals("cmd")) {
 			
-			System.out.println("[ ADMIN ] 命令行模式已启动，现有命令：\n"
-					                   + "\t1. show\t输出当前在线人数，-a/--all 显示当前所有登录的用户ID\n"
-					                   + "\t2. exit\t终止IM服务器程序\n");
+			
+			ShowDate.showDate();
+			System.out.println("[ ADMIN ] 命令行模式已启动！");
+			showHelp();
 			
 			Scanner scanner = new Scanner(System.in);
 			
 			while (true) {
 				
-				String s = scanner.nextLine();
+				String cmd = scanner.nextLine();
 				
-				if (s.equals("exit")) {
+				if (cmd.equals("exit")) {
 					
 					System.out.println("=========================== goodbye! ===========================");
 					System.exit(0);
 					
-				} else if (s.equals("show")) {
+				} else if (cmd.equals("help")) {
 					
+					showHelp();
+					
+				} else if (cmd.equals("show")) {
+					
+					ShowDate.showDate();
 					System.out.println("[ ADMIN ] 当前在线人数【 "
 							                   + Server.getOnlineCounter() + " 】");
 					
-				} else if (s.equals("show -a") || s.equals("show --all")) {
+				} else if (cmd.equals("show -a") || cmd.equals("show --all")) {
 					
 					showOnlineUser();
 					
+				} else if (cmd.equals("time")) {
+					
+					ShowDate.setShowFlag();
+					
+				} else if (cmd.length() >= 4 && cmd.substring(0, 4).equals("kick")) {
+					
+					kickSomeone(cmd);
+					
+				} else {
+					ShowDate.showDate();
+					System.out.println("[ ADMIN ] 无效的命令！键入“help”显示当前所有命令");
 				}
+				
 			}
 			
 		}
