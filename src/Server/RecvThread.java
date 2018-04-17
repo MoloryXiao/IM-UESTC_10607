@@ -3,8 +3,6 @@ package Server;
 import network.NetworkForServer.*;
 
 import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 public class RecvThread extends Thread {
 	
@@ -30,9 +28,10 @@ public class RecvThread extends Thread {
 	}
 	
 	@Override
-	public void run() { // 负责监听有没有消息到达，有则把这些消息加入到接受队列中，由ServerThread处理
+	public void run() { // 负责监听有没有消息到达，有则把这些消息加入到接收队列中，由ServerThread处理
 		
-		System.out.println("[ READY ] 用户ID：" + userId + " 接受子线程已创建！");
+		ShowDate.showDate();
+		System.out.println("[  O K  ] 用户ID：" + userId + " 接收子线程已创建！");
 		
 		while (!exit) {
 			
@@ -45,25 +44,32 @@ public class RecvThread extends Thread {
 //				serverThread.putMsgToRecvQueue(msg);
 //				//**************************************************
 				
-				// 从客户端接受一条消息，并加入接受消息队列，交给ServerThread解析及处理
+				/* 从客户端接受一条消息，并加入接受消息队列，交给ServerThread解析及处理 */
 				serverThread.putMsgToRecvQueue(client.recvFromClient());
 				
 			} catch (IOException e) {
 				
 				if (e.getMessage().equals("Connection reset")) {
-					serverThread.setAccountOffline();
+					serverThread.interrupt();
+					ShowDate.showDate();
 					System.out.println("[ ERROR ] 客户端已断开连接！");
 					break;
 				} else {
-					e.getMessage();
-					serverThread.setAccountOffline();
+					System.out.println(e.getMessage());
+					ShowDate.showDate();
 					System.out.println("[ ERROR ] 接受客户端信息发生错误！");
 				}
 			}
 		}
 		
+		
+		if (!serverThread.isRecvQueueEmpty()) {
+			// TODO 保存接收队列消息
+		}
+		
 		while (!exit) ; // 等待主线程发送结束信号
-		System.out.println("[ READY ] 用户ID：" + userId + " 接受子线程已结束！");
+		ShowDate.showDate();
+		System.out.println("[  O K  ] 用户ID：" + userId + " 接受子线程已结束！");
 	}
 	
 }

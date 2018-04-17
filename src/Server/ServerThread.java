@@ -8,6 +8,9 @@ import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Vector;
+import java.util.concurrent.BlockingDeque;
+import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.TimeUnit;
 
 import network.commonClass.*;
 import network.networkDataPacketOperate.*;
@@ -20,6 +23,8 @@ public class ServerThread extends Thread {
 	
 	private CommunicateWithClient client;
 	private Account account;
+	private int heartbeat;
+	private static final int HEARTBEAT_MAX = 3;
 	
 	public String getAccountId() {
 		
@@ -31,26 +36,29 @@ public class ServerThread extends Thread {
 		account.setOnLine(false);
 	}
 	
+	public void resetHeartbeat() {
+		
+		heartbeat = HEARTBEAT_MAX;
+	}
+	
 	/*======================================= related to RecvThread =======================================*/
 	
 	private RecvThread recvThread;
-	private Vector<String> recvQueue;
+	private BlockingDeque<String> recvQueue;
 	
 	public boolean isRecvQueueEmpty() {
 		
 		return recvQueue.isEmpty();
 	}
 	
-	public synchronized String getMsgFromRecvQueue() {
+	public String getMsgFromRecvQueue() throws InterruptedException {
 		
-		String message = recvQueue.firstElement();
-		recvQueue.removeElementAt(0);
-		return message;
+		return recvQueue.poll(5, TimeUnit.SECONDS);    // 阻塞取
 	}
 	
-	public synchronized void putMsgToRecvQueue( String message ) {
+	public void putMsgToRecvQueue( String message ) {
 		
-		recvQueue.add(message);
+		recvQueue.add(message);     // 阻塞存
 	}
 	
 	
@@ -58,21 +66,19 @@ public class ServerThread extends Thread {
 	/*======================================= related to sendThread =======================================*/
 	
 	private SendThread sendThread;
-	private Vector<String> sendQueue;
+	private BlockingDeque<String> sendQueue;
 	
 	public boolean isSendQueueEmpty() {
 		
 		return sendQueue.isEmpty();
 	}
 	
-	public synchronized String getMsgFromSendQueue() {
+	public String getMsgFromSendQueue() throws InterruptedException {
 		
-		String message = this.sendQueue.firstElement();
-		this.sendQueue.removeElementAt(0);
-		return message;
+		return sendQueue.take();
 	}
 	
-	public synchronized void putMsgToSendQueue( String message ) {
+	public void putMsgToSendQueue( String message ) {
 		
 		sendQueue.add(message);
 	}
@@ -84,9 +90,10 @@ public class ServerThread extends Thread {
 	public ServerThread( Socket socket ) throws IOException {
 		
 		client = new CommunicateWithClient(socket);
-		recvQueue = new Vector<String>();
-		sendQueue = new Vector<String>();
+		recvQueue = new LinkedBlockingDeque<String>();
+		sendQueue = new LinkedBlockingDeque<String>();
 		account = null;
+		heartbeat = HEARTBEAT_MAX;
 	}
 	
 	
@@ -100,12 +107,14 @@ public class ServerThread extends Thread {
 			
 		} catch (IOException e) {
 			e.printStackTrace();
+			ShowDate.showDate();
 			System.out.println("[ ERROR ] 接受用户登录请求（及信息）失败！无法处理用户登录！");
 			return 1;   // 登录错误代码 1，接受用户登录请求失败
 		}
 		
 		if (MessageOperate.getMsgType(loginMsg) != MessageOperate.LOGIN) {
 			
+			ShowDate.showDate();
 			System.out.println("[ ERROR ] 未登录，试图进行其他操作！");
 			return 2;   // 登录错误代码 2，未登录并试图进行其他操作
 			
@@ -117,6 +126,7 @@ public class ServerThread extends Thread {
 			
 			// TODO 需要给用户反馈不同的提示
 			putMsgToSendQueue(MessageOperate.sendNotFinishMsg());
+			ShowDate.showDate();
 			System.out.println("[ ERROR ] 用户重复登陆！");
 			return Integer.parseInt(loginInfo.getAccountId());   // 登录错误代码 用户id，该用户重复登陆
 		}
@@ -134,8 +144,10 @@ public class ServerThread extends Thread {
 			recvThread = new RecvThread(client, account.getID(), this);
 			sendThread = new SendThread(client, account.getID(), this);
 			
+			ShowDate.showDate();
 			System.out.println("[ LOGIN ] 用户ID：" + loginInfo.getAccountId() + " login successful!");
-			System.out.println("[ READY ] 当前在线人数【 "
+			ShowDate.showDate();
+			System.out.println("[  O K  ] 当前在线人数【 "
 					                   + Server.getOnlineCounter() + " 】");
 			
 			recvThread.start(); // 负责监听有没有消息到达，有则把这些消息加入到接收队列中，由ServerThread处理
@@ -152,10 +164,12 @@ public class ServerThread extends Thread {
 			try {
 				// TODO 这里最好加一下返回失败代码
 				client.sendToClient(MessageOperate.sendNotFinishMsg()); // 登录失败，收发子线程无法创建
-				System.out.println("[ READY ] 用户ID：" + loginInfo.getAccountId() + " 登录信息验证失败，返回失败反馈！");
+				ShowDate.showDate();
+				System.out.println("[  O K  ] 用户ID：" + loginInfo.getAccountId() + " 登录信息验证失败，返回失败反馈！");
 				
 			} catch (IOException e) {
 				System.out.println("[ ERROR ] 用户ID：" + loginInfo.getAccountId() + " 用户登录失败反馈发送失败！");
+				ShowDate.showDate();
 				e.printStackTrace();
 			}
 			
@@ -168,13 +182,15 @@ public class ServerThread extends Thread {
 		
 		try {
 			
-			// 在服务器服务子线程数据库中注销该线程
+			/* 在服务器用户服务子线程数据库中注销该线程 */
 			Server.delServerThread(account.getID());
 			
+			ShowDate.showDate();
 			System.out.println("[ LOGIN ] 用户ID：" + account.getID() + " logout!");
-			System.out.println("[ READY ] 当前在线人数【 "
+			ShowDate.showDate();
+			System.out.println("[  O K  ] 当前在线人数【 "
 					                   + Server.getOnlineCounter() + " 】");
-			
+						
 			recvThread.setExit(true);
 			sendThread.setExit(true);
 			recvThread.join();
@@ -217,51 +233,78 @@ public class ServerThread extends Thread {
 		
 		if (signInStatus < 0) {
 			
-			// 登陆成功用户为登录状态，线程持续接受客户端消息，直到判定用户下线
+			/* 登陆成功用户为登录状态，线程持续接受客户端消息，直到判定用户下线 */
 			while (account.getOnLine()) {
 				
-				if (!recvQueue.isEmpty()) {
+				String message = null;
+				
+				try {
+					/* 阻塞接受用户消息，直到被中断 */
+					message = getMsgFromRecvQueue();
 					
-					String message = getMsgFromRecvQueue();
-					switch (MessageOperate.getMsgType(message)) {        // 判断请求类型
-						
-						// 客户端请求好友列表，返回好友列表；
-						case MessageOperate.FRIENDLIST:
-							sendFriendsList();
-							break;
-						
-						case MessageOperate.MYSELF: // 请求个人信息
-							sendMyselfInfo();
-							break;
-						
-						case MessageOperate.CHAT:   // 转发消息
-							Server.sendToOne(message);
-							break;
-						
-						default:
-							break;
-					} // end switch
-				} // end if - !recvQueue.isEmpty()
+				} catch (InterruptedException e) {
+					// TODO 如果 sendQueue 不为空，需要保存这些消息
+					sendThread.interrupt();
+					setAccountOffline();
+					break;
+				}
+				
+				if (message == null) {
+					if (heartbeat-- != 0) {
+						continue;
+					} else {
+						setAccountOffline();
+						break;
+					}
+				}
+				/* 判断请求类型 */
+				switch (MessageOperate.getMsgType(message)) {
+					
+					case MessageOperate.FRIENDLIST: // 请求好友列表
+						sendFriendsList();
+						break;
+					
+					case MessageOperate.MYSELF:     // 请求个人信息
+						sendMyselfInfo();
+						break;
+					
+					case MessageOperate.CHAT:       // 转发消息
+						Server.sendToOne(message);
+						break;
+					
+					default:
+						break;
+				} // end switch
+				
+				resetHeartbeat();
+				
 			} // end while;
 			
 			logout();
 		} // end if - sign in
 		
-		try {   // 关闭套接字
+		try {
 			
-			client.endConnect();
+			client.endConnect();    // 关闭套接字
 			
 		} catch (IOException e) {
 			e.printStackTrace();
-			System.out.println("[ ERROR ] 客户端地址：" + client.getClientSocket() +"套接字关闭失败！");
+			ShowDate.showDate();
+			System.out.println("[ ERROR ] 客户端地址：" + client.getClientSocket() + "套接字关闭失败！");
 		}
 		
-		if (signInStatus >= 10000)
-			System.out.println("[ READY ] 重复登录用户ID：" + signInStatus + " 服务子线程已结束！");
-		else if (signInStatus == -1)
-			System.out.println("[ READY ] 用户ID：" + account.getID() + " 服务子线程已结束！");
-		else
-			System.out.println("[ READY ] 用户服务子线程已结束！");
+		if (signInStatus >= 10000) {
+			ShowDate.showDate();
+			System.out.println("[  O K  ] 重复登录用户ID：" + signInStatus + " 服务子线程已结束！");
+		} else if (signInStatus == -1) {
+			ShowDate.showDate();
+			System.out.println("[  O K  ] 用户ID：" + account.getID() + " 服务子线程已结束！");
+		} else {
+			ShowDate.showDate();
+			System.out.println("[  O K  ] 用户服务子线程已结束！");
+		}
+		System.out.println("===============================================================");
+		
 	}
 	
 }

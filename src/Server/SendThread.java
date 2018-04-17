@@ -3,10 +3,7 @@ package Server; /**
  */
 
 import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
-import com.sun.org.apache.bcel.internal.generic.InstructionConstants;
 import network.NetworkForServer.*;
 
 /**
@@ -39,39 +36,46 @@ public class SendThread extends Thread {
 	
 	public void run() {
 		
-		System.out.println("[ READY ] 用户ID：" + userId + " 发送子线程已创建！");
+		ShowDate.showDate();
+		System.out.println("[  O K  ] 用户ID：" + userId + " 发送子线程已创建！");
 		
 		while (!exit) {
 			
-			if (!serverThread.isSendQueueEmpty()) {
-				
-				try {
+			String message = null;
+			
+			try {
 //				    //************************************************
 //					String msg = serverThread.getMsgFromSendQueue();
 //					System.out.println("send  to  " + userId + ": " + msg);
 //					System.out.flush();
 //					client.sendToClient(msg);
 //				    //************************************************
-					
-					// 从待发送队列中取出一条消息发送给客户端
-					client.sendToClient(serverThread.getMsgFromSendQueue());
-					
-				} catch (IOException e) {
-					System.out.println("[ ERROR ] 消息发送失败！");
-				}
 				
-			} else {
+				/* 从待发送队列中取出一条消息发送给客户端 */
+				message = serverThread.getMsgFromSendQueue();
+				client.sendToClient(message);
 				
-				try {
-					sleep(200);
-				} catch (InterruptedException e) {
-					System.out.println("[ ERROR ]  用户ID：" + userId + "发送线程休眠失败！");
-				}
+			} catch (IOException e) {
 				
+				serverThread.putMsgToSendQueue(message);
+				ShowDate.showDate();
+				System.out.println("[ ERROR ] 消息发送失败！等待重试！");
+				
+			} catch (InterruptedException e) {
+				/* 服务子线程发送中断信号，中断阻塞读，结束监听发送队列，结束发送子线程 */
+				break;
 			}
+			
 		}
 		
-		System.out.println("[ READY ] 用户ID：" + userId + " 发送子线程已结束！");
+		if(!serverThread.isSendQueueEmpty()){
+			// TODO 保存发送队列消息
+		}
+		
+		while (!exit) ;
+		ShowDate.showDate();
+		System.out.println("[  O K  ] 用户ID：" + userId + " 发送子线程已结束！");
+		
 	}
 	
 }
