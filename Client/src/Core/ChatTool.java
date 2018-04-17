@@ -6,6 +6,11 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+
 import javax.swing.UIManager;
 
 import network.commonClass.Account;
@@ -53,9 +58,24 @@ public class ChatTool {
 		
 		createFriendsWindow();		// 创建好友列表窗口
 		
-		recvMessageThreadStart();
+		BlockingQueue<String> blockQueue_message = new ArrayBlockingQueue<String>(1024);
+		Producter producter_message = new Producter(blockQueue_message);
+		Consumer consumer_message = new Consumer(blockQueue_message,this);
+		new Thread(producter_message).start();
+		new Thread(consumer_message).start();
+		
+		timerFriendList();
 		
 		createFriendChatWindow();	// 轮训创建好友聊天窗口
+	}
+	private void timerFriendList() {
+		Timer timer = new Timer();
+		timer.schedule(new TimerTask() {
+			public void run() {
+				netController.askFriendList();
+				System.out.println("ask");
+			}
+		}, 0 ,5000);
 	}
 	
 	/**
@@ -235,6 +255,21 @@ public class ChatTool {
 				wind_friendsList.setCreateChatWindFlag(false);
 			}
 		}
+	}
+	
+	public void transmitEnvelope(Envelope in_evp) {
+		Envelope evp = new Envelope();
+		evp = in_evp;
+		String sourceID = evp.getSourceAccountId();
+		String sendID = evp.getTargetAccountId();
+		String message = evp.getText();
+		hashMap_wind_friendChat.get(Integer.parseInt(sourceID)).
+			sendMessageToShowtextfield(message);	// 根据发送方的ID定位到好友窗口并显示
+		System.out.println("chatInfoRecv: " + sourceID + " send “" + message + "” to " + sendID);
+	}
+	
+	public void transmitFriendsList(ArrayList<Account> arrlist) {
+		wind_friendsList.updateFriendsList(arrlist);
 	}
 	
 	/**

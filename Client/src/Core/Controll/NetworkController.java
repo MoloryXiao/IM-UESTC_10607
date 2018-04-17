@@ -11,8 +11,8 @@ import network.messageOperate.MessageOperate;
 
 public class NetworkController {
 	private static NetworkForClient nfc;
-	private final String host_name = "39.108.95.130";	// server location
-//	private final String host_name = "192.168.1.103";	// local area for test
+//	private final String host_name = "39.108.95.130";	// server location
+	private final String host_name = "192.168.1.103";	// local area for test
 	private final int contact_port = 9090;	
 	
 	/** 
@@ -40,7 +40,14 @@ public class NetworkController {
 			}
 		}
 	}	
-	
+	public void askFriendList() {
+		try {
+			String askMessage = MessageOperate.askFriendListFromServer();
+			nfc.sendToServer(askMessage);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
 	public ArrayList<Account> askFriendListFromServer(){
 		ArrayList<Account> friend_info_arraylist;
 		try {			
@@ -87,5 +94,9 @@ public class NetworkController {
 			System.out.println("chatError: sendMessageToServer error. Message/"+message);
 			e.printStackTrace();
 		}
+	}
+	
+	public String recvMessageFromServer() throws IOException {
+		return nfc.recvFromServer();
 	}
 }
