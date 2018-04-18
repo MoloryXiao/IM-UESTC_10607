@@ -8,11 +8,9 @@ import java.io.IOException;
 import java.net.Socket;
 
 /**
- * Class Name:CommunicateWithClient
  * 服务器端的网络通信
- * Created by ZiQin on 2018/4/10.
  * @author ZiQin
- * @version 1.1.0
+ * @version 1.1.1
  */
 public class CommunicateWithClient {
 
@@ -34,7 +32,7 @@ public class CommunicateWithClient {
     /**
      * 构造函数
      * @param socket 连接客户端的套接字
-     * @throws IOException
+     * @throws IOException IO异常，一般情况下的Socket引发的异常
      */
     public CommunicateWithClient(Socket socket) throws IOException {
         client = socket;
@@ -45,7 +43,7 @@ public class CommunicateWithClient {
     /**
      * 从客户端接收信息
      * @return 返回客户端发来的信息
-     * @throws IOException
+     * @throws IOException IO异常，一般情况下的Socket引发的异常
      */
     public String recvFromClient() throws IOException {
         
@@ -55,7 +53,7 @@ public class CommunicateWithClient {
     /**
      * 将信息发送给客户端
      * @param msg 要被发送的信息
-     * @throws IOException
+     * @throws IOException IO异常，一般情况下的Socket引发的异常
      */
     public void sendToClient(String msg) throws IOException {
         sendDataToClient(msg);
@@ -63,7 +61,7 @@ public class CommunicateWithClient {
     
     /**
      * 与客户端结束连接
-     * @throws IOException
+     * @throws IOException IO异常，一般情况下的Socket引发的异常
      */
     public void endConnect() throws IOException {
         in.close();
@@ -74,7 +72,7 @@ public class CommunicateWithClient {
     /**
      * 发送数据给客户端
      * @param msg 信封内容
-     * @throws IOException
+     * @throws IOException IO异常，一般情况下的Socket引发的异常
      */
     private void sendDataToClient(String msg) throws IOException {
         out.writeUTF(msg);
@@ -83,12 +81,16 @@ public class CommunicateWithClient {
     /**
      * 接收客户端发送过来的信息
      * @return 返回客户端发来的信息
-     * @throws IOException
+     * @throws IOException IO异常，一般情况下的Socket引发的异常
      */
     private String recvDataFromClient() throws IOException {
         return in.readUTF();
     }
-    
+
+    /**
+     * 获取连接客户端的Socket
+     * @return 连接客户端的Socket
+     */
     public Socket getClientSocket() {
         
         return client;

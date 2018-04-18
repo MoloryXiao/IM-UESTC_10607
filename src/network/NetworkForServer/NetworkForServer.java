@@ -5,11 +5,9 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 /**
- * Class Name: NetworkForServer
  * 监听客户端发起连接的服务器类
- * Created by ZiQin on 2018/3/24.
  * @author ZiQin
- * @version 1.0.0
+ * @version 1.0.1
  */
 public class NetworkForServer {
 
@@ -43,7 +41,7 @@ public class NetworkForServer {
     /**
      * 等待客户端发起连接
      * @return 返回Socket
-     * @throws IOException
+     * @throws IOException IO异常，一般情况下的Socket引发的异常
      */
     public Socket waitConnectFromClient() throws IOException {
         return server.accept();

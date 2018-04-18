@@ -137,7 +137,7 @@ public class Server {
 	 */
 	public static void sendToOne( String message ) {
 		
-		String targetId = MessageOperate.recvFromUserMsg(message).getTargetAccountId();
+		String targetId = MessageOperate.unpackEnvelope(message).getTargetAccountId();
 		
 		if (isUserOnline(targetId))
 			serverThreadDb.get(targetId).putMsgToSendQueue(message);

@@ -28,12 +28,12 @@ public class ServerThread extends Thread {
 	
 	public String getAccountId() {
 		
-		return account.getID();
+		return account.getId();
 	}
 	
 	public void setAccountOffline() {
 		
-		account.setOnLine(false);
+		account.setOnline(false);
 	}
 	
 	public void resetHeartbeat() {
@@ -120,12 +120,12 @@ public class ServerThread extends Thread {
 			
 		}
 		// 从接收队列取出登录请求，并解析出用户登录信息
-		Login loginInfo = MessageOperate.getLoginAccountInfo(loginMsg);
+		Login loginInfo = MessageOperate.unpackLoginMsg(loginMsg);
 		
 		if (Server.isUserOnline(loginInfo.getAccountId())) {  // 用户重复登录
 			
 			// TODO 需要给用户反馈不同的提示
-			putMsgToSendQueue(MessageOperate.sendNotFinishMsg());
+			putMsgToSendQueue(MessageOperate.packageNotFinishMsg());
 			ShowDate.showDate();
 			System.out.println("[ ERROR ] 用户重复登陆！");
 			return Integer.parseInt(loginInfo.getAccountId());   // 登录错误代码 用户id，该用户重复登陆
@@ -141,8 +141,8 @@ public class ServerThread extends Thread {
 			
 			// 客户服务子线程创建其子线程：收线程和发线程，注意：收应该首先创建
 			// 由于在发线程中返回登录成功信息，因此放在后面创建以确保收发线程都已创建
-			recvThread = new RecvThread(client, account.getID(), this);
-			sendThread = new SendThread(client, account.getID(), this);
+			recvThread = new RecvThread(client, account.getId(), this);
+			sendThread = new SendThread(client, account.getId(), this);
 			
 			ShowDate.showDate();
 			System.out.println("[ LOGIN ] 用户ID：" + loginInfo.getAccountId() + " login successful!");
@@ -155,7 +155,7 @@ public class ServerThread extends Thread {
 			
 			// TODO 对线程创建失败的处理
 			
-			putMsgToSendQueue(MessageOperate.sendFinishMsg());
+			putMsgToSendQueue(MessageOperate.packageFinishMsg());
 			
 			return -1; // 登录成功成功代码 -1
 			
@@ -163,7 +163,7 @@ public class ServerThread extends Thread {
 			
 			try {
 				// TODO 这里最好加一下返回失败代码
-				client.sendToClient(MessageOperate.sendNotFinishMsg()); // 登录失败，收发子线程无法创建
+				client.sendToClient(MessageOperate.packageNotFinishMsg()); // 登录失败，收发子线程无法创建
 				ShowDate.showDate();
 				System.out.println("[  O K  ] 用户ID：" + loginInfo.getAccountId() + " 登录信息验证失败，返回失败反馈！");
 				
@@ -183,10 +183,10 @@ public class ServerThread extends Thread {
 		try {
 			
 			/* 在服务器用户服务子线程数据库中注销该线程 */
-			Server.delServerThread(account.getID());
+			Server.delServerThread(account.getId());
 			
 			ShowDate.showDate();
-			System.out.println("[ LOGIN ] 用户ID：" + account.getID() + " logout!");
+			System.out.println("[ LOGIN ] 用户ID：" + account.getId() + " logout!");
 			ShowDate.showDate();
 			System.out.println("[  O K  ] 当前在线人数【 "
 					                   + Server.getOnlineCounter() + " 】");
@@ -210,9 +210,9 @@ public class ServerThread extends Thread {
 	private void sendFriendsList() {
 		
 		putMsgToSendQueue(
-				MessageOperate.sendFriendList(
+				MessageOperate.packageFriendList(
 						new DatabaseOperator().getFriendListFromDb(
-								account.getID())));
+								account.getId())));
 		
 	}
 	
@@ -223,7 +223,7 @@ public class ServerThread extends Thread {
 	public void sendMyselfInfo() {
 		
 		putMsgToSendQueue(
-				MessageOperate.sendUserInfo(account));
+				MessageOperate.packageUserInfo(account));
 		
 	}
 	
@@ -234,7 +234,7 @@ public class ServerThread extends Thread {
 		if (signInStatus < 0) {
 			
 			/* 登陆成功用户为登录状态，线程持续接受客户端消息，直到判定用户下线 */
-			while (account.getOnLine()) {
+			while (account.getOnline()) {
 				
 				String message = null;
 				
@@ -298,7 +298,7 @@ public class ServerThread extends Thread {
 			System.out.println("[  O K  ] 重复登录用户ID：" + signInStatus + " 服务子线程已结束！");
 		} else if (signInStatus == -1) {
 			ShowDate.showDate();
-			System.out.println("[  O K  ] 用户ID：" + account.getID() + " 服务子线程已结束！");
+			System.out.println("[  O K  ] 用户ID：" + account.getId() + " 服务子线程已结束！");
 		} else {
 			ShowDate.showDate();
 			System.out.println("[  O K  ] 用户服务子线程已结束！");

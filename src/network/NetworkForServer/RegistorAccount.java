@@ -1,9 +1,7 @@
 package network.NetworkForServer;
 
 /**
- * Class Name: RegistorAccount
  * 账户注册类
- * Created by ZiQin on 2018/3/26.
  * @author ZiQin
  * @version 1.0.0
  */
