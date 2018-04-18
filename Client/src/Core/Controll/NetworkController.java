@@ -1,4 +1,4 @@
-﻿package Core.Controll;
+package Core.Controll;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -12,7 +12,8 @@ import network.messageOperate.MessageOperate;
 public class NetworkController {
 	private static NetworkForClient nfc;
 //	private final String host_name = "39.108.95.130";	// server location
-	private final String host_name = "192.168.1.103";	// local area for test
+//	private final String host_name = "192.168.1.103";	// local area for test
+	private final String host_name = "127.0.0.1";
 	private final int contact_port = 9090;	
 	
 	/** 
@@ -42,7 +43,7 @@ public class NetworkController {
 	}	
 	public void askFriendList() {
 		try {
-			String askMessage = MessageOperate.askFriendListFromServer();
+			String askMessage = MessageOperate.packageAskFriendListMsg();
 			nfc.sendToServer(askMessage);
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -50,11 +51,11 @@ public class NetworkController {
 	}
 	public ArrayList<Account> askFriendListFromServer(){
 		ArrayList<Account> friend_info_arraylist;
-		try {			
-			String askMessage = MessageOperate.askFriendListFromServer();
+		try {
+			String askMessage = MessageOperate.packageAskFriendListMsg();
 			nfc.sendToServer(askMessage);
 			friend_info_arraylist = new ArrayList<Account>(MessageOperate.
-					getFriendList(nfc.recvFromServer()));	// 拿到最新的好友列表
+					unpackFriendListMsg(nfc.recvFromServer()));	// 拿到最新的好友列表
 		} catch (IOException e) {
 			friend_info_arraylist = null;
 			e.printStackTrace();
@@ -65,8 +66,8 @@ public class NetworkController {
 	public Account askMySelfAccFromServer() {
 		Account myself = new Account();
 		try {
-			nfc.sendToServer(MessageOperate.AskMyself());	
-			myself = MessageOperate.getMyself(nfc.recvFromServer());
+			nfc.sendToServer(MessageOperate.packageAskMyselfInfoMsg());
+			myself = MessageOperate.unpackMyselfInfoMsg(nfc.recvFromServer());
 		} catch (IOException e) {
 			System.out.println();
 			e.printStackTrace();
@@ -77,7 +78,7 @@ public class NetworkController {
 	public Envelope recvEnvelope() {
 		Envelope evp = new Envelope();
 		try {
-			evp = MessageOperate.getMsgFromFriend(nfc.recvFromServer());
+			evp = MessageOperate.unpackEnvelope(nfc.recvFromServer());
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -88,7 +89,7 @@ public class NetworkController {
 	
 	public void sendEnvelope(Envelope evp) {		
 		try {
-			nfc.sendToServer(MessageOperate.sendMsgToFriend(evp));
+			nfc.sendToServer(MessageOperate.packageEnvelope(evp));
 		} catch (IOException e) {
 			String message = evp.getText();
 			System.out.println("chatError: sendMessageToServer error. Message/"+message);

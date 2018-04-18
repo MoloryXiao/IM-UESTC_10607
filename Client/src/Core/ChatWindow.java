@@ -1,4 +1,4 @@
-﻿package Core;
+package Core;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -67,8 +67,8 @@ public class ChatWindow extends JFrame{
 		
 		/* 设置窗口定位信息 */
 		this.setMine_ID(parent_ID);
-		this.setFriend_ID(myself.getID());
-		this.setFriend_online(myself.getOnLine());
+		this.setFriend_ID(myself.getId());
+		this.setFriend_online(myself.getOnline());
 		this.setFriend_nickName(myself.getNikeName());
 		this.setFriend_signature(myself.getSignature());
 		
@@ -93,7 +93,7 @@ public class ChatWindow extends JFrame{
 		panel_north = new JPanel();
 		panel_north.setLayout(new BorderLayout(5,5));
 		panel_north.setPreferredSize(new Dimension(WINDOW_WIDTH, 105));
-		
+
 		head_img_icon = new ImageIcon("image/HeadImage.jpg");
 		head_img_label = new JLabel(head_img_icon);
 		head_img_label.setPreferredSize(new Dimension(150,150));

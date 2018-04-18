@@ -1,4 +1,4 @@
-﻿package Core;
+package Core;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -65,7 +65,7 @@ public class LoginWindow extends JFrame{
 		label_register_new.addMouseListener(new MouseAdapter() {
 			public void mouseClicked(MouseEvent e) {
 				try {
-					Runtime.getRuntime().exec("cmd.exe /c start " + "http://39.108.95.130:9000/Register");
+					Runtime.getRuntime().exec("cmd.exe /c start " + "http://39.108.95.130:9000/Registor");
 				} catch (IOException e1) {
 					e1.printStackTrace();
 				}

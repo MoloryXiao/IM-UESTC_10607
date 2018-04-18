@@ -1,12 +1,13 @@
-﻿package network.messageOperate;
+package network.messageOperate;
 
 import network.commonClass.*;
 
-import java.io.IOException;
 import java.util.ArrayList;
 
 /**
- * Created by ZiQin on 2018/4/11.
+ * 标准通信协议处理类
+ * @author ZiQin
+ * @version V1.0.1
  */
 public class MessageOperate {
 
@@ -60,210 +61,213 @@ public class MessageOperate {
     }
 
     /**
-     * 请求服务器发送自己的个人信息
-     * send1: I
+     * 解析反馈消息，获取服务器发来的信息
+     * 协议格式：Mmsg
+     * @param msg 标准通信协议
+     * @return 反馈内容
      */
-    public static String AskMyself() throws IOException {
+    public static String unpackFeedbackMsg(String msg) {
+        return msg.substring(1);
+    }
+
+    /**
+     * 该方法功能与unpackIsFinish方法相同，区别在与使用该方法之前需要先调用
+     * unpackFeedbackMsg方法对数据报进行解析。
+     * 调用者可以依个人喜好选择不同的方法
+     * 协议格式：ok
+     * @param msg
+     * @return
+     */
+    public static boolean isFinish(String msg) {
+        if (isOk(msg)) {
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
+    /**
+     * 解析反馈报，检查服务器处理结果是否ok。功能与isFinish方法相同，区别仅是该方法有解析数据报的功能。
+     * 注意：该方法仅仅处理服务器是否同意之类的反馈（packageFinishMsg），对于其他反馈则不能进行有效处理
+     * 协议格式：Mok
+     * @param msg 标准通信协议
+     * @return 服务同意请求与否
+     */
+    public static boolean unpackIsFinish(String msg) {
+        if (isOk(msg.substring(1))) {
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
+    /**
+     * 打包用户登录信息
+     * 协议格式：LId Password
+     * @param Id 要登录的用户ID
+     * @param passwd 要登录的用户密码
+     * @return 标准通信协议
+     */
+    public static String packageLoginMsg(String Id, String passwd) {
+        return new String("L" + Id + "\f" + passwd);
+    }
+
+    /**
+     * 打包用户登录信息
+     * 协议格式：LId Password
+     * @param accountBase 要登录的用户ID
+     * @param passwd 要登录的用户密码
+     * @return 标准通信协议
+     */
+    public static String packageLoginMsg(AccountBase accountBase, String passwd) {
+        return new String("L" + accountBase.getId() + "\f" + passwd);
+    }
+
+    /**
+     * 请求服务器发送自己的个人信息
+     * 协议格式：I
+     * @return 标准通信协议
+     */
+    public static String packageAskMyselfInfoMsg() {
         return new String("I");
     }
 
     /**
      * 接受服务器发来的个人信息
-     * @return 个人信息
+     * 协议格式：IID\fnickname\ftrue\signature
+     * @return Account对象，保存个人基本信息
      */
-    public static Account getMyself(String temp) throws IOException {
-        int k = 1;
-        String ID = new String();
-        String nickName = new String();
-        String signature = new String();
-        for (int j = 1; j < temp.length(); j++) {
-            if (temp.charAt(j) == ' ' && k != 4) {
-                ++k;
-                continue;
-            }
-            switch (k) {
-                case 1:
-                    ID += temp.charAt(j);
-                    break;
-                case 2:
-                    nickName += temp.charAt(j);
-                    break;
-                case 3:
-                    break;
-                case 4:
-                    signature += temp.charAt(j);
-                    break;
-                default:
-                    break;
-            }
-        }
-        return new Account(ID, nickName, true, signature);
+    public static Account unpackMyselfInfoMsg(String msg) {
+        String myselfInfo = msg.substring(1);
+        String[] item = myselfInfo.split("\f");
+        return new Account(item[0], item[1], true, item[3]);
     }
 
     /**
-     * 向远程服务器请求好友列表
-     * 协议格式：
-     * send1: F
-     * @throws IOException
+     * 打包请求好友列表信息
+     * @return 标准通信协议
      */
-    public static String askFriendListFromServer() throws IOException {
+    public static String packageAskFriendListMsg() {
         return new String("F");
     }
 
     /**
-     * 从远端服务器获取好友列表
-     * 协议格式：
-     * recv1: Number
-     * recvN: ID nikeName isOnline signature
-     * @return 返回好友列表
-     * @throws IOException
+     * 解析收到的好友列表
+     * @param msg
+     * @return 好友列表
      */
-    public static ArrayList<Account> getFriendList(String temp) throws IOException {
+    public static ArrayList<Account> unpackFriendListMsg(String msg) {
         int i;
         String numberString = new String();
-        for (i = 1; temp.charAt(i) != ' '; i++) {
-            numberString += temp.charAt(i);
+        for (i = 1; msg.charAt(i) != '\f'; i++) {
+            numberString += msg.charAt(i);
         }
-        ++i;
         int number = Integer.valueOf(numberString);
-        int k;
+        String friendListMsg = msg.substring(++i);
+        String[] friendMsg = friendListMsg.split("\f");
         ArrayList<Account> list = new ArrayList<Account>();
-        while (i < temp.length()) {
-            k = 1;
-            String ID = new String();
-            String nikeName = new String();
-            String isOnline = new String();
-            String signature = new String();
-            while (k < 5 && i < temp.length()) {
-                if (temp.charAt(i) == ' ') {
-                    ++k;
-                    ++i;
-                    continue;
-                }
-                switch (k) {
-                    case 1:
-                        ID += temp.charAt(i);
-                        break;
-                    case 2:
-                        nikeName += temp.charAt(i);
-                        break;
-                    case 3:
-                        isOnline += temp.charAt(i);
-                        break;
-                    case 4:
-                        signature += temp.charAt(i);
-                        break;
-                    default:
-                        break;
-                }
-                ++i;
+        for (i = 0; i < number; i++) {
+            boolean isOnline = false;
+            String[] friendInfo = friendMsg[i].split("\n");
+            if (friendInfo[2].equals("true")) {
+                isOnline = true;
             }
-            boolean online;
-            if (isOnline.equals("true")) {
-                online = true;
-            }
-            else {
-                online = false;
-            }
-            
-            Account ac = new Account(ID, nikeName, online, signature);
-            list.add(ac);
+            Account account = new Account(friendInfo[0], friendInfo[1], isOnline, friendInfo[3]);
+            list.add(account);
         }
         return list;
     }
 
     /**
-     * 向好友发送信息
-     * 协议格式：
-     * send1: CtargetID sourceID text
-     * @param friendId 接收方ID号码
-     * @param msg 信息内容
-     * @throws IOException
+     * 打包信封
+     * 协议格式：CtargetID sourceID text
+     * @param targetID 收件人
+     * @param sourceID 发件人
+     * @param msg 信封内容
+     * @return 标准通信协议
      */
-    public static String sendMsgToFriend(String friendId, String sourceID,String msg) throws IOException {
-        return new String("C" + friendId + " " + sourceID + " " + msg);
+    public static String packageEnvelope(String targetID, String sourceID, String msg) {
+        return new String("C" + targetID + " " + sourceID + " " + msg);
     }
 
     /**
-     * 向好友发送信息（重载）
-     * 协议格式：
-     * send1: CtargetID sourceID text
-     * @param envelope 信封封装
-     * @throws IOException
+     * 打包信封
+     * 协议格式：CtargetId sourceId text
+     * @param envelope 信封
+     * @return 标准通信协议
      */
-    public static String sendMsgToFriend(Envelope envelope) throws IOException {
+    public static String packageEnvelope(Envelope envelope) {
         return new String("C" + envelope.getTargetAccountId() + " " + envelope.getSourceAccountId() + " " + envelope.getText());
     }
 
     /**
-     * 获取好友发来的信息
-     * 支持格式：
-     * recv: CtargetID sourceID text
-     * @return 返回信封
-     * @throws IOException
+     * 解析信封协议
+     * 协议格式：CtargetId sourceId text
+     * @param msg 标准通信协议（包含信封）
+     * @return 信封
      */
-    public static Envelope getMsgFromFriend(String temp) throws IOException {
+    public static Envelope unpackEnvelope(String msg) {
         String friendId = new String();
         String me = new String();
-        String msg = new String();
+        String message = new String();
         int k = 1;
-        for (int i = 1; i < temp.length(); i++) {
-            if (temp.charAt(i) == ' ' && k != 3) {
+        for (int i = 1; i < msg.length(); i++) {
+            if (msg.charAt(i) == ' ' && k != 3) {
                 ++k;
                 continue;
             }
             switch (k) {
                 case 1:
-                    me += temp.charAt(i);
+                    me += msg.charAt(i);
                     break;
                 case 2:
-                    friendId += temp.charAt(i);
+                    friendId += msg.charAt(i);
                     break;
                 case 3:
-                    msg += temp.charAt(i);
+                    message += msg.charAt(i);
                     break;
                 default:
                     break;
             }
         }
-        return new Envelope(me, friendId, msg);
+        return new Envelope(me, friendId, message);
     }
 
     /**
-     * 发送添加好友请求
-     * 协议格式:
-     * send1: AtargetId sourceId
-     * @param targetID 要添加的好友ID
-     * @throws IOException
+     * 打包添加好友信息
+     * 协议格式：AtargetID sourceID
+     * @param targetID 目标ID
+     * @param sourceID 发起ID
+     * @return 标准通信协议
      */
-    public static String addFriend(String targetID, String sourceID) throws IOException {
+    public static String packageAddFriendMsg(String targetID, String sourceID) {
         return new String("A" + targetID + " " + sourceID);
     }
 
     /**
-     * 对对方添加好友的请求的处理结果进行回应
-     * 协议格式：
-     * send1: BtargetId sourceId
-     * @param envelope 信封
-     * @param ok 对方好友请求结果
-     * @throws IOException
+     * 打包添加好友结果信息
+     * 协议格式：BtargetId sourceId ok
+     * @param envelope 双方ID
+     * @param ok 添加结果
+     * @return 标准通信协议
      */
-    public static String sendAddFriendResult(Envelope envelope, boolean ok) throws IOException {
+    public static String packageAddFriendResultMsg(Envelope envelope, boolean ok) {
         return new String("B" + envelope.getTargetAccountId() + " " +  envelope.getSourceAccountId() + " " + ok);
     }
 
     /**
-     * 获取添加好友结果
-     * 接收格式：
-     * recv1: targetId sourceId result
-     * @return 返回添加好友结果
-     * @throws IOException
+     * 解析添加好友结果协议
+     * 协议格式：BtargetId sourceId ok
+     * @param msg 标准通信协议
+     * @return 添加结果
      */
-    public static boolean addFriendResult(String temp) throws IOException {
+    public static boolean unpackAddFriendResultMsg(String msg) {
         String result = new String();
         int k = 1;
-        for (int i = 1; i < temp.length(); i++) {
-            if (temp.charAt(i) == ' ') {
+        for (int i = 1; i < msg.length(); i++) {
+            if (msg.charAt(i) == ' ') {
                 ++k;
                 continue;
             }
@@ -273,7 +277,7 @@ public class MessageOperate {
                 case 2:
                     break;
                 case 3:
-                    result += temp.charAt(i);
+                    result += msg.charAt(i);
                     break;
                 default:
                     break;
@@ -283,88 +287,70 @@ public class MessageOperate {
     }
 
     /**
-     * 发送查找用户的请求
-     * 协议格式：
-     * send2: StargetId sourceId
-     * @param AccountId 查找用户的ID号码
-     * @throws IOException
+     * 打包查找好友信息
+     * 协议格式：StargetId sourceId
+     * @param accountID 查找目标ID
+     * @param myselfID 发起人ID
+     * @return 标准通信协议
      */
-    public static String sendSearchUser(String AccountId, String myselfID) throws IOException {
-        return new String("S" + AccountId + " " + myselfID);
+    public static String packageSearchFriendMsg(String accountID, String myselfID) {
+        return new String("S" + accountID + " " + myselfID);
     }
 
     /**
-     * 获取查找用户的结果
-     * 接收类型：
-     * recv1: BId nickName signature
-     * @return Account类型，用户信息，若未找到则返回null
-     * @throws IOException
+     * 解析查找好友结果的协议
+     * 协议格式：StargetId\fnickname\fisOnline\fsignature
+     * @param msg 标准通信协议
+     * @return 查找的用户，Account对象,若服务器未找到，则返回null
      */
-    public static Account getSearchResult(String temp) throws IOException {
-        String target = new String();
-        String name = new String();
-        String signature = new String();
-        int k = 1;
-        for (int i = 0; i < temp.length(); i++) {
-            if (temp.charAt(i) == ' ') {
-                ++k;
-                continue;
-            }
-            switch (k) {
-                case 1:
-                    target += temp.charAt(i);
-                    break;
-                case 2:
-                    name += temp.charAt(i);
-                    break;
-                case 3:
-                    signature += temp.charAt(i);
-                    break;
-                default:
-                    break;
-            }
-        }
-        if (target.equals("false")) {
+    public static Account unpackSearchResultMsg(String msg) {
+
+        if (msg.equals("Snull")) {
             return null;
         }
         else {
-            return new Account(target, name, false, signature);
+            String accountInfo = msg.substring(1);
+            String[] item = accountInfo.split("\f");
+            boolean online = false;
+            if (item[2].equals("true")) {
+                online = true;
+            }
+            return new Account(item[0], item[1], online, item[3]);
         }
     }
 
     /**
-     * 发送删除好友请求
-     * 协议格式：
-     * send2: DtargetId sourceId
-     * @param account 将要删除的好友ID号码
-     * @throws IOException
+     * 打包删除好友的信息
+     * 协议格式：DtargetId sourceId
+     * @param target 目标ID
+     * @param sourceID 发起人ID
+     * @return 标准通信协议
      */
-    public static String sendDelFriend(String account, String sourceID) throws IOException {
-        return new String("D" + account + " " + sourceID);
+    public static String packageDelFriendMsg(String target, String sourceID) {
+        return new String("D" + target + " " + sourceID);
     }
 
     /**
-     * 从服务器端接收删除好友的结果
-     * 接收格式：
-     * recv1: DtargetId sourceId
-     * @return 返回信封，信封内容为删除结果
-     * @throws IOException
+     * 解析删除好友协议
+     * 协议格式：DtargetId sourceId result
+     * @param msg
+     * @return 信封（包含删除结果）
      */
-    public static Envelope recvDelResult(String temp) throws IOException {
+    public static Envelope unpackDelFriendMsg(String msg) {
         String target = new String();
         String result = new String();
         int k = 1;
-        for (int i = 1; i < temp.length(); i++) {
-            if (temp.charAt(i) == ' ') {
+        for (int i = 1; i < msg.length(); i++) {
+            if (msg.charAt(i) == ' ') {
                 ++k;
                 continue;
             }
             switch (k) {
                 case 1:
-                    target += temp.charAt(i);
+                    target += msg.charAt(i);
                     break;
                 case 2:
-                    result += temp.charAt(i);
+                    result += msg.charAt(i);
                     break;
                 default:
                     break;
@@ -374,31 +360,30 @@ public class MessageOperate {
     }
 
     /**
-     * 发送给注册账户的请求
-     * 协议格式：
-     * send2: RnickName password
+     * 打包注册信息
+     * 协议格式：Rnickname\fpassword
      * @param nickName 昵称
-     * @throws IOException
+     * @param password 密码
+     * @return 标准通信协议
      */
-    public static String sendRegistor(String nickName, String password) throws IOException {
-        return new String("R" + nickName + " " + password);
+    public static String packageRegistorMsg(String nickName, String password) {
+        return new String("R" + nickName + "\f" + password);
     }
 
     /**
-     * 接收新注册的ID
-     * 接收格式：
-     * recv1: newID
-     * @return 返回注册的ID号码
-     * @throws IOException
+     * 解析注册协议
+     * 协议格式：RID
+     * @param msg 标准通信协议
+     * @return 新的ID
      */
-    public static String recvRegistorId(String temp) throws IOException {
-        return temp;
+    public static String unpackRegistorMsg(String msg) {
+        return msg.substring(1);
     }
 
     /**
      * 判断结果是否可行
      * @param ok 结果
-     * @return
+     * @return 判断结果
      */
     private static boolean isOk(String ok) {
         if (ok.equals(OK) || ok.equals("true")) {

@@ -1,4 +1,4 @@
-﻿package Core;
+package Core;
 
 import java.awt.Color;
 import java.awt.Component;

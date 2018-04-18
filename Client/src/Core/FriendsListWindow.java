@@ -1,4 +1,4 @@
-﻿package Core;
+package Core;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -47,9 +47,9 @@ public class FriendsListWindow extends JFrame{
 	 * FriendsListWindow 构造函数
 	 */
 	public FriendsListWindow(Account myselfAccount){		
-		this.setMine_ID(myselfAccount.getID());
+		this.setMine_ID(myselfAccount.getId());
 		this.setMine_nickName(myselfAccount.getNikeName());
-		this.setMine_online(myselfAccount.getOnLine());
+		this.setMine_online(myselfAccount.getOnline());
 		this.setMine_signature(myselfAccount.getSignature());
 		
 		/* 获取屏幕相关信息 */
@@ -220,8 +220,8 @@ public class FriendsListWindow extends JFrame{
 	private void sortFriendsListByOnline(){
 		Comparator<Account> cmptor = new Comparator<Account>(){
 			public int compare(Account a, Account b) {
-				int status_A = a.getOnLine()?1:-1;
-				int status_B = b.getOnLine()?1:-1;
+				int status_A = a.getOnline()?1:-1;
+				int status_B = b.getOnline()?1:-1;
 				if(status_A <= status_B) return 1;
 				else return -1;
 			}
@@ -258,7 +258,7 @@ public class FriendsListWindow extends JFrame{
 	private int countOnlineNums(){
 		int count = 0;
 		for(int i=0;i<arrayList_account_friends.size();i++){
-			if(arrayList_account_friends.get(i).getOnLine()) count++;
+			if(arrayList_account_friends.get(i).getOnline()) count++;
 			else break;
 		}
 		return count;
@@ -272,8 +272,8 @@ public class FriendsListWindow extends JFrame{
 		for(int i=0;i<arrayList_account_friends.size();i++){
 			System.out.println("ListInfo: Get the friend "+(i+1)+" - "+arrayList_account_friends.get(i).getNikeName());
 			System.out.println("ListInfo: Get the friend "+(i+1)+" - "+arrayList_account_friends.get(i).getSignature());
-			System.out.println("ListInfo: Get the friend "+(i+1)+" - "+arrayList_account_friends.get(i).getID());
-			System.out.println("ListInfo: Get the friend "+(i+1)+" - "+arrayList_account_friends.get(i).getOnLine());
+			System.out.println("ListInfo: Get the friend "+(i+1)+" - "+arrayList_account_friends.get(i).getId());
+			System.out.println("ListInfo: Get the friend "+(i+1)+" - "+arrayList_account_friends.get(i).getOnline());
 		}
 	}
 

@@ -22,18 +22,16 @@ public class Consumer implements Runnable{
 				String message = queue.take();
 				switch(MessageOperate.getMsgType(message)) {
 					case MessageOperate.CHAT:
-						ctool.transmitEnvelope(MessageOperate.getMsgFromFriend(message));
+						ctool.transmitEnvelope(MessageOperate.unpackEnvelope(message));
 						break;
 					case MessageOperate.FRIENDLIST:
 						ArrayList<Account> friend_info_arraylist = new ArrayList<Account>
-							(MessageOperate.getFriendList(message));	// 拿到最新的好友列表
+							(MessageOperate.unpackFriendListMsg(message));	// 鎷垮埌鏈�鏂扮殑濂藉弸鍒楄〃
 						ctool.transmitFriendsList(friend_info_arraylist);
-						System.out.println("answer");
+//						System.out.println("answer");
 						break;
 				}
 			} catch (InterruptedException e) {
-				e.printStackTrace();
-			} catch (IOException e) {
 				e.printStackTrace();
 			}
 		}

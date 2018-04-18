@@ -1,4 +1,4 @@
-﻿package Core;
+package Core;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -73,9 +73,9 @@ public class ChatTool {
 		timer.schedule(new TimerTask() {
 			public void run() {
 				netController.askFriendList();
-				System.out.println("ask");
+//				System.out.println("ask");
 			}
-		}, 0 ,5000);
+		}, 0 ,2000);
 	}
 	
 	/**
@@ -239,7 +239,7 @@ public class ChatTool {
 			if(wind_friendsList.getCreateChatWindFlag()){				
 				Account friend_account = new Account();
 				friend_account = wind_friendsList.getNewWindowResource();
-				String friend_ID = friend_account.getID();
+				String friend_ID = friend_account.getId();
 				int friend_id = Integer.parseInt(friend_ID);
 				
 				if(!hashMap_wind_friendChat.containsKey(friend_id)){
@@ -300,8 +300,8 @@ public class ChatTool {
 		for(int i=0;i<arrList.size();i++){
 			System.out.println("ListInfo: Get the friend "+(i+1)+" 's nickname - "+arrList.get(i).getNikeName());
 			System.out.println("ListInfo: Get the friend "+(i+1)+" 's signature - "+arrList.get(i).getSignature());
-			System.out.println("ListInfo: Get the friend "+(i+1)+" 's ID - "+arrList.get(i).getID());
-			System.out.println("ListInfo: Get the friend "+(i+1)+" 's online - "+arrList.get(i).getOnLine());
+			System.out.println("ListInfo: Get the friend "+(i+1)+" 's ID - "+arrList.get(i).getId());
+			System.out.println("ListInfo: Get the friend "+(i+1)+" 's online - "+arrList.get(i).getOnline());
 		}
 	}
 }

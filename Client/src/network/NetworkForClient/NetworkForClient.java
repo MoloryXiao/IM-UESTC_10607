@@ -1,4 +1,4 @@
-﻿package network.NetworkForClient;
+package network.NetworkForClient;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -10,7 +10,7 @@ import java.net.Socket;
  * 客户端的网络通信
  * Created by ZiQin on 2018/4/10.
  * @author ZiQin
- * @version 1.1.0
+ * @version 1.1.1
  */
 public class NetworkForClient {
 
@@ -56,6 +56,7 @@ public class NetworkForClient {
         port = pr;
         client = null;
         out = null;
+        in = null;
         ID = null;
     }
 
@@ -86,7 +87,7 @@ public class NetworkForClient {
      */
     public boolean login(String account, String password) {
         try {
-            sendDataToServer("L" + account + " " + password);
+            sendDataToServer("L" + account + "\f" + password);
             String temp = recvDataFromServer();
             String res = new String();
             int i = 1;
@@ -103,6 +104,7 @@ public class NetworkForClient {
             }
         }
         catch (IOException e) {
+            e.printStackTrace();
             return false;
         }
     }
@@ -110,7 +112,7 @@ public class NetworkForClient {
     /**
      * 获取远程服务器发来的信息
      * @return 返回远程服务器发来的信息
-     * @throws IOException
+     * @throws IOException IO异常，一般情况下的Socket引发的异常
      */
     public String recvFromServer() throws IOException {
         return new String(recvDataFromServer());
@@ -118,19 +120,23 @@ public class NetworkForClient {
     /**
      * 将信息发送给远程服务器
      * @param msg 将要发送的信息
-     * @throws IOException
+     * @throws IOException IO异常，一般情况下的Socket引发的异常
      */
     public void sendToServer(String msg) throws IOException {
     	sendDataToServer(msg);
     }
 
+    /**
+     * 获取ID号
+     * @return ID号
+     */
     public String getId() {
         return new String(ID);
     }
 
     /**
      * 与远程服务器断开连接
-     * @throws IOException
+     * @throws IOException IO异常，一般情况下的Socket引发的异常
      */
     public void endConnect() throws IOException {
         in.close();
@@ -141,7 +147,7 @@ public class NetworkForClient {
     /**
      * 向远程服务器发送数据
      * @param msg 发送的信息内容
-     * @throws IOException
+     * @throws IOException IO异常，一般情况下为Socket引发的IO错误
      */
     private void sendDataToServer(String msg) throws IOException {
         out.writeUTF(msg);
@@ -150,7 +156,7 @@ public class NetworkForClient {
     /**
      * 从远程服务器获取数据
      * @return 返回从服务器收到的数据
-     * @throws IOException
+     * @throws IOException IO异常，一般情况下为Socket引发的IO错误
      */
     private String recvDataFromServer() throws IOException {
         return in.readUTF();
@@ -159,7 +165,7 @@ public class NetworkForClient {
     /**
      * 判断结果是否可行
      * @param ok 结果
-     * @return
+     * @return 判断结果
      */
     private boolean isOk(String ok) {
         if (ok.equals(OK) || ok.equals("true")) {
