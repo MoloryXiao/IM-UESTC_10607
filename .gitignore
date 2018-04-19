@@ -20,6 +20,7 @@ Java Doc/
 # generated files
 bin/
 gen/
+out/
 
 # Eclipse project files
 .classpath
@@ -50,5 +51,6 @@ gen/
 hs_err_pid*
 
 *.xml
+!pom.xml
 
 *.iml
