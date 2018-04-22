@@ -138,10 +138,17 @@ public class NetworkForClient {
      * 与远程服务器断开连接
      * @throws IOException IO异常，一般情况下的Socket引发的异常
      */
-    public void endConnect() throws IOException {
-        in.close();
-        out.close();
-        client.close();
+    public void endConnect(){
+        try {
+			in.close();
+	        out.close();
+	        client.close();
+		} catch (IOException e) {
+			in = null;
+			out = null;
+			client = null;
+			e.printStackTrace();
+		}
     }
 
     /**

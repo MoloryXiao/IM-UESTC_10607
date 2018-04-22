@@ -12,21 +12,22 @@ import java.util.Date;
 import javax.print.DocFlavor.STRING;
 import javax.swing.*;
 
-import Core.Controll.NetworkController;
 import network.commonClass.Account;
 import network.commonClass.Envelope;
+import network.messageOperate.MessageOperate;
 
 /**
  * 好友聊天窗口
- * @author LeeKadima
- * @version 2.0
+ * @author LeeKadima Murrey
+ * @version 3.0
+ * 【删减】冗余且残缺的成员属性-用于账户标识
+ * 【修改】构造方法
+ * 【添加】新的标识父子窗口账户信息的成员属性
+ * 【添加】消息收发队列方法
  */
 public class ChatWindow extends JFrame{
-	private String 		str_mine_ID;
-	private String 		str_friend_ID;
-	private String 		str_friend_signature;
-	private String 		str_friend_nickName;
-	private boolean 	flag_friend_online;
+	private Account		account_parent;		// 当前用户账户
+	private Account		account_mine;		// 好友账户
 	
 	private static final String 	ChatWindow_TITLE = "Chating...";
 	private static final int 		WINDOW_WIDTH = 935;
@@ -52,7 +53,6 @@ public class ChatWindow extends JFrame{
 	private FlowLayout 			flowLayout;
 	private JScrollBar 			sbar;
 	private JScrollPane 		inputpanel,showPanel;	
-	private NetworkController 	nkc;
 	private JComboBox<String>	fontType;
 	private JComboBox<String> 	fontSize;
 
@@ -61,16 +61,14 @@ public class ChatWindow extends JFrame{
 	 * @param myself 自身账号
 	 * @param parent_ID
 	 */
-	public ChatWindow(Account myself,String parent_ID) {
-		nkc = new NetworkController();
+	public ChatWindow(Account myself,Account parent) {
 		DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		
 		/* 设置窗口定位信息 */
-		this.setMine_ID(parent_ID);
-		this.setFriend_ID(myself.getId());
-		this.setFriend_online(myself.getOnline());
-		this.setFriend_nickName(myself.getNikeName());
-		this.setFriend_signature(myself.getSignature());
+		this.account_mine = new Account(myself.getId(),myself.getNikeName(),
+				myself.getOnline(),myself.getSignature());
+		this.account_parent = new Account(parent.getId(),parent.getNikeName(),
+				parent.getOnline(),parent.getSignature());
 		
 		this.setTitle(ChatWindow_TITLE);
 		this.setSize(WINDOW_WIDTH, WINDOW_HEIGHT);
@@ -104,11 +102,11 @@ public class ChatWindow extends JFrame{
 		panel_north.add(panel_north_center,BorderLayout.CENTER);
 		
 		friend_name_label = new JLabel();
-		friend_name_label.setText(this.getFriend_nickName());
+		friend_name_label.setText(this.account_mine.getNikeName());
 		panel_north_center.add(friend_name_label,BorderLayout.CENTER);
 		
 		signature_label = new JLabel();
-		signature_label.setText(this.getFriend_nickName());
+		signature_label.setText(this.account_mine.getSignature());
 		panel_north_center.add(signature_label,BorderLayout.SOUTH);
 		this.add(panel_north,BorderLayout.NORTH);
 	}
@@ -227,10 +225,10 @@ public class ChatWindow extends JFrame{
 			inputTextArea.setText("");
 			sbar.setValue(sbar.getMaximum());
 			/* 转发到服务器 */
-			Envelope evp = new Envelope(this.getFriend_ID(),this.getMine_ID(),sendStr);
-			nkc.sendEnvelope(evp);
-			System.out.println("ChatInfoSend: " + ChatWindow.this.getMine_ID() + " send “" 
-					+ sendStr + "” to " + ChatWindow.this.getFriend_ID());
+			Envelope evp = new Envelope(this.account_mine.getId(),this.account_parent.getId(),sendStr);
+			RecvSendController.addToSendQueue(MessageOperate.packageEnvelope(evp));
+			System.out.println("ChatInfoSend: " + this.account_parent.getId() + " send “" 
+					+ sendStr + "” to " + this.account_mine.getId());
 		}
 	}
 	
@@ -239,7 +237,7 @@ public class ChatWindow extends JFrame{
 	 */
 	public String getTimeStamp() {
 		String sendTime = DATE_FORMAT.format(new Date());
-		String sendStamp = "ID:"+this.getMine_ID() + " " + sendTime + "\n";
+		String sendStamp = "ID:"+this.account_mine.getId() + " " + sendTime + "\n";
 		
 		return sendStamp;
 	}
@@ -267,37 +265,4 @@ public class ChatWindow extends JFrame{
 	}
 	
 	/**************** setter and getter ****************/
-	public String getMine_ID() {
-		return str_mine_ID;
-	}
-	public void setMine_ID(String mine_ID) {
-		this.str_mine_ID = mine_ID;
-	}
-
-	public String getFriend_ID() {
-		return str_friend_ID;
-	}
-	public void setFriend_ID(String friend_ID) {
-		this.str_friend_ID = friend_ID;
-	}
-
-	public String getFriend_signature() {
-		return str_friend_signature;
-	}
-	public void setFriend_signature(String friend_signature) {
-		this.str_friend_signature = friend_signature;
-	}
-
-	public String getFriend_nickName() {
-		return str_friend_nickName;
-	}
-	public void setFriend_nickName(String friend_nickName) {
-		this.str_friend_nickName = friend_nickName;
-	}
-	public boolean isFriend_online() {
-		return flag_friend_online;
-	}
-	public void setFriend_online(boolean friend_online) {
-		this.flag_friend_online = friend_online;
-	}
 }

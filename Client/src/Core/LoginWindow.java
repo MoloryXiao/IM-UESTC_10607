@@ -9,19 +9,22 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
 import javax.swing.*;
+
+import network.messageOperate.MessageOperate;
 /**
  * 登陆窗口
  * @author Murrey
- * @version 1.0
+ * @version 2.0
+ * 【删减】部分冗余的成员属性
+ * 【添加】类-登陆信息
+ * 【修改】构造方法
+ * 【完善】检查输入合法性的机制
+ * 【添加】消息收发队列方法
  */
 public class LoginWindow extends JFrame{
 	private static final int 	i_window_width = 520;
 	private static final int 	i_window_height = 400;
-	private boolean 			flag_connectServer = false;
-	private boolean 			flag_rememberBtn = false;
-	private boolean 			flag_autoBtn = false;
-	private String 				str_login_yhm=null;
-	private String				str_login_psw=null;
+	private static LoginInfo	info_login;
 		
 	JButton 			btn_login;
 	JPanel 				panel_bottom,panel_middle;
@@ -36,11 +39,7 @@ public class LoginWindow extends JFrame{
 	/**
 	 * LoginWindow 构造函数
 	 */
-	public LoginWindow(String yhm,String psw,boolean rememberSelected,boolean autoLoginSelected){
-		this.str_login_yhm = yhm;
-		this.str_login_psw = psw;
-		this.flag_rememberBtn = rememberSelected;
-		this.flag_autoBtn = autoLoginSelected;
+	public LoginWindow(LoginInfo info_login){
 		
 		this.setTitle("KIM");
 		this.setSize(i_window_width,i_window_height);
@@ -90,15 +89,15 @@ public class LoginWindow extends JFrame{
 		panel_middle = new JPanel();  
 		text_field = new JTextField(10);
 		password_field = new JPasswordField(10);
-		text_field.setText(this.str_login_yhm);
-		password_field.setText(this.str_login_psw);
+		text_field.setText(info_login.getLoginYhm());
+		password_field.setText(info_login.getLoginPsw());
 		password_field.addKeyListener(new KeyListener(){
 			public void keyTyped(KeyEvent e) {}
 			public void keyPressed(KeyEvent e) {}
 			public void keyReleased(KeyEvent e) {
 				if(e.getKeyChar() == KeyEvent.VK_ENTER ){
 					if(checkLoginInfo()) 
-						LoginWindow.this.flag_connectServer = true;
+						verifyInfoWithServer();
 					else
 						LoginWindow.this.btn_login.setEnabled(true);
 				}
@@ -111,7 +110,7 @@ public class LoginWindow extends JFrame{
 		btn_login.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				if(checkLoginInfo()) 
-					flag_connectServer = true;
+					verifyInfoWithServer();
 				else
 					btn_login.setEnabled(true);
 			}
@@ -119,19 +118,19 @@ public class LoginWindow extends JFrame{
 		
 		/* 记住密码、自动登陆复选框设置 */
 		cbox_remember = new JCheckBox("记住密码");
-		cbox_remember.setSelected(this.flag_rememberBtn);
+		cbox_remember.setSelected(info_login.isRememberBtn());
 		cbox_remember.addActionListener(new ActionListener(){
 			public void actionPerformed(ActionEvent e) {
-				if(cbox_remember.isSelected()) flag_rememberBtn = true;
-				else flag_rememberBtn = false;
+				if(cbox_remember.isSelected()) LoginWindow.info_login.setRememberBtn(true);
+				else LoginWindow.info_login.setRememberBtn(false);
 			}
 		});
 		cbox_auto_login = new JCheckBox("自动登陆");
-		cbox_auto_login.setSelected(this.flag_autoBtn);
-		cbox_auto_login.addActionListener(new ActionListener(){
+		cbox_auto_login.setSelected(info_login.isAutoBtn());
+		cbox_auto_login.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				if(cbox_auto_login.isSelected()) flag_autoBtn = true;
-				else flag_autoBtn = false;
+				if(cbox_auto_login.isSelected()) LoginWindow.info_login.setAutoBtn(true);
+				else LoginWindow.info_login.setAutoBtn(false);
 			}
 		});
 				
@@ -205,47 +204,134 @@ public class LoginWindow extends JFrame{
 	}
 	
 	/**
-	 * 对文本框进行检查 符合后进行登陆验证
+	 * 检查文本框内容合法性
 	 */
-	private boolean checkLoginInfo(){		
-		str_login_yhm = text_field.getText();
-		str_login_psw = new String(password_field.getPassword());
-		if(str_login_yhm.equals("")){
+	private boolean checkLoginInfo(){	
+		String yhmInput = text_field.getText();
+		String pswInput = new String(password_field.getPassword());
+		
+		boolean flag = true;
+		if(yhmInput.equals("")){
 			System.out.println("LoginError: yhm is empty.");
 			JOptionPane.showMessageDialog(null, "用户名为空！请检查登陆信息！",
 					"Error", JOptionPane.ERROR_MESSAGE);
-			return false;
+			flag = false;
 		}
-		if(str_login_psw.equals("")){
+		if(pswInput.equals("")){
 			System.out.println("LoginError: psw is empty.");
 			JOptionPane.showMessageDialog(null, "密码为空！请检查登陆信息！",
 					"Error", JOptionPane.ERROR_MESSAGE);
-			return false;
+			flag = false;
 		}
-		return true;
+		if(yhmInput.contains(" ")) {
+			System.out.println("LoginError: yhm contains space.");
+			JOptionPane.showMessageDialog(null, "用户名存在空格！请检查登陆信息！",
+					"Error", JOptionPane.ERROR_MESSAGE);
+			flag = false;
+		}
+		if(pswInput.contains(" ")) {
+			System.out.println("LoginError: psw contains space.");
+			JOptionPane.showMessageDialog(null, "密码存在空格！请检查登陆信息！",
+					"Error", JOptionPane.ERROR_MESSAGE);
+			flag = false;
+		}
+		if(flag) {
+			info_login.setLoginYhm(yhmInput);
+			info_login.setLoginPsw(pswInput);
+			return true;
+		}else 
+			return false;
+			
 	}
 	
-	/**************** setter and getter ****************/	
-	public boolean isConnectServer(){
-		System.out.print("");
-		return this.flag_connectServer;
+	/**
+	 * 与服务器交互 进行信息验证
+	 */
+	public void verifyInfoWithServer() {
+		if(!RecvSendController.connectToServer()) {
+			System.out.println("Connection error.");
+		}else {
+			System.out.println("Connection OK.");
+			
+			String yhm = info_login.getLoginYhm();
+			String psw = info_login.getLoginPsw();
+			
+			System.out.println("LoginInfo: send to server. yhm: "+yhm);
+			System.out.println("LoginInfo: send to server. psw: "+psw);
+			RecvSendController.addToSendQueue(MessageOperate.packageLoginMsg(yhm, psw));
+		}
+		
 	}
-	public String getYhm(){
-		return this.str_login_yhm;
+	
+	/**************** setter and getter ****************/
+	public String getYhm() {
+		return info_login.getLoginYhm();
 	}
-	public String getPsw(){
-		return this.str_login_psw;
+	public String getPsw() {
+		return info_login.getLoginPsw();
 	}
-	public void setLoginButtonStatus(boolean status){
-		this.btn_login.setEnabled(status);
+	public boolean getRememberBtnFlag() {
+		return info_login.isRememberBtn();
 	}
-	public void setConnectFlag(boolean status){
-		this.flag_connectServer = status;
+	public boolean getAutoBtnFlag() {
+		return info_login.isAutoBtn();
 	}
-	public boolean getRememberBtnFlag(){
-		return this.flag_rememberBtn;
+	public static void setLoginInfoResource(String yhm,String psw,
+		boolean rememberSelected,boolean autoLoginSelected) {
+		info_login = new LoginInfo();
+		info_login.setLoginYhm(yhm);
+		info_login.setLoginPsw(psw);
+		info_login.setRememberBtn(rememberSelected);
+		info_login.setAutoBtn(autoLoginSelected);
 	}
-	public boolean getAutoBtnFlag(){
-		return this.flag_autoBtn;
+	public static LoginInfo getLoginInfoResource() {
+		return info_login;
+	}
+}
+
+/* 登陆信息类 用于记录窗口填入值 */
+class LoginInfo{
+	private boolean 			flag_rememberBtn;
+	private boolean 			flag_autoBtn;
+	private String 				str_login_yhm;
+	private String				str_login_psw;
+	
+	public LoginInfo() {
+		this.setLoginYhm(null);
+		this.setLoginPsw(null);
+		this.setAutoBtn(false);
+		this.setRememberBtn(false);
+	}
+
+	public boolean isRememberBtn() {
+		return flag_rememberBtn;
+	}
+
+	public void setRememberBtn(boolean flag_rememberBtn) {
+		this.flag_rememberBtn = flag_rememberBtn;
+	}
+
+	public boolean isAutoBtn() {
+		return flag_autoBtn;
+	}
+
+	public void setAutoBtn(boolean flag_autoBtn) {
+		this.flag_autoBtn = flag_autoBtn;
+	}
+
+	public String getLoginYhm() {
+		return str_login_yhm;
+	}
+
+	public void setLoginYhm(String str_login_yhm) {
+		this.str_login_yhm = str_login_yhm;
+	}
+
+	public String getLoginPsw() {
+		return str_login_psw;
+	}
+
+	public void setLoginPsw(String str_login_psw) {
+		this.str_login_psw = str_login_psw;
 	}
 }

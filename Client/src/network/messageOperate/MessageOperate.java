@@ -90,7 +90,7 @@ public class MessageOperate {
     /**
      * 解析反馈报，检查服务器处理结果是否ok。功能与isFinish方法相同，区别仅是该方法有解析数据报的功能。
      * 注意：该方法仅仅处理服务器是否同意之类的反馈（packageFinishMsg），对于其他反馈则不能进行有效处理
-     * 协议格式：Mok
+     * 协议格式：Lok
      * @param msg 标准通信协议
      * @return 服务同意请求与否
      */
