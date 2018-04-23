@@ -14,6 +14,8 @@ import network.messageOperate.MessageOperate;
 /**
  * 登陆窗口
  * @author Murrey
+ * @version 2.1
+ * 【添加】登陆进度条
  * @version 2.0
  * 【删减】部分冗余的成员属性
  * 【添加】类-登陆信息
@@ -25,6 +27,7 @@ public class LoginWindow extends JFrame{
 	private static final int 	i_window_width = 520;
 	private static final int 	i_window_height = 400;
 	private static LoginInfo	info_login;
+	private static final int	magic_number = 1234;
 		
 	JButton 			btn_login;
 	JPanel 				panel_bottom,panel_middle;
@@ -35,6 +38,7 @@ public class LoginWindow extends JFrame{
 	JCheckBox 			cbox_remember,cbox_auto_login;	
 	GridBagLayout 		gb_layout;
 	GridBagConstraints 	gb_constraint;
+	JProgressBar 		pbar_login;
 	
 	/**
 	 * LoginWindow 构造函数
@@ -110,7 +114,7 @@ public class LoginWindow extends JFrame{
 		btn_login.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				if(checkLoginInfo()) 
-					verifyInfoWithServer();
+					verifyInfoWithServer();					
 				else
 					btn_login.setEnabled(true);
 			}
@@ -193,8 +197,19 @@ public class LoginWindow extends JFrame{
 		gb_layout.setConstraints(cbox_auto_login, gb_constraint);
 		panel_middle.add(cbox_auto_login);
 
+		/* 进度条 */
+		pbar_login = new JProgressBar()
+		{
+		    public Dimension getPreferredSize() {
+		    		return new Dimension(180, 17);
+		    }
+		};	
+		pbar_login.setIndeterminate(true);
+		pbar_login.setVisible(false);
+		
 		/* 面板添加  */
 		panel_bottom.add(btn_login);
+		panel_bottom.add(pbar_login);
 		this.add(label_top,BorderLayout.NORTH);
 		this.add(panel_bottom,BorderLayout.SOUTH);
 		this.add(panel_middle,BorderLayout.CENTER);
@@ -248,19 +263,39 @@ public class LoginWindow extends JFrame{
 	 * 与服务器交互 进行信息验证
 	 */
 	public void verifyInfoWithServer() {
-		if(!RecvSendController.connectToServer()) {
-			System.out.println("Connection error.");
-		}else {
-			System.out.println("Connection OK.");
-			
-			String yhm = info_login.getLoginYhm();
-			String psw = info_login.getLoginPsw();
-			
-			System.out.println("LoginInfo: send to server. yhm: "+yhm);
-			System.out.println("LoginInfo: send to server. psw: "+psw);
-			RecvSendController.addToSendQueue(MessageOperate.packageLoginMsg(yhm, psw));
-		}
-		
+		setWaitingStatus(true);
+		/* 若不使用新线程会导致登陆窗口阻塞死屏 */
+		Runnable rnb = ()->{
+			if(!RecvSendController.connectToServer()) {
+				System.out.println("Connection error.");
+				setWaitingStatus(false);
+			}else {
+				System.out.println("Connection OK.");
+				
+				String yhm = info_login.getLoginYhm();
+				String psw = info_login.getLoginPsw();
+				
+				System.out.println("LoginInfo: send to server. yhm: "+yhm);
+				System.out.println("LoginInfo: send to server. psw: "+psw);
+				try {
+					Thread.sleep(magic_number);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+				RecvSendController.addToSendQueue(MessageOperate.packageLoginMsg(yhm, psw));
+			}
+		};
+		Thread thd = new Thread(rnb);
+		thd.start();
+	}
+
+	/**
+	 * 设置进度条是否显示 即是否进入登陆等待状态
+	 * @param flag
+	 */
+	public void setWaitingStatus(boolean flag) {
+		btn_login.setVisible(!flag);
+		pbar_login.setVisible(flag);
 	}
 	
 	/**************** setter and getter ****************/

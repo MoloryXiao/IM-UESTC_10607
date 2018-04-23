@@ -152,16 +152,16 @@ public class ChatClient{
 	 * @param message
 	 */
 	private void gainLoginResult(String message) {
+		wind_login.setWaitingStatus(false);
 		if(MessageOperate.unpackIsFinish(message)) {
 			System.out.println("Login: successful.");
 			wind_login.dispose();
 			WindowProducer.addWindowRequest(WindowProducer.FRIEND_LIST_WIND);			
-			
 			/* 根据"记住密码"与"自动登陆"按钮的情况 重写登陆文件的信息  */
 			rewriteLoginFile();
 		}else {
 			// 由于登陆失败会被关闭套接字 故需要关闭与服务器交流的收发线程 
-			RecvSendController.closeSocket();	
+			RecvSendController.closeSocket();			
 			System.out.println("LoginError: Verification does not pass.");
 			JOptionPane.showMessageDialog(null, "信息验证失败！请检查输入的账号与密码！",
 					"Error", JOptionPane.ERROR_MESSAGE);

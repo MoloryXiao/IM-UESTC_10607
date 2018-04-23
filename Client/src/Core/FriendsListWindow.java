@@ -202,7 +202,7 @@ public class FriendsListWindow extends JFrame{
 		flowLayout_Bottom.setAlignment(FlowLayout.RIGHT);	// 居右
 		panel_bottom.setLayout(flowLayout_Bottom);
 
-		panel_bottom.add(btn_logoff);
+//		panel_bottom.add(btn_logoff);
 		panel_bottom.add(btn_logout);
 		this.add(panel_bottom,BorderLayout.SOUTH);
 	}
@@ -253,7 +253,7 @@ public class FriendsListWindow extends JFrame{
 		
 		/* 对窗口相关标签进行更新 */
 		label_name.setText("昵称："+this.account_mine.getNikeName());	// 昵称
-		label_sign.setText(this.account_mine.getSignature());	// 个性签名		
+		label_sign.setText(this.account_mine.getSignature());	// 个性签名
 		// 头像
 	}
 	
