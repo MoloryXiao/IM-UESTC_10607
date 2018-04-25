@@ -16,6 +16,8 @@ import network.messageOperate.MessageOperate;
 /**
  * 好友列表窗口
  * @author Murrey
+ * @version 3.1
+ * 【优化】个人信息的显示样式
  * @version 3.0
  * 【删减】部分冗余的成员变量
  * 【修改】构造函数
@@ -37,8 +39,6 @@ public class FriendsListWindow extends JFrame{
 	private JLabel 				label_head_image,label_name,label_sign;
 	private JTabbedPane 		tabbed_pane;
 	private JList<String> 		jList_str_friendsName;
-	private GridBagLayout 		gbLayout_top;
-	private GridBagConstraints 	gbConstr_top;
 	private JButton				btn_logout,btn_logoff;
 	
 	private ArrayList<Account> 	arrayList_account_friends;
@@ -69,65 +69,28 @@ public class FriendsListWindow extends JFrame{
 	
 	/**
 	 * 顶部Pane设置
-	 */
-	private void topPaneSet(){
+	 */	
+	private void topPaneSet() {
 		/* top面板各组件设置 */
 		panel_top = new JPanel();
-		label_head_image = new JLabel();							// 头像图标
-		label_head_image.setIcon((new ImageIcon("image/p70_piano.jpg")));
-		label_head_image.setToolTipText("123木头人");
-		//head_image_label.setPreferredSize(new Dimension(20,20));
-//		label_name = new JLabel("昵称："+this.getMine_nickName());	// 昵称
-		label_name = new JLabel("昵称：等待服务器应答...");
-//		label_sign = new JLabel(this.getMine_signature());			// 个性签名	
-		label_sign = new JLabel("签名档：等待服务器应答...");
-		// 面板布局设置
-		gbLayout_top = new GridBagLayout();
-		gbConstr_top = new GridBagConstraints();
-		Insets ins = new Insets(0,0,0,0);
-		gbConstr_top.fill = GridBagConstraints.BOTH;
-		gbConstr_top.weightx = 1.0;
-		gbConstr_top.weighty = 1.0;
-		panel_top.setLayout(gbLayout_top);
-		// 组件布局
-		gbConstr_top.gridx = 0; gbConstr_top.gridy = 0;				// 头像
-		gbConstr_top.gridheight = 2; gbConstr_top.gridwidth = 2;
-		ins.set(10, 5, 10, 5);
-		gbConstr_top.insets = ins;
-		gbLayout_top.setConstraints(label_head_image, gbConstr_top);
-		panel_top.add(label_head_image);
-		gbConstr_top.gridx = 2; gbConstr_top.gridy = 0;				// 昵称
-		gbConstr_top.gridheight = 1; gbConstr_top.gridwidth = 4;
-		ins.set(0,0,0,0);
-		gbLayout_top.setConstraints(label_name, gbConstr_top);
-		panel_top.add(label_name);
-		gbConstr_top.gridx = 2; gbConstr_top.gridy = 1;				// 签名档
-		gbConstr_top.gridheight = 1; gbConstr_top.gridwidth = 4;
-		ins.set(0, 0, 0, 0);
-		gbConstr_top.insets = ins;
-		gbLayout_top.setConstraints(label_sign, gbConstr_top);
-		panel_top.add(label_sign);
+		panel_top.setLayout(null);		
+		panel_top.setPreferredSize(new Dimension(i_window_height,90));
 		
-		/* 将面板添加到容器中 */
-		this.add(panel_top,BorderLayout.NORTH);
-	}
-	
-	/**
-	 * 顶部Pane设置_测试版
-	 */
-	private void topPaneSet_t() {
-		/* top面板各组件设置 */
-		panel_top = new JPanel();
-		label_head_image = new JLabel();							// 头像图标
+		label_head_image = new JLabel();	// 头像图标
 		label_head_image.setIcon((new ImageIcon("image/p70_piano.jpg")));
 		label_head_image.setToolTipText("123木头人");
-		//head_image_label.setPreferredSize(new Dimension(20,20));
+		label_head_image.setBounds(10, 10, 70, 70);
+		
 		label_name = new JLabel("昵称：等待服务器应答...");
-		label_sign = new JLabel("签名档：等待服务器应答...");
-
-		panel_top.add(label_head_image,BorderLayout.SOUTH);
-		panel_top.add(label_name,BorderLayout.NORTH);
-		panel_top.add(label_sign,BorderLayout.SOUTH);
+//		label_name.setFont(new Font("宋体", Font.PLAIN, 13));
+		label_name.setBounds(90,20,165,20);
+		
+		label_sign = new JLabel("个性签名：等待服务器应答...");
+		label_sign.setBounds(90,50,165,20);		
+		
+		panel_top.add(label_head_image);
+		panel_top.add(label_name);
+		panel_top.add(label_sign);
 		
 		/* 将面板添加到容器中 */
 		this.add(panel_top,BorderLayout.NORTH);
@@ -253,8 +216,11 @@ public class FriendsListWindow extends JFrame{
 		
 		/* 对窗口相关标签进行更新 */
 		label_name.setText("昵称："+this.account_mine.getNikeName());	// 昵称
-		label_sign.setText(this.account_mine.getSignature());	// 个性签名
+		label_sign.setText("个性签名："+this.account_mine.getSignature());	// 个性签名
 		// 头像
+		
+		label_name.setToolTipText("昵称："+this.account_mine.getNikeName());
+		label_sign.setToolTipText("个性签名："+this.account_mine.getSignature());
 	}
 	
 	/**
