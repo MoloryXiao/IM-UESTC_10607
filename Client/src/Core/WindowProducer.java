@@ -14,6 +14,7 @@ public class WindowProducer {
 	public static final int LOGIN_WIND = 1;
 	public static final int FRIEND_LIST_WIND = 2;
 	public static final int CHAT_WIND = 3;
+	public static final int ADD_FRIEND_WIND = 4;
 	
 	public WindowProducer() {
 		queue_request = new LinkedBlockingQueue<Integer>();

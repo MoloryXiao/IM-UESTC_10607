@@ -12,9 +12,13 @@ import java.util.TimerTask;
 import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 
+import com.sun.corba.se.impl.protocol.giopmsgheaders.Message;
+import com.sun.xml.internal.ws.api.pipe.Tube;
+
 import network.NetworkForClient.NetworkForClient;
 import network.commonClass.Account;
 import network.commonClass.Envelope;
+import network.commonClass.Login;
 import network.messageOperate.MessageOperate;
 /**
  * 程序入口 聊天软件客户端
@@ -34,7 +38,9 @@ public class ChatClient{
 	
 	private LoginWindow wind_login;				// 登陆窗口
 	private FriendsListWindow wind_friendsList;	// 好友列表
+	private AddFriendWindow wind_addfriend;		// 添加好友窗口
 	private HashMap<String, ChatWindow> hashMap_wind_friendChat;	// 聊天窗口组
+	
 	
 	private String lnotePath = "resource/lnote.data";	// 登陆信息文件
 	private boolean flag_timer1 = false;				// 定时任务1 是否被启动过
@@ -80,15 +86,24 @@ public class ChatClient{
 			while(true) {
 				int type_window = WindowProducer.getWindowRequest();
 				switch(type_window) {
+				
 				case WindowProducer.LOGIN_WIND:				// 创建登陆窗口
 					wind_login = new LoginWindow(LoginWindow.getLoginInfoResource());
 					break;
+					
 				case WindowProducer.FRIEND_LIST_WIND:		// 创建好友列表
 					wind_friendsList = new FriendsListWindow();		
 					break;
+					
 				case WindowProducer.CHAT_WIND:				// 创建好友聊天窗口
 					createChatWindow();
 					break;
+					
+				case WindowProducer.ADD_FRIEND_WIND:
+					wind_addfriend = new AddFriendWindow(LoginWindow.getLoginInfoResource());
+					createAddFriendWindow();
+					break;
+					
 				default:
 					break;
 				}
@@ -107,15 +122,26 @@ public class ChatClient{
 				case MessageOperate.LOGIN:			// 处理服务器反馈的登陆验证
 					gainLoginResult(str_newMessage);
 					break;
+					
 				case MessageOperate.MYSELF:			// 处理服务器反馈的个人信息
 					gainMineAccInfo(str_newMessage);
 					break;
+					
 				case MessageOperate.FRIENDLIST:		// 处理服务器反馈的好友列表
 					gainFriendslistInfo(str_newMessage);
 					break;
 				case MessageOperate.CHAT:			// 处理服务器转发的聊天内容
 					gainChatEnvelope(str_newMessage);
 					break;
+				case MessageOperate.SEARCH:			// 处理服务器反馈的搜索好友结果
+					gainSearchFriendInfo(str_newMessage);
+					break;
+				case MessageOperate.ADDFRIEND:
+					gainAddFriendRequest(str_newMessage);
+					break;
+				case MessageOperate.BACKADD:		//处理服务器反馈的添加好友信息
+					gainAddFriendInfo(str_newMessage);
+				
 				default: 
 					break;
 						
@@ -125,6 +151,34 @@ public class ChatClient{
 		Thread thd_message = new Thread(rnb_message);
 		thd_message.start();		
 	};
+	private void createAddFriendWindow() {
+		wind_addfriend.setDeleteFriendPanel(wind_friendsList.getFriendList());
+	}
+	
+	private void gainAddFriendRequest(String str){
+		String friend_id = MessageOperate.unpackAddFriendMsg(str);
+		wind_friendsList.setNewFriendID(friend_id);
+		wind_friendsList.setNewFriendRequesttBottonVisible(true);
+	}
+	private void gainSearchFriendInfo(String str) {
+		wind_addfriend.setFriendAccount(MessageOperate.unpackSearchResultMsg(str));
+		
+	}
+	
+	/**
+	 * 处理服务器反馈的添加好友结果
+	 */
+	private void gainAddFriendInfo(String str) {
+		System.out.println("【 Add Result】"+MessageOperate.unpackAddFriendResultMsg(str));
+		if(MessageOperate.unpackAddFriendResultMsg(str)) {
+			System.out.println("AddFriendInfo: add the friend success... - OK");
+			wind_friendsList.addFriendSuccessHint();
+		}
+		else { 
+			System.out.println("AddFriendInfo: add the friend faliure... - OK");
+			wind_friendsList.addFriendFailureHing();
+		}
+	}
 	
 	/**
 	 * 创建聊天窗口 并加入聊天窗口的 hashMap 中
@@ -191,7 +245,7 @@ public class ChatClient{
 		
 //		printFriendAccountsList(arrayList_account_friendsInfo);
 		wind_friendsList.updateFriendsList(arrayList_account_friendsInfo);
-		System.out.println("LoginInfo: obtaining the friendList from server... - OK");
+//		System.out.println("LoginInfo: obtaining the friendList from server... - OK");
 		
 		if(!flag_timer1) {
 			flag_timer1 = true;
@@ -212,6 +266,7 @@ public class ChatClient{
 			sendMessageToShowtextfield(message);	// 根据发送方的ID定位到好友窗口并显示
 		System.out.println("chatInfoRecv: " + sourceID + " send “" + message + "” to " + sendID);
 	}
+	
 
 	/**
 	 * 定时任务1：定时拉取好友列表

@@ -12,7 +12,9 @@ import java.util.Vector;
 import javax.swing.*;
 
 import network.commonClass.Account;
+import network.commonClass.Envelope;
 import network.messageOperate.MessageOperate;
+import sun.reflect.generics.tree.Tree;
 /**
  * 好友列表窗口
  * @author Murrey
@@ -39,11 +41,12 @@ public class FriendsListWindow extends JFrame{
 	private JLabel 				label_head_image,label_name,label_sign;
 	private JTabbedPane 		tabbed_pane;
 	private JList<String> 		jList_str_friendsName;
-	private JButton				btn_logout,btn_logoff;
+	private JButton				btn_adding_friend,btn_logout,btn_logoff,btn_new_friend_request;
 	
 	private ArrayList<Account> 	arrayList_account_friends;
 	private Account 			account_newWindow;
 	
+	private String 				new_friend_id;
 	/**
 	 * FriendsListWindow 构造函数
 	 */
@@ -152,24 +155,52 @@ public class FriendsListWindow extends JFrame{
 				System.exit(0);
 			}
 		});		
-//		btn_logoff = new JButton("注销");
-//		btn_logoff.addActionListener(new ActionListener() {
-//			public void actionPerformed(ActionEvent e) {
-//				RecvSendController.closeSocket();
-//				FriendsListWindow.this.dispose();
-//				WindowProducer.addWindowRequest(WindowProducer.LOGIN_WIND);
-//			}
-//		});	
+		
+		btn_adding_friend = new JButton("管理好友");
+		btn_adding_friend.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				WindowProducer.addWindowRequest(WindowProducer.ADD_FRIEND_WIND);
+			}
+		});
+		
+		btn_new_friend_request = new JButton("新的好友请求");
+		btn_new_friend_request.setVisible(false);
+		
+		btn_new_friend_request.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				int option = JOptionPane.showConfirmDialog(null, "来自:" + new_friend_id + "的好友请求，是否同意？", "新的好友请求", 
+													JOptionPane.YES_NO_OPTION);
+				Envelope env = new Envelope(new_friend_id, account_mine.getId(), "");
+				if(option == JOptionPane.YES_OPTION) {
+					RecvSendController.addToSendQueue(MessageOperate.packageAddFriendResultMsg(env, true));
+				}
+				else {
+					RecvSendController.addToSendQueue(MessageOperate.packageAddFriendResultMsg(env, false));
+				}
+				btn_new_friend_request.setVisible(false);
+			}
+		});
 		
 		FlowLayout flowLayout_Bottom = new FlowLayout();
 		flowLayout_Bottom.setAlignment(FlowLayout.RIGHT);	// 居右
 		panel_bottom.setLayout(flowLayout_Bottom);
-
-//		panel_bottom.add(btn_logoff);
+		
+		panel_bottom.add(btn_new_friend_request);
+		panel_bottom.add(btn_adding_friend);
 		panel_bottom.add(btn_logout);
 		this.add(panel_bottom,BorderLayout.SOUTH);
 	}
-	
+	/*
+	 * 设置新的好友添加请求可见状态
+	 */
+	public void setNewFriendRequesttBottonVisible(Boolean bool) {
+		if(bool == true) {
+			btn_new_friend_request.setVisible(true);
+		}
+		else {
+			btn_new_friend_request.setVisible(false);
+		}
+	}
 	/**
 	 * 设置窗口尺寸
 	 */
@@ -303,5 +334,26 @@ public class FriendsListWindow extends JFrame{
 	
 	public Account getMineAccount() {
 		return this.account_mine;
+	}
+	public void setNewFriendID(String str) {
+		new_friend_id = str;
+	}
+	
+	public void addFriendSuccessHint() {
+		JOptionPane.showMessageDialog(null, "添加好友成功", "提示", JOptionPane.INFORMATION_MESSAGE);
+	}
+	
+	public void addFriendFailureHing() {
+		JOptionPane.showMessageDialog(null, "添加好友失败", "提示", JOptionPane.INFORMATION_MESSAGE);
+	}
+	
+	public Vector<String> getFriendList(){		
+		Vector<String> vec_str_friendsName = new Vector<String>();
+		int friend_number =  arrayList_account_friends.size();
+		for(int i = 0 ; i < friend_number ; i++)
+			vec_str_friendsName.add( arrayList_account_friends.get(i).getId() + "     " +
+									 arrayList_account_friends.get(i).getNikeName() + "     " +
+									 arrayList_account_friends.get(i).getSignature());
+		return vec_str_friendsName;
 	}
 }
