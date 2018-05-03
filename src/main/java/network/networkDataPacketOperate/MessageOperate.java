@@ -78,7 +78,8 @@ public class MessageOperate {
 	 * @return 信息标准通信协议
 	 */
 	public static String packageFinishMsg() {
-		return new String("M" + OK);
+		
+		return new String("L" + OK);
 	}
 
 	/**
@@ -88,7 +89,7 @@ public class MessageOperate {
 	 */
 	public static String packageNotFinishMsg() {
 		
-		return new String("M" + FALSE);
+		return new String("L" + FALSE);
 	}
 
 	/**

@@ -52,5 +52,6 @@ hs_err_pid*
 
 *.xml
 !pom.xml
+!logback.xml
 
 *.iml

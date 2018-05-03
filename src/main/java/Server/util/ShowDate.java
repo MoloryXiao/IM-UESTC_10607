@@ -1,10 +1,10 @@
-package Server;
+package Server.util;
 
 import java.util.Date;
 
 public class ShowDate {
 	
-	private static boolean showFlag = false;
+	private static boolean showFlag = true;
 	
 	public static void setShowFlag() {
 		
@@ -24,5 +24,6 @@ public class ShowDate {
 		if (showFlag) System.out.printf("%1$tH:%1$tM:%1$tS ", new Date());
 		//System.out.printf("%1$tm/%1$td %1$tH:%1$tM:%1$tS ", new Date());
 	}
+	
 	
 }

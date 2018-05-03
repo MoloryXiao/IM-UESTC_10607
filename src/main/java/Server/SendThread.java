@@ -1,9 +1,8 @@
-package Server; /**
- *
- */
+package Server;
 
 import java.io.IOException;
 
+import Server.util.LoggerProvider;
 import network.NetworkForServer.*;
 
 /**
@@ -17,7 +16,7 @@ public class SendThread extends Thread {
 	
 	private String userId;
 	private CommunicateWithClient client;
-	private ServerThread serverThread;
+	private SingleClientThread singleClientThread;
 	
 	/**
 	 * @param exit 要设置的 exit
@@ -27,17 +26,16 @@ public class SendThread extends Thread {
 		this.exit = exit;
 	}
 	
-	public SendThread( CommunicateWithClient client, String userId, ServerThread serverThread ) {
+	public SendThread( CommunicateWithClient client, String userId, SingleClientThread singleClientThread ) {
 		
 		this.client = client;
 		this.userId = userId;
-		this.serverThread = serverThread;
+		this.singleClientThread = singleClientThread;
 	}
 	
 	public void run() {
 		
-		ShowDate.showDate();
-		System.out.println("[  O K  ] 用户ID：" + userId + " 发送子线程已创建！");
+		LoggerProvider.logger.info("[  O K  ] 用户ID：" + userId + " 发送子线程已创建！");
 		
 		while (!exit) {
 			
@@ -45,21 +43,21 @@ public class SendThread extends Thread {
 			
 			try {
 //				    //************************************************
-//					String msg = serverThread.getMsgFromSendQueue();
+//					String msg = singleClientThread.getMsgFromSendQueue();
 //					System.out.println("send  to  " + userId + ": " + msg);
 //					System.out.flush();
 //					client.sendToClient(msg);
 //				    //************************************************
 				
 				/* 从待发送队列中取出一条消息发送给客户端 */
-				message = serverThread.getMsgFromSendQueue();
+				message = singleClientThread.getMsgFromSendQueue();
 				client.sendToClient(message);
 				
 			} catch (IOException e) {
 				
-				serverThread.putMsgToSendQueue(message);
-				ShowDate.showDate();
-				System.out.println("[ ERROR ] 消息发送失败！等待重试！");
+				singleClientThread.putMsgToSendQueue(message);
+				
+				LoggerProvider.logger.error("[ ERROR ] 消息发送失败！等待重试！");
 				
 			} catch (InterruptedException e) {
 				/* 服务子线程发送中断信号，中断阻塞读，结束监听发送队列，结束发送子线程 */
@@ -68,14 +66,14 @@ public class SendThread extends Thread {
 			
 		}
 		
-		if(!serverThread.isSendQueueEmpty()){
-			// TODO 保存发送队列消息
+		if (!singleClientThread.isSendQueueEmpty()) {
+			
+			// TODO 保存发送队列消息(除请求好友列表等请求类消息)，由OffineMessageStore来管理
 		}
 		
 		while (!exit) ;
-		ShowDate.showDate();
-		System.out.println("[  O K  ] 用户ID：" + userId + " 发送子线程已结束！");
 		
+		LoggerProvider.logger.info("[  O K  ] 用户ID：" + userId + " 发送子线程已结束！");
 	}
 	
 }
