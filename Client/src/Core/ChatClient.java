@@ -19,6 +19,8 @@ import network.messageOperate.MessageOperate;
 /**
  * 程序入口 聊天软件客户端
  * @author Murrey
+ * @version 2.0
+ * 【添加】离线消息功能 并且窗口未打开也可正常接收消息
  * @version 1.0
  * Inital.
  */
@@ -35,14 +37,15 @@ public class ChatClient{
 	private LoginWindow wind_login;				// 登陆窗口
 	private FriendsListWindow wind_friendsList;	// 好友列表
 	private HashMap<String, ChatWindow> hashMap_wind_friendChat;	// 聊天窗口组
+	private EnvelopeRepertory repertory_envelope;
 	
 	private String lnotePath = "resource/lnote.data";	// 登陆信息文件
-	private boolean flag_timer1 = false;				// 定时任务1 是否被启动过
+	private boolean flag_timer1 = false;				// 标记定时任务1 是否被启动过
 	
 	public static void main(String []args){
 		setPlugin(true);
-		@SuppressWarnings("unused")
 		ChatClient cc = new ChatClient();
+		cc.start();
 	}
 	
 	/**
@@ -71,7 +74,13 @@ public class ChatClient{
 		this.rs_controller = new RecvSendController(this.net_controller);
 		this.wind_controller = new WindowProducer();
 		this.hashMap_wind_friendChat = new HashMap<String, ChatWindow>();
-		
+		this.repertory_envelope = new EnvelopeRepertory();
+	};
+	
+	/**
+	 * 客户端运行入口
+	 */
+	private void start() {
 		/************************************** 从文件读取登陆信息 **************************************/
 		analyzeLoginFile(getContentFromLoginFile(lnotePath));
 		
@@ -124,27 +133,37 @@ public class ChatClient{
 		};
 		Thread thd_message = new Thread(rnb_message);
 		thd_message.start();		
-	};
+	}
 	
 	/**
-	 * 创建聊天窗口 并加入聊天窗口的 hashMap 中
+	 * 创建聊天窗口 并将窗口加入聊天窗口的 hashMap 中 若有离线消息则打到窗口中
 	 */
-	private void createChatWindow() {		
+	private void createChatWindow() {	
+		// 获取需要创建的好友账户信息
 		Account account_chatFriend = new Account();
 		account_chatFriend = wind_friendsList.getNewWindowResource();
 		String friend_ID = account_chatFriend.getId();
 		
+		// 查看该窗口是否被创建过 若已存在则将该窗口显示 若不存在则新建并加入聊天窗口hashMap中
 		if(!hashMap_wind_friendChat.containsKey(friend_ID)){
-			hashMap_wind_friendChat.put(friend_ID,
-					new ChatWindow(account_chatFriend,wind_friendsList.getMineAccount()));
+			ChatWindow chatWind = new ChatWindow(account_chatFriend,wind_friendsList.getMineAccount());
+			hashMap_wind_friendChat.put(friend_ID,chatWind);
 			System.out.println("ChatInfo: open the chating window with " + 
 					account_chatFriend.getNikeName());
+			
+			// 检查是否有未读消息
+			if(EnvelopeRepertory.isContainsKey(friend_ID)) {
+				ArrayList<Envelope> arrlist_envelope = new ArrayList<Envelope>();
+				arrlist_envelope = EnvelopeRepertory.getFromBox(friend_ID);
+				for(int i=0;i<arrlist_envelope.size();i++) 
+					chatWind.sendMessageToShowtextfield(arrlist_envelope.get(i).getText());
+			}
 		}else{
-			// 此处有bug friend_id值不是索引号 考虑键值模板类
+			// 显示窗口 并提升到页面顶部
 			hashMap_wind_friendChat.get(friend_ID).setVisible(true);
 			hashMap_wind_friendChat.get(friend_ID).setAlwaysOnTop(true);
 			hashMap_wind_friendChat.get(friend_ID).setAlwaysOnTop(false);
-		}
+		}		
 	}
 	
 	/**
@@ -203,14 +222,19 @@ public class ChatClient{
 	 * 根据服务器反馈的消息 解析【信封】的收件人 找到对应的窗口并显示
 	 * @param str
 	 */
-	private void gainChatEnvelope(String str) {
-		Envelope evp = MessageOperate.unpackEnvelope(str);
-		String sourceID = evp.getSourceAccountId();
-		String sendID = evp.getTargetAccountId();
+	public void gainChatEnvelope(String str) {
+		Envelope evp = new Envelope();
+		evp = MessageOperate.unpackEnvelope(str);
+		String friendID = evp.getSourceAccountId();	// 信封源地址即为好友地址
+		String destID = evp.getTargetAccountId();
 		String message = evp.getText();
-		hashMap_wind_friendChat.get(sourceID).
-			sendMessageToShowtextfield(message);	// 根据发送方的ID定位到好友窗口并显示
-		System.out.println("chatInfoRecv: " + sourceID + " send “" + message + "” to " + sendID);
+		
+		if(!hashMap_wind_friendChat.containsKey(friendID))	// 若窗口还没有创建 则存入信封仓库中
+			EnvelopeRepertory.addToBox(friendID, evp);
+		else {		// 若已创建则直接打到对应窗口上
+			hashMap_wind_friendChat.get(friendID).sendMessageToShowtextfield(message);	// 根据发送方的ID定位到好友窗口并显示
+			System.out.println("chatInfoRecv: " + friendID + " send “" + message + "” to " + destID);
+		}
 	}
 
 	/**
