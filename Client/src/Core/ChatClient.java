@@ -99,8 +99,7 @@ public class ChatClient{
 					createChatWindow();
 					break;
 					
-				case WindowProducer.ADD_FRIEND_WIND:
-					wind_addfriend = new AddFriendWindow(LoginWindow.getLoginInfoResource());
+				case WindowProducer.ADD_FRIEND_WIND:		// 创建添加好友窗口
 					createAddFriendWindow();
 					break;
 					
@@ -136,10 +135,10 @@ public class ChatClient{
 				case MessageOperate.SEARCH:			// 处理服务器反馈的搜索好友结果
 					gainSearchFriendInfo(str_newMessage);
 					break;
-				case MessageOperate.ADDFRIEND:
+				case MessageOperate.ADDFRIEND:		// 处理好友的添加请求
 					gainAddFriendRequest(str_newMessage);
 					break;
-				case MessageOperate.BACKADD:		//处理服务器反馈的添加好友信息
+				case MessageOperate.BACKADD:		// 处理添加好友结果
 					gainAddFriendInfo(str_newMessage);
 				
 				default: 
@@ -151,8 +150,14 @@ public class ChatClient{
 		Thread thd_message = new Thread(rnb_message);
 		thd_message.start();		
 	};
+	/**
+	 *  创建添加好友面板，并设置删除好友面板内的好友列表
+	 */
 	private void createAddFriendWindow() {
-		wind_addfriend.setDeleteFriendPanel(wind_friendsList.getFriendList());
+		wind_addfriend = new AddFriendWindow((LoginWindow.getLoginInfoResource()).getLoginYhm());
+		
+		//将好友列表添加到管理好友-删除好友面板中，为删除好友面板提供好友列表
+		wind_addfriend.setDeleteFriendPanelList(wind_friendsList.getFriendList());					
 	}
 	
 	private void gainAddFriendRequest(String str){
@@ -160,8 +165,13 @@ public class ChatClient{
 		wind_friendsList.setNewFriendID(friend_id);
 		wind_friendsList.setNewFriendRequesttBottonVisible(true);
 	}
+	
+	/**
+	 * 处理服务器反馈的搜索好友结果
+	 * @param str
+	 */
 	private void gainSearchFriendInfo(String str) {
-		wind_addfriend.setFriendAccount(MessageOperate.unpackSearchResultMsg(str));
+		wind_addfriend.showFriendInfotInSearchFriendPanel(MessageOperate.unpackSearchResultMsg(str));
 		
 	}
 	

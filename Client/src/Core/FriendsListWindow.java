@@ -34,6 +34,7 @@ public class FriendsListWindow extends JFrame{
 	
 	private int 				i_friends_sum;
 	private int 				i_online_count;
+	private String 				new_friend_id;
 	
 	private JScrollPane 		scroll_friends_list;
 	private JPanel 				panel_top,panel_middle,panel_bottom,
@@ -41,12 +42,11 @@ public class FriendsListWindow extends JFrame{
 	private JLabel 				label_head_image,label_name,label_sign;
 	private JTabbedPane 		tabbed_pane;
 	private JList<String> 		jList_str_friendsName;
-	private JButton				btn_adding_friend,btn_logout,btn_logoff,btn_new_friend_request;
+	private JButton				btn_manage_friend,btn_logout,btn_logoff,btn_new_friend_request;
 	
 	private ArrayList<Account> 	arrayList_account_friends;
 	private Account 			account_newWindow;
 	
-	private String 				new_friend_id;
 	/**
 	 * FriendsListWindow 构造函数
 	 */
@@ -156,8 +156,8 @@ public class FriendsListWindow extends JFrame{
 			}
 		});		
 		
-		btn_adding_friend = new JButton("管理好友");
-		btn_adding_friend.addActionListener(new ActionListener() {
+		btn_manage_friend = new JButton("管理好友");
+		btn_manage_friend.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				WindowProducer.addWindowRequest(WindowProducer.ADD_FRIEND_WIND);
 			}
@@ -168,7 +168,8 @@ public class FriendsListWindow extends JFrame{
 		
 		btn_new_friend_request.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				int option = JOptionPane.showConfirmDialog(null, "来自:" + new_friend_id + "的好友请求，是否同意？", "新的好友请求", 
+				int option = JOptionPane.showConfirmDialog(null, 
+													"来自:" + new_friend_id + "的好友请求，是否同意？", "新的好友请求", 
 													JOptionPane.YES_NO_OPTION);
 				Envelope env = new Envelope(new_friend_id, account_mine.getId(), "");
 				if(option == JOptionPane.YES_OPTION) {
@@ -186,7 +187,7 @@ public class FriendsListWindow extends JFrame{
 		panel_bottom.setLayout(flowLayout_Bottom);
 		
 		panel_bottom.add(btn_new_friend_request);
-		panel_bottom.add(btn_adding_friend);
+		panel_bottom.add(btn_manage_friend);
 		panel_bottom.add(btn_logout);
 		this.add(panel_bottom,BorderLayout.SOUTH);
 	}
