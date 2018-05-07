@@ -162,12 +162,14 @@ public class MessageOperate {
     public static ArrayList<Account> unpackFriendListMsg(String msg) {
         int i;
         String numberString = new String();
-        ArrayList<Account> list = new ArrayList<Account>();
-        if (msg.length() <= 2) return list;
-        for (i = 1; msg.charAt(i) != '\f'; i++) {
+        for (i = 1; i < msg.length() && msg.charAt(i) != '\f'; i++) {
             numberString += msg.charAt(i);
         }
         int number = Integer.valueOf(numberString);
+        ArrayList<Account> list = new ArrayList<Account>();
+        if (number == 0) {
+        	return list;
+        }
         String friendListMsg = msg.substring(++i);
         String[] friendMsg = friendListMsg.split("\f");
         for (i = 0; i < number; i++) {

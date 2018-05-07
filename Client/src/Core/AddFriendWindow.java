@@ -246,14 +246,16 @@ class search_panel extends JPanel{
 							MessageOperate.packageAddFriendMsg(
 									(getFriendIDFromClickResult(object.toString())), my_account_id));
 
-							JOptionPane.showMessageDialog(null, "已发送好友添加请求");
+					JOptionPane.showMessageDialog(null, "已发送好友添加请求");
+					RecvSendController.addToSendQueue(MessageOperate.packageAskFriendListMsg());	// 拉取一次好友列表
 				}
 				else if (panel_type == DELETE_FRIEND_TYPE_PANEL) {
 					RecvSendController.addToSendQueue(
 							MessageOperate.packageDelFriendMsg(
 									(getFriendIDFromClickResult(object.toString())), my_account_id));
 							
-							JOptionPane.showMessageDialog(null, "已发送删除添加请求");
+					JOptionPane.showMessageDialog(null, "已发送删除添加请求");
+					RecvSendController.addToSendQueue(MessageOperate.packageAskFriendListMsg());	// 拉取一次好友列表
 				}
 				
 			}

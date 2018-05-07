@@ -277,8 +277,16 @@ public class FriendsListWindow extends JFrame{
 	public void friendsListShow(){		
 		Vector<String> vec_str_friendsName = new Vector<String>();
 		this.i_friends_sum =  arrayList_account_friends.size();
-		for(int i=0;i<this.i_friends_sum;i++)
-			vec_str_friendsName.add(arrayList_account_friends.get(i).getNikeName());
+		for(int i=0;i<this.i_friends_sum;i++) {
+			Account friendAcc = new Account();
+			friendAcc = arrayList_account_friends.get(i);
+			int userNotReadNum = EnvelopeRepertory.getUserNotReadMessNum(friendAcc.getId());
+			if(userNotReadNum > 0)
+				vec_str_friendsName.add(friendAcc.getNikeName() + "(" + userNotReadNum + ")" );
+			else
+				vec_str_friendsName.add(friendAcc.getNikeName());
+		}
+			
 		
 		/* JList列表设置 */
 		jList_str_friendsName.setListData(vec_str_friendsName);
