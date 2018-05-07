@@ -12,13 +12,9 @@ import java.util.TimerTask;
 import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 
-import com.sun.corba.se.impl.protocol.giopmsgheaders.Message;
-import com.sun.xml.internal.ws.api.pipe.Tube;
-
 import network.NetworkForClient.NetworkForClient;
 import network.commonClass.Account;
 import network.commonClass.Envelope;
-import network.commonClass.Login;
 import network.messageOperate.MessageOperate;
 /**
  * 程序入口 聊天软件客户端

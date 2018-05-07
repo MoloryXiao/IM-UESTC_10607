@@ -21,19 +21,11 @@ package Core;
 import java.awt.*;
 import javax.swing.*;
 import javax.swing.JOptionPane;
-import javax.swing.border.Border;
-
-import org.ietf.jgss.MessageProp;
-
-import com.sun.corba.se.spi.orbutil.fsm.State;
-import com.sun.org.apache.bcel.internal.generic.NEW;
 
 import network.commonClass.Account;
-import network.commonClass.Envelope;
 import network.messageOperate.MessageOperate;
 
 import java.awt.event.*;
-import java.util.ArrayList;
 import java.util.Vector;
 
 

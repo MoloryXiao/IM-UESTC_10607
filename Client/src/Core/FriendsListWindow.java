@@ -14,7 +14,6 @@ import javax.swing.*;
 import network.commonClass.Account;
 import network.commonClass.Envelope;
 import network.messageOperate.MessageOperate;
-import sun.reflect.generics.tree.Tree;
 /**
  * 好友列表窗口
  * @author Murrey

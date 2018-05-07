@@ -4,7 +4,6 @@ import network.commonClass.*;
 
 import java.util.ArrayList;
 
-import com.sun.org.apache.xalan.internal.xsltc.trax.SmartTransformerFactoryImpl;
 
 /**
  * 标准通信协议处理类
