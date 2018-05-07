@@ -4,6 +4,8 @@ import network.commonClass.*;
 
 import java.util.ArrayList;
 
+import com.sun.org.apache.xalan.internal.xsltc.trax.SmartTransformerFactoryImpl;
+
 /**
  * 标准通信协议处理类
  * @author ZiQin
@@ -161,13 +163,14 @@ public class MessageOperate {
     public static ArrayList<Account> unpackFriendListMsg(String msg) {
         int i;
         String numberString = new String();
+        ArrayList<Account> list = new ArrayList<Account>();
+        if (msg.length() <= 2) return list;
         for (i = 1; msg.charAt(i) != '\f'; i++) {
             numberString += msg.charAt(i);
         }
         int number = Integer.valueOf(numberString);
         String friendListMsg = msg.substring(++i);
         String[] friendMsg = friendListMsg.split("\f");
-        ArrayList<Account> list = new ArrayList<Account>();
         for (i = 0; i < number; i++) {
             boolean isOnline = false;
             String[] friendInfo = friendMsg[i].split("\n");
@@ -245,6 +248,33 @@ public class MessageOperate {
     public static String packageAddFriendMsg(String targetID, String sourceID) {
         return new String("A" + targetID + " " + sourceID);
     }
+    
+    /**
+     * 解包添加好友请求
+     * 协议格式：AtargetID sourceID
+     * @param msg 标准通信协议
+     * @return 发起人ID 
+     */
+    public static String unpackAddFriendMsg(String msg) {
+		String sourceId = new String();
+		int k = 1;
+        for (int i = 1; i < msg.length(); i++) {
+            if (msg.charAt(i) == ' ') {
+                ++k;
+                continue;
+            }
+            switch (k) {
+                case 1:
+                    break;
+                case 2:
+                	sourceId += msg.charAt(i);
+                    break;
+                default:
+                    break;
+            }
+        }
+        return sourceId;
+	}
 
     /**
      * 打包添加好友结果信息

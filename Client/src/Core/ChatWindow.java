@@ -74,7 +74,7 @@ public class ChatWindow extends JFrame{
 		this.setSize(WINDOW_WIDTH, WINDOW_HEIGHT);
 		
 		this.setResizable(false);
-		this.setLocationRelativeTo(null);
+		this.setLocationRelativeTo(null);							//窗口剧中
 		this.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		
 		SetNorthPane();
