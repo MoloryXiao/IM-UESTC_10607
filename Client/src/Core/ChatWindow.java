@@ -9,6 +9,8 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import javax.swing.*;
 
+import com.sun.jmx.snmp.tasks.ThreadService;
+
 import network.commonClass.Account;
 import network.commonClass.Envelope;
 import network.messageOperate.MessageOperate;
@@ -48,8 +50,8 @@ public class ChatWindow extends JFrame{
 	private FlowLayout 			flowLayout_Bottom;
 	private JSplitPane 			splitPane;
 	private FlowLayout 			flowLayout;
-	private JScrollBar 			sbar;
-	private JScrollPane 		inputpanel,showPanel;	
+//	private JScrollBar 			sbar;
+	private JScrollPane 		inputScrollpane,showScrollPane;	
 	private JComboBox<String>	fontType;
 	private JComboBox<String> 	fontSize;
 
@@ -154,8 +156,8 @@ public class ChatWindow extends JFrame{
 		//------------------------------
 		panelUnderSplit.add(panelUnderSplit_UpPanel,BorderLayout.NORTH);
 		
-		inputpanel = new JScrollPane();
-		panelUnderSplit.add(inputpanel,BorderLayout.CENTER);
+		inputScrollpane = new JScrollPane();
+		panelUnderSplit.add(inputScrollpane,BorderLayout.CENTER);
 				
 		panelUnderSplit_BottomPanel = new JPanel();
 		flowLayout_Bottom = new FlowLayout();
@@ -196,17 +198,16 @@ public class ChatWindow extends JFrame{
 		inputTextArea.addKeyListener(enter_Listener);
 		inputTextArea.setLineWrap(true);				//set inputText line wrap
 		
-		inputpanel.setViewportView(inputTextArea);
+		inputScrollpane.setViewportView(inputTextArea);
 		
-		showPanel = new JScrollPane();
-		sbar = showPanel.getVerticalScrollBar();
-		splitPane.setLeftComponent(showPanel);
+		showScrollPane = new JScrollPane();
+		splitPane.setLeftComponent(showScrollPane);
 		
 		showTextArea = new JTextArea();
 		showTextArea.setEditable(false);
 		showTextArea.setLineWrap(true);					//set showText line wrap
 		
-		showPanel.setViewportView(showTextArea);
+		showScrollPane.setViewportView(showTextArea);
 		
 		this.add(panel_south,BorderLayout.CENTER);
 	}
@@ -218,9 +219,14 @@ public class ChatWindow extends JFrame{
 		if(!inputTextArea.getText().equals("")){
 			/* 打印到显示框 */
 			String sendStr = inputTextArea.getText();
-			showTextArea.append(new String(getTimeStamp()) + sendStr + "\n");
+			showTextArea.append(new String(getMyIDAndTimeStamp()));
+			showTextArea.append(sendStr + "\n");
 			inputTextArea.setText("");
-			sbar.setValue(sbar.getMaximum());
+			
+//			showScrollPane.getVerticalScrollBar().setValue(						//聊天窗口置底	方法失效
+//					showScrollPane.getVerticalScrollBar().getMaximum() + 1);
+			showTextArea.setCaretPosition(showTextArea.getText().length());
+			
 			/* 转发到服务器 */
 			Envelope evp = new Envelope(this.account_mine.getId(),this.account_parent.getId(),sendStr);
 			RecvSendController.addToSendQueue(MessageOperate.packageEnvelope(evp));
@@ -232,20 +238,35 @@ public class ChatWindow extends JFrame{
 	/**
 	 * 获取系统时间
 	 */
-	public String getTimeStamp() {
+	public String getMyIDAndTimeStamp() {
 		String sendTime = DATE_FORMAT.format(new Date());
-		String sendStamp = "ID:"+this.account_mine.getId() + " " + sendTime + "\n";
+		String sendStamp = "ID:"+this.account_parent.getId() + " " + sendTime + "\n";
 		
 		return sendStamp;
 	}
 	
+	private String getFriendIDAndTimeStamp() {
+		String sendTime = DATE_FORMAT.format(new Date());
+		String sendStamp = "ID:"+ this.account_mine.getId() + " " + sendTime + "\n";
+		
+		return sendStamp;
+
+	}
 	/**
 	 * 将内容显示到窗口上并换行
 	 * @param Message 需要显示的信息
 	 */
 	public void sendMessageToShowtextfield(String Message)
 	{
-		showTextArea.append(new String(getTimeStamp()) + Message+"\r\n");
+//		showTextArea.append(new String(getFriendIDAndTimeStamp()) + Message+"\n");
+		
+		showTextArea.append(new String(getFriendIDAndTimeStamp()));
+		showTextArea.append(Message + "\n");
+		
+//		showScrollPane.getVerticalScrollBar().setValue(						//聊天窗口置底	方法失效
+//				showScrollPane.getVerticalScrollBar().getMaximum());
+
+		showTextArea.setCaretPosition(showTextArea.getText().length());
 	}
 		
 	/**

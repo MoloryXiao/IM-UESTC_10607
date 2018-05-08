@@ -18,7 +18,9 @@ import network.commonClass.Envelope;
 import network.messageOperate.MessageOperate;
 /**
  * 程序入口 聊天软件客户端
- * @author Murrey
+ * @author Murrey LeeKadima
+ * @version 2.1
+ * 【添加】在管理好友中，添加和删除好友
  * @version 2.0
  * 【添加】离线消息功能 并且窗口未打开也可正常接收消息
  * @version 1.0
@@ -155,6 +157,7 @@ public class ChatClient{
 		Thread thd_message = new Thread(rnb_message);
 		thd_message.start();
 	};
+	
 	/**
 	 *  创建添加好友面板，并设置删除好友面板内的好友列表
 	 */
@@ -362,7 +365,7 @@ public class ChatClient{
 				LoginWindow.setLoginInfoResource(yhm, psw, rmSelected, autoSelected);
 				
 				if(autoSelected){	// 自动登陆
-					wind_login.verifyInfoWithServer();
+//					wind_login.verifyInfoWithServer();
 				}												
 			}else if(ss.length == 1){
 				yhm = ss[0]; 

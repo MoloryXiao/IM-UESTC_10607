@@ -28,6 +28,13 @@ import network.messageOperate.MessageOperate;
 import java.awt.event.*;
 import java.util.Vector;
 
+/**
+ * 添加好友窗口
+ * @author LeeKadima
+ * @version 1.0
+ * 【实现】添加好友功能基本实现
+ * @version 
+ */
 
 public class AddFriendWindow extends JFrame {
 	private static final String ADD_FRIEND_WINDOW_TITLE = "添加好友";
@@ -77,17 +84,35 @@ public class AddFriendWindow extends JFrame {
 		search_friend_panel = new search_panel("请输入对方的Kim号码" , search_panel.ADD_FRIEND_TYPE_PANEL);
 		search_friend_panel.setMyAccountID(mine_id);
 		
-		ActionListener search_button_listener = new ActionListener() {					//设置添加好友选项卡内搜索按钮监听器
+		ActionListener search_button_click_listener = new ActionListener() {					//设置添加好友选项卡内搜索按钮监听器
 			public void actionPerformed(ActionEvent e) {
 				if(search_friend_panel.isSafetyInput()) {
 					
 					RecvSendController.addToSendQueue(
 							MessageOperate.packageSearchFriendMsg(
-									search_friend_panel.getTextAreaString() , mine_id));	
+									search_friend_panel.getTextArea() , mine_id));	
 				}
 			}
 		};
-		search_friend_panel.setSearchbuttonListener(search_button_listener);
+		
+		KeyListener search_button_key_listener = new KeyListener() {
+			public void keyTyped(KeyEvent arg0) {}
+			public void keyReleased(KeyEvent arg0) {}
+			public void keyPressed(KeyEvent e) {
+				if(e.getKeyChar() == KeyEvent.VK_ENTER) {
+					if(search_friend_panel.isSafetyInput()) {
+						
+						RecvSendController.addToSendQueue(
+								MessageOperate.packageSearchFriendMsg(
+										search_friend_panel.getTextArea() , mine_id));	
+						
+					}		
+				}
+				
+			}
+		}; 
+		search_friend_panel.setSearchbuttonListener(search_button_click_listener);
+		search_friend_panel.setTextAreaKeyListener(search_button_key_listener);
 		
 		search_friend_option.add(search_friend_panel,BorderLayout.CENTER);
 		option_tabbed.addTab("添加好友",search_friend_option);
@@ -143,7 +168,7 @@ class search_panel extends JPanel{
 	
 	private static String my_account_id = null;
 	
-	private JTextArea 			search_text_area;
+	private JTextField 			search_text_field;
 	private JButton	  			search_button,function_button;
 	private JPanel 	  			search_component_panel,search_result_panel,south_panel;
 	private JLabel				search_result_lable;
@@ -158,7 +183,7 @@ class search_panel extends JPanel{
 		
 		text_area_string = text_area_str;
 		panel_type = type;
-
+		
 		this.setLayout(new BorderLayout());
 		
 		search_component_panel = new JPanel();
@@ -166,29 +191,29 @@ class search_panel extends JPanel{
 		search_component_panel.setBackground(new Color(245, 245, 245));
 		search_component_panel.setLayout(null);
 
-		search_text_area = new JTextArea();
-		search_text_area.setBounds(220, 25, 320,30);  	// x , y , width , height
-		search_text_area.setForeground(Color.lightGray);
-		search_text_area.setText(text_area_string);
-		search_text_area.addFocusListener(new FocusListener() {				//监听器实现文本框默认提示文字
+		search_text_field = new JTextField();
+		search_text_field.setBounds(220, 25, 320,30);  	// x , y , width , height
+		search_text_field.setForeground(Color.lightGray);
+		search_text_field.setText(text_area_string);
+		search_text_field.addFocusListener(new FocusListener() {				//监听器实现文本框默认提示文字
 			
 //			-------- Initialize search_text_area and search_button -------
 			public void focusGained(FocusEvent e) {
-				if(search_text_area.getText().equals(text_area_string)) {
-					search_text_area.setForeground(Color.black);
-					search_text_area.setText("");
+				if(search_text_field.getText().equals(text_area_string)) {
+					search_text_field.setForeground(Color.black);
+					search_text_field.setText("");
 				}
 			}
 			
 			public void focusLost(FocusEvent e) {
-				if(search_text_area.getText().equals("")) {
-					search_text_area.setForeground(Color.lightGray);
-					search_text_area.setText(text_area_string);
+				if(search_text_field.getText().equals("")) {
+					search_text_field.setForeground(Color.lightGray);
+					search_text_field.setText(text_area_string);
 				}
 			}
 		});
-		search_text_area.setOpaque(true);									//设置文本框边界为透明
-		search_component_panel.add(search_text_area);
+		search_text_field.setOpaque(true);									//设置文本框边界为透明
+		search_component_panel.add(search_text_field);
 		
 		search_button = new JButton();
 		search_button.setText("搜索");
@@ -253,9 +278,10 @@ class search_panel extends JPanel{
 					RecvSendController.addToSendQueue(
 							MessageOperate.packageDelFriendMsg(
 									(getFriendIDFromClickResult(object.toString())), my_account_id));
-							
+
 					JOptionPane.showMessageDialog(null, "已发送删除添加请求");
-					RecvSendController.addToSendQueue(MessageOperate.packageAskFriendListMsg());	// 拉取一次好友列表
+					deleteFriendFrmListByIndex(index);
+
 				}
 				
 			}
@@ -295,10 +321,15 @@ class search_panel extends JPanel{
 	
 	public void setSearchbuttonListener(ActionListener actionListener){
 		search_button.addActionListener(actionListener);
+		System.out.println("Set search button action listener");
+	}
+	public void setSearchbuttonListener(KeyListener keyListener) {
+		search_button.addKeyListener(keyListener);
+		System.out.println("Set search button key listener");
 	}
 	
 	public boolean isSafetyInput(){
-		if(search_text_area.getText().equals("") || search_text_area.getText().contains(" ")) {
+		if(search_text_field.getText().equals("") || search_text_field.getText().contains(" ")) {
 
 			search_friend_JjList_string.setVisible(false);
 			search_result_lable.setVisible(true);
@@ -309,15 +340,32 @@ class search_panel extends JPanel{
 		return true;
 	}
 	
+	
 	private void setJListVisbleAndLableNot() {
 		search_friend_JjList_string.setVisible(true);
 		search_result_lable.setVisible(false);
 	}
 	
-	public String getTextAreaString() {
-		return search_text_area.getText();
+	
+	public String getTextArea() {
+		return search_text_field.getText();
 	}
 	
+	public void setTextArea(String content) {
+		search_text_field.setText(content);
+	}
+	
+//	public void () {
+//		
+//	}
+	public void setTextAreaKeyListener(KeyListener keyListener) {
+		search_text_field.addKeyListener(keyListener);
+	}
+	
+	private void deleteFriendFrmListByIndex(int index) {
+		friend_list.remove(index);
+	}
+
 	public void showFriendInfoInSearchLable(String content) {
 		
 		search_friend_JjList_string.setVisible(false);
@@ -325,6 +373,8 @@ class search_panel extends JPanel{
 		search_result_lable.setText(content);
 	}
 	public void showFriendInfoInSearchList(Vector<String> friend_info) {
+		friend_list = new Vector<String>();
+		friend_list = friend_info;
 		setJListVisbleAndLableNot();
 		search_friend_JjList_string.setListData(friend_info);
 	}
