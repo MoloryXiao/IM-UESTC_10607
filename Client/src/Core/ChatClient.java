@@ -27,9 +27,9 @@ import network.messageOperate.MessageOperate;
  * Inital.
  */
 public class ChatClient{
-	private final String host_name = "39.108.95.130";	// server location
+//	private final String host_name = "39.108.95.130";	// server location
 //	private final String host_name = "192.168.1.103";	// local area for test
-//	private final String host_name = "127.0.0.1";
+	private final String host_name = "127.0.0.1";
 	private final int contact_port = 9090;
 	
 	private RecvSendController rs_controller;	// 收发线程控制器
@@ -43,7 +43,7 @@ public class ChatClient{
 	private EnvelopeRepertory repertory_envelope;
 	
 	
-	private String lnotePath = "resource/lnote.data";	// 登陆信息文件
+	private String lnotePath = "Client/resource/lnote.data";	// 登陆信息文件
 	private boolean flag_timer1 = false;				// 标记定时任务1 是否被启动过
 	
 	public static void main(String []args){
