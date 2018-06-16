@@ -4,6 +4,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.Arrays;
 
 /**
  * Class Name:NetworkForClient
@@ -92,8 +93,8 @@ public class NetworkForClient {
             String res = new String();
             int i = 1;
             while (i < temp.length()) {
-            	res += temp.charAt(i);
-            	++i;
+                res += temp.charAt(i);
+                ++i;
             }
             if (isOk(res)) {
                 ID = account;
@@ -123,7 +124,7 @@ public class NetworkForClient {
      * @throws IOException IO异常，一般情况下的Socket引发的异常
      */
     public void sendToServer(String msg) throws IOException {
-    	sendDataToServer(msg);
+        sendDataToServer(msg);
     }
 
     /**
@@ -140,15 +141,15 @@ public class NetworkForClient {
      */
     public void endConnect(){
         try {
-			in.close();
-	        out.close();
-	        client.close();
-		} catch (IOException e) {
-			in = null;
-			out = null;
-			client = null;
-			e.printStackTrace();
-		}
+            in.close();
+            out.close();
+            client.close();
+        } catch (IOException e) {
+            in = null;
+            out = null;
+            client = null;
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -157,7 +158,11 @@ public class NetworkForClient {
      * @throws IOException IO异常，一般情况下为Socket引发的IO错误
      */
     private void sendDataToServer(String msg) throws IOException {
-        out.writeUTF(msg);
+        byte[] size = ConvertTypeTool.intToByteArray(msg.getBytes().length);
+        byte[] dataPackage = ConvertTypeTool.strToByteArray(msg);
+        byte[] message = byteMerger(size, dataPackage);
+        out.write(message);
+        out.flush();
     }
 
     /**
@@ -166,7 +171,18 @@ public class NetworkForClient {
      * @throws IOException IO异常，一般情况下为Socket引发的IO错误
      */
     private String recvDataFromServer() throws IOException {
-        return in.readUTF();
+        byte[] sizeByte = new byte[4];
+        byte[] msgByte = new byte[1024];
+        String msg = new String();
+        in.read(sizeByte, 0, 4);
+        int size = ConvertTypeTool.byteArrayToInt(sizeByte);
+        while (size > 0) {
+            Arrays.fill(msgByte, (byte)0);
+            int readBytesNumber = in.read(msgByte, 0, size>1024?1024:size);
+            msg += ConvertTypeTool.byteArrayToStr(msgByte);
+            size -= readBytesNumber;
+        }
+        return msg;
     }
 
     /**
@@ -181,5 +197,18 @@ public class NetworkForClient {
         else  {
             return false;
         }
+    }
+
+    /**
+     * 字节数组合并
+     * @param bt1 字节数组1
+     * @param bt2 字节数组2
+     * @return 字节数组1和字节数组2合并后的结果
+     */
+    private static byte[] byteMerger(byte[] bt1, byte[] bt2){
+        byte[] bt3 = new byte[bt1.length + bt2.length];
+        System.arraycopy(bt1, 0, bt3, 0, bt1.length);
+        System.arraycopy(bt2, 0, bt3, bt1.length, bt2.length);
+        return bt3;
     }
 }
