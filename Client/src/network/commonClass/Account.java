@@ -3,7 +3,7 @@ package network.commonClass;
 /**
  * 描述：Account类是用户信息的封装，继承AccountBase类
  * @author 土豆
- * @version 1.0.1
+ * @version 1.1.0
  */
 public class Account extends AccountBase{
 	/**
@@ -19,6 +19,10 @@ public class Account extends AccountBase{
 	 */
 	protected String signature;
 	/**
+	 * 描述：用户头像
+	 */
+	protected Picture picture;
+	/**
 	 * 描述：构造函数
 	 */
 	public Account(){
@@ -26,19 +30,41 @@ public class Account extends AccountBase{
 		name = new String();
 		online = false;
 		signature = new String();
+		picture = null;
 	}
 	/**
 	 * 描述：构造函数
 	 * @param id 用户账号
 	 * @param name 昵称
 	 * @param online 是否在线
-	 * @param sign 个性签名
+	 * @param signature 个性签名
 	 */
-	public Account(String id,String name,boolean online,String sign) {
+	public Account(String id,String name,boolean online,String signature) {
 		super(id);
 		this.name = new String(name);
 		this.online = online;
-		signature = new String(sign);
+		this.signature = new String(signature);
+		this.picture = null;
+	}
+	/**
+	 * 描述：构造函数
+	 */
+	public Account(String id, String name, boolean online, String signature, byte[] picture) {
+		super(id);
+		this.name = new String(name);
+		this.online = online;
+		this.signature = new String(signature);
+		this.picture = new Picture(picture);
+	}
+	/**
+	 * 描述：构造函数
+	 */
+	public Account(String id, String name, boolean online, String signature, Picture picture) {
+		super(id);
+		this.name = new String(name);
+		this.online = online;
+		this.signature = new String(signature);
+		this.picture = picture;
 	}
 
 	/**
@@ -48,6 +74,7 @@ public class Account extends AccountBase{
 	public String getId() {
 		return new String(super.id);
 	}
+
 	/**
 	 * 描述：设置昵称
 	 * @param nName 新昵称
@@ -90,5 +117,17 @@ public class Account extends AccountBase{
 	public boolean getOnline() {
 		return online;
 	}
-
+	/**
+	 * 描述：获取用户头像
+	 * @return 头像图片字节流
+	 */
+	public Picture getPicture() {
+		return this.picture;
+	}
+	/**
+	 * 描述：设置用户头像
+	 */
+	public void setPicture(byte[] pictureStream) {
+		this.picture = new Picture(pictureStream);
+	}
 }

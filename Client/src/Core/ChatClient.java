@@ -15,6 +15,7 @@ import javax.swing.UIManager;
 import network.NetworkForClient.NetworkForClient;
 import network.commonClass.Account;
 import network.commonClass.Envelope;
+import network.commonClass.Message;
 import network.messageOperate.MessageOperate;
 /**
  * 程序入口 聊天软件客户端
@@ -121,7 +122,7 @@ public class ChatClient{
 		/************************************** 收发消息监听线程 **************************************/
 		Runnable rnb_message = ()->{
 			while(true) {
-				String str_newMessage = RecvSendController.getFromRecvQueue();		// 从接收队列取出一条新消息
+				Message str_newMessage = RecvSendController.getFromRecvQueue();		// 从接收队列取出一条新消息
 				int type_newMessage = MessageOperate.getMsgType(str_newMessage);	// 解析消息头
 				
 				switch(type_newMessage) {
@@ -203,7 +204,7 @@ public class ChatClient{
 	 * 根据服务器反馈的消息 判断【登陆结果】
 	 * @param message
 	 */
-	private void gainLoginResult(String message) {
+	private void gainLoginResult(Message message) {
 		wind_login.setWaitingStatus(false);
 		if(MessageOperate.unpackIsFinish(message)) {
 			System.out.println("Login: successful.");
@@ -224,7 +225,7 @@ public class ChatClient{
 	 * 根据服务器反馈的消息 获取【个人账户信息】并更新到好友列表窗口中
 	 * @param message
 	 */
-	private void gainMineAccInfo(String message) {
+	private void gainMineAccInfo(Message message) {
 		Account account_mine = new Account();
 		account_mine = MessageOperate.unpackMyselfInfoMsg(message);
 		
@@ -237,7 +238,7 @@ public class ChatClient{
 	 * 根据服务器反馈的消息 获取【好友列表】并更新到好友列表窗口中
 	 * @param message
 	 */
-	private void gainFriendslistInfo(String message) {
+	private void gainFriendslistInfo(Message message) {
 		ArrayList<Account> arrayList_account_friendsInfo = new ArrayList<Account>();
 		arrayList_account_friendsInfo = MessageOperate.unpackFriendListMsg(message);
 		
@@ -255,7 +256,7 @@ public class ChatClient{
 	 * 根据服务器反馈的消息 解析【信封】的收件人 找到对应的窗口并显示
 	 * @param str
 	 */
-	public void gainChatEnvelope(String str) {
+	public void gainChatEnvelope(Message str) {
 		Envelope evp = new Envelope();
 		evp = MessageOperate.unpackEnvelope(str);
 		String friendID = evp.getSourceAccountId();	// 信封源地址即为好友地址
@@ -274,7 +275,7 @@ public class ChatClient{
 	 * 获取好友请求
 	 * @param str
 	 */
-	private void gainAddFriendRequest(String str){
+	private void gainAddFriendRequest(Message str){
 		String friend_id = MessageOperate.unpackAddFriendMsg(str);
 		wind_friendsList.setNewFriendID(friend_id);
 		wind_friendsList.setNewFriendRequesttBottonVisible(true);
@@ -284,14 +285,15 @@ public class ChatClient{
 	 * 处理服务器反馈的搜索好友结果
 	 * @param str
 	 */
-	private void gainSearchFriendInfo(String str) {
+	private void gainSearchFriendInfo(Message str) {
 		wind_addfriend.showFriendInfotInSearchFriendPanel(MessageOperate.unpackSearchResultMsg(str));
 	}
 	
 	/**
 	 * 处理服务器反馈的添加好友结果
+	 * @param str
 	 */
-	private void gainAddFriendInfo(String str) {
+	private void gainAddFriendInfo(Message str) {
 		System.out.println("【 Add Result】"+MessageOperate.unpackAddFriendResultMsg(str));
 		if(MessageOperate.unpackAddFriendResultMsg(str)) {
 			System.out.println("AddFriendInfo: add the friend success... - OK");

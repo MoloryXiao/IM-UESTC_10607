@@ -5,7 +5,7 @@ import java.io.UnsupportedEncodingException;
 /**
  * 类型转换工具类
  * @author 土豆
- * @version v1.0.1
+ * @version v1.0.2
  */
 public class ConvertTypeTool {
     /**
@@ -65,11 +65,7 @@ public class ConvertTypeTool {
             return str;
         }
         try {
-            int strEndIndex;
-            for (strEndIndex = 0; strEndIndex < 1024; strEndIndex++) {
-                if (byteArray[strEndIndex] == 0) break;
-            }
-            str = new String(byteArray, 0, strEndIndex, "UTF-8");
+            str = new String(byteArray, 0, byteArray.length, "UTF-8");
         } catch (UnsupportedEncodingException e) {
             System.out.println("[ERROR] 不支持该类型转换!");
             e.printStackTrace();
