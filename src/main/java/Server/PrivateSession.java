@@ -1,5 +1,7 @@
 package Server;
 
+import network.commonClass.Message;
+
 import java.util.ArrayList;
 
 class PrivateSession {
@@ -7,7 +9,7 @@ class PrivateSession {
 	private String idA;
 	private String idB;
 	
-	private ArrayList<String> chatMsgList;
+	private ArrayList<Message> chatMsgList;
 	
 	private int chatCursorA;    // 已读位置
 	private int chatCursorB;
@@ -16,7 +18,7 @@ class PrivateSession {
 		
 		this.idA = idA;
 		this.idB = idB;
-		chatMsgList = new ArrayList<String>();
+		chatMsgList = new ArrayList<Message>();
 		chatCursorA = chatCursorB = 0;
 	}
 	
@@ -68,7 +70,7 @@ class PrivateSession {
 		return next;
 	}
 	
-	public String getNextUnreadMsg( String targetId ) {
+	public Message getNextUnreadMsg( String targetId ) {
 		
 		int next = getNext(targetId);
 		
@@ -79,7 +81,7 @@ class PrivateSession {
 		
 	}
 	
-	public void addToChatMsg( String msg ) {
+	public void addToChatMsg( Message msg ) {
 		
 		chatMsgList.add(msg);
 	}
