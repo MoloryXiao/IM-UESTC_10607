@@ -5,6 +5,8 @@ import java.io.IOException;
 import Server.util.LoggerProvider;
 import network.NetworkForServer.*;
 
+import network.commonClass.Message;
+
 /**
  * 服务器负责接收来自服务子线程的数据 并发送给目标客户端
  *
@@ -39,7 +41,7 @@ public class SendThread extends Thread {
 		
 		while (!exit) {
 			
-			String message = null;
+			Message message = null;
 			
 			try {
 //				    //************************************************

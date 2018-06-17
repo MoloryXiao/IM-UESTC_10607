@@ -2,13 +2,13 @@ package network.networkDataPacketOperate;
 
 import java.util.ArrayList;
 
-import network.NetworkForServer.RegistorAccount;
+import network.NetworkForServer.ConvertTypeTool;
 import network.commonClass.*;
 
 /**
  * 标准通信协议
  * @author ZiQin
- * @version v1.0.1
+ * @version v1.1.0
  */
 public class MessageOperate {
 	
@@ -34,9 +34,9 @@ public class MessageOperate {
 	 * @param msg 收到的信息
 	 * @return 信息类型
 	 */
-	public static int getMsgType( String msg ) {
+	public static int getMsgType(Message msg ) {
 		
-		switch (msg.charAt(0)) {
+		switch (msg.getText().charAt(0)) {
 			case 'C':
 				return CHAT;
 			case 'L':
@@ -68,8 +68,8 @@ public class MessageOperate {
 	 * @param msg 反馈信息的内容
 	 * @return 信息标准通信协议
 	 */
-	public static String packageFeedbackMsg(String msg ) {
-		return new String("M" + msg);
+	public static Message packageFeedbackMsg(String msg ) {
+		return new Message(new String("M" + msg), null);
 	}
 
 	/**
@@ -77,9 +77,8 @@ public class MessageOperate {
 	 * 协议格式：Mok
 	 * @return 信息标准通信协议
 	 */
-	public static String packageFinishMsg() {
-		
-		return new String("L" + OK);
+	public static Message packageFinishMsg() {
+		return new Message(new String("L" + OK), null);
 	}
 
 	/**
@@ -87,9 +86,8 @@ public class MessageOperate {
 	 * 协议格式：Mfalse
 	 * @return 信息标准通信协议
 	 */
-	public static String packageNotFinishMsg() {
-		
-		return new String("L" + FALSE);
+	public static Message packageNotFinishMsg() {
+		return new Message(new String("L" + FALSE), null);
 	}
 
 	/**
@@ -98,9 +96,9 @@ public class MessageOperate {
 	 * @param msg 接收到的协议信息
 	 * @return Login对象，解析的结果
 	 */
-	public static Login unpackLoginMsg(String msg ) {
-
-		String loginMsg = msg.substring(1);
+	public static Login unpackLoginMsg(Message msg) {
+		String text = msg.getText();
+		String loginMsg = text.substring(1);
 		String[] item = loginMsg.split("\f");
 		return new Login(item[0], item[1]);
 	}
@@ -112,9 +110,10 @@ public class MessageOperate {
 	 * @param ac 个人基本信息对象
 	 * @return 标准通信协议
 	 */
-	public static String packageUserInfo(Account ac ) {
-
-		return new String("I" + ac.getId() + "\f" + ac.getNikeName() + "\ftrue\f" + ac.getSignature());
+	public static Message packageUserInfo(Account ac ) {
+		String text = new String("I" + ac.getId() + "\f" + ac.getNikeName() + "\ftrue\f" + ac.getSignature());
+		byte[] stream = ac.getPicture().getPictureBytes();
+		return new Message(text, stream);
 	}
 
 	/**
@@ -123,19 +122,18 @@ public class MessageOperate {
 	 * @param list 多个好友的基本个人信息
 	 * @return 标准通信协议
 	 */
-	public static String packageFriendList(ArrayList<Account> list ) {
-
-		String msg = new String();
-		msg += "F";
+	public static Message packageFriendList(ArrayList<Account> list ) {
+		String text = new String();
+		byte[] pictureList = new byte[0];
+		text += "F";
 		int number = list.size();
-
-		msg += Integer.toString(number);
+		text += Integer.toString(number);
 		for (int i = 0; i < number; i++) {
 			Account ac = list.get(i);
-			msg += "\f" + ac.getId() + "\n" + ac.getNikeName() + "\n" + ac.getOnline() + "\n" + ac.getSignature();
+			text += "\f" + ac.getId() + "\n" + ac.getNikeName() + "\n" + ac.getOnline() + "\n" + ac.getSignature();
+			pictureList = addPictureToList(pictureList, ac.getPicture());
 		}
-
-		return msg;
+		return new Message(text, pictureList);
 	}
 
 	/**
@@ -144,26 +142,26 @@ public class MessageOperate {
 	 * @param msg 标准通信协议（内含信封）
 	 * @return 信封
 	 */
-	public static Envelope unpackEnvelope(String msg ) {
-		
+	public static Envelope unpackEnvelope(Message msg ) {
+		String text = msg.getText();
 		String targetAccount = new String();
 		String sourceAccount = new String();
 		String message = new String();
 		int k = 1;
-		for (int i = 1; i < msg.length(); i++) {
-			if (msg.charAt(i) == ' ' && k != 3) {
+		for (int i = 1; i < text.length(); i++) {
+			if (text.charAt(i) == ' ' && k != 3) {
 				++k;
 				continue;
 			}
 			switch (k) {
 				case 1:
-					targetAccount += msg.charAt(i);
+					targetAccount += text.charAt(i);
 					break;
 				case 2:
-					sourceAccount += msg.charAt(i);
+					sourceAccount += text.charAt(i);
 					break;
 				case 3:
-					message += msg.charAt(i);
+					message += text.charAt(i);
 					break;
 				default:
 					break;
@@ -180,9 +178,9 @@ public class MessageOperate {
 	 * @param msg 信封内容
 	 * @return 标准协议格式
 	 */
-	public static String packageEnvelope(String targetAccount, String sourceAccount, String msg ) {
-		
-		return new String("C" + targetAccount + " " + sourceAccount + " " + msg);
+	public static Message packageEnvelope(String targetAccount, String sourceAccount, String msg ) {
+		String text = new String("C" + targetAccount + " " + sourceAccount + " " + msg);
+		return new Message(text, null);
 	}
 
 	/**
@@ -191,9 +189,9 @@ public class MessageOperate {
 	 * @param envelope 信封
 	 * @return 标准协议格式
 	 */
-	public static String packageEnvelope(Envelope envelope ) {
-		
-		return new String("C" + envelope.getTargetAccountId() + " " + envelope.getSourceAccountId() + " " + envelope.getText());
+	public static Message packageEnvelope(Envelope envelope ) {
+		String text = new String("C" + envelope.getTargetAccountId() + " " + envelope.getSourceAccountId() + " " + envelope.getText());
+		return new Message(text, null);
 	}
 
 	/**
@@ -202,21 +200,22 @@ public class MessageOperate {
 	 * @param msg 标准通信协议
 	 * @return 装有好友请求的信封
 	 */
-	public static Envelope unpackAddFriendMsg(String msg ) {
+	public static Envelope unpackAddFriendMsg(Message msg ) {
+		String text = msg.getText();
 		String target = new String();
 		String source = new String();
 		int k = 1;
-		for (int i = 1; i < msg.length(); i++) {
-			if (msg.charAt(i) == ' ') {
+		for (int i = 1; i < text.length(); i++) {
+			if (text.charAt(i) == ' ') {
 				++k;
 				continue;
 			}
 			switch (k) {
 				case 1:
-					target += msg.charAt(i);
+					target += text.charAt(i);
 					break;
 				case 2:
-					source += msg.charAt(i);
+					source += text.charAt(i);
 					break;
 				default:
 					break;
@@ -231,8 +230,9 @@ public class MessageOperate {
 	 * @param envelope 存有好友信息的信封
 	 * @return 标准通信协议
 	 */
-	public static String packageAddFriendMsg(Envelope envelope) {
-		return new String("A" + envelope.getTargetAccountId() + " " + envelope.getSourceAccountId());
+	public static Message packageAddFriendMsg(Envelope envelope) {
+		String text = new String("A" + envelope.getTargetAccountId() + " " + envelope.getSourceAccountId());
+		return new Message(text, null);
 	}
 
 	/**
@@ -241,26 +241,26 @@ public class MessageOperate {
 	 * @param msg 标准通信协议
 	 * @return 存有反馈信息以及双方ID的信封
 	 */
-	public static Envelope unpackAddFriendFeedbackMsg(String msg) {
-		
+	public static Envelope unpackAddFriendFeedbackMsg(Message msg) {
+		String text = msg.getText();
 		String target = new String();
 		String source = new String();
 		String ok = new String();
 		int k = 1;
-		for (int i = 1; i < msg.length(); i++) {
-			if (msg.charAt(i) == ' ') {
+		for (int i = 1; i < text.length(); i++) {
+			if (text.charAt(i) == ' ') {
 				++k;
 				continue;
 			}
 			switch (k) {
 				case 1:
-					target += msg.charAt(i);
+					target += text.charAt(i);
 					break;
 				case 2:
-					source += msg.charAt(i);
+					source += text.charAt(i);
 					break;
 				case 3:
-					ok += msg.charAt(i);
+					ok += text.charAt(i);
 					break;
 				default:
 					break;
@@ -275,8 +275,9 @@ public class MessageOperate {
 	 * @param envelope 存有反馈信息以及双方ID的信封
 	 * @return 标准通信协议
 	 */
-	public static String packageAddFriendFeedbackMsg(Envelope envelope) {
-		return new String("B" + envelope.getTargetAccountId() + " " + envelope.getSourceAccountId() + " " + envelope.getText());
+	public static Message packageAddFriendFeedbackMsg(Envelope envelope) {
+		String text = new String("B" + envelope.getTargetAccountId() + " " + envelope.getSourceAccountId() + " " + envelope.getText());
+		return new Message(text, null);
 	}
 
 	/**
@@ -285,22 +286,22 @@ public class MessageOperate {
 	 * @param msg 标准通信协议
 	 * @return 存有查找用户Id的信封（targetId即是用户查找的目标ID）
 	 */
-	public static Envelope unpackSearchUserIdMsg(String msg ) {
-		
+	public static Envelope unpackSearchUserIdMsg(Message msg ) {
+		String text = msg.getText();
 		String target = new String();
 		String source = new String();
 		int k = 1;
-		for (int i = 1; i < msg.length(); i++) {
-			if (msg.charAt(i) == ' ') {
+		for (int i = 1; i < text.length(); i++) {
+			if (text.charAt(i) == ' ') {
 				++k;
 				continue;
 			}
 			switch (k) {
 				case 1:
-					target += msg.charAt(i);
+					target += text.charAt(i);
 					break;
 				case 2:
-					source += msg.charAt(i);
+					source += text.charAt(i);
 					break;
 				default:
 					break;
@@ -315,13 +316,15 @@ public class MessageOperate {
 	 * @param account 被搜索的好友
 	 * @return 标准通信协议
 	 */
-	public static String packageSearchResultMsg(Account account ) {
+	public static Message packageSearchResultMsg(Account account ) {
 		if (account == null) {
-			return new String ("Snull");
+			return new Message("Snull", null);
 		}
 		else {
-			return new String("S" + account.getId() + "\f" + account.getNikeName() + "\f" +
+			String text = new String("S" + account.getId() + "\f" + account.getNikeName() + "\f" +
 					account.getOnline() + "\f" + account.getSignature());
+			byte[] stream = account.getPicture().getPictureBytes();
+			return new Message(text, stream);
 		}
 	}
 
@@ -331,22 +334,22 @@ public class MessageOperate {
 	 * @param msg 标准通信协议
 	 * @return 保存有删除目标好友ID的信封
 	 */
-	public static Envelope unpackDelFriendMsg(String msg ) {
-		
+	public static Envelope unpackDelFriendMsg(Message msg ) {
+		String text = msg.getText();
 		String target = new String();
 		String source = new String();
 		int k = 1;
-		for (int i = 1; i < msg.length(); i++) {
-			if (msg.charAt(i) == ' ') {
+		for (int i = 1; i < text.length(); i++) {
+			if (text.charAt(i) == ' ') {
 				++k;
 				continue;
 			}
 			switch (k) {
 				case 1:
-					target += msg.charAt(i);
+					target += text.charAt(i);
 					break;
 				case 2:
-					source += msg.charAt(i);
+					source += text.charAt(i);
 					break;
 				default:
 					break;
@@ -362,33 +365,9 @@ public class MessageOperate {
 	 * @param result 删除结果
 	 * @return 标准通信协议
 	 */
-	public static String packageDelFriendMsg(Envelope envelope, boolean result ) {
-		
-		return new String("D" + envelope.getTargetAccountId() + result);
-	}
-
-	/**
-	 * 解析注册消息
-	 * 协议格式：Rnickname\fpassword
-	 * @param msg 标准通信协议
-	 * @return 注册账户对象
-	 */
-	public static RegistorAccount unpackRegistorMsg(String msg ) {
-
-		String registorInfo = msg.substring(1);
-		String[] item = registorInfo.split("\f");
-		return new RegistorAccount(item[0], item[1]);
-	}
-
-	/**
-	 * 打包注册后得到的ID
-	 * 协议格式：RnewId
-	 * @param newAccountId 新注册的ID号
-	 * @return 标准通信协议
-	 */
-	public static String sendRegistorId( String newAccountId ) {
-		
-		return new String("R" + newAccountId);
+	public static Message packageDelFriendMsg(Envelope envelope, boolean result ) {
+		String text = new String("D" + envelope.getTargetAccountId() + result);
+		return new Message(text, null);
 	}
 	
 	/**
@@ -403,6 +382,40 @@ public class MessageOperate {
 		} else {
 			return false;
 		}
+	}
+
+	private static byte[] addPictureToList(byte[] pictureListStream, Picture picture) {
+		byte[] picSize = ConvertTypeTool.intToByteArray(picture.getPictureSize());
+		byte[] picStream = picture.getPictureBytes();
+		byte[] stream = byteMerger(picSize, picStream, picStream.length);
+		pictureListStream = byteMerger(pictureListStream, stream, stream.length);
+		return pictureListStream;
+	}
+
+	private static Picture getOnePicture(byte[] pictureList) {
+		// 获取图片在字节流中占的字节大小
+		byte[] pictureSizeBytes = new byte[4];
+		System.arraycopy(pictureList, 0, pictureSizeBytes, 0, 4);
+		int pictureSize = ConvertTypeTool.byteArrayToInt(pictureSizeBytes);
+		// 根据大小读取图片字节流
+		byte[] picture = new byte[pictureSize];
+		System.arraycopy(pictureList, 4, picture, 0, pictureSize);
+		// 掐掉已经读取的图片字节流
+		System.arraycopy(pictureList, 0, pictureList, 0, pictureSize + 4);
+		return new Picture(picture);
+	}
+
+	/**
+	 * 字节数组合并
+	 * @param bt1 字节数组1
+	 * @param bt2 字节数组2
+	 * @return 字节数组1和字节数组2合并后的结果
+	 */
+	private static byte[] byteMerger(byte[] bt1, byte[] bt2, int bt2Size){
+		byte[] bt3 = new byte[bt1.length + bt2Size];
+		System.arraycopy(bt1, 0, bt3, 0, bt1.length);
+		System.arraycopy(bt2, 0, bt3, bt1.length, bt2Size);
+		return bt3;
 	}
 	
 }

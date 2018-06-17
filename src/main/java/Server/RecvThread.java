@@ -46,7 +46,6 @@ public class RecvThread extends Thread {
 //
 				/* 从客户端接受一条消息，并加入接受消息队列，交给ServerThread解析及处理 */
 				singleClientThread.putMsgToRecvQueue(client.recvFromClient());
-				
 			} catch (IOException e) {
 				
 				if (e.getMessage().equals("Connection reset")) {
