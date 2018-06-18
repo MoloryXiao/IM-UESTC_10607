@@ -1,13 +1,13 @@
 package Server;
 
-import java.util.ArrayList;
+import java.util.Vector;
 
 class PrivateSession {
 	
 	private String idA;
 	private String idB;
 	
-	private ArrayList<String> chatMsgList;
+	private Vector<String> chatMsgList;
 	
 	private int chatCursorA;    // 已读位置
 	private int chatCursorB;
@@ -16,7 +16,7 @@ class PrivateSession {
 		
 		this.idA = idA;
 		this.idB = idB;
-		chatMsgList = new ArrayList<String>();
+		chatMsgList = new Vector<String>();
 		chatCursorA = chatCursorB = 0;
 	}
 	

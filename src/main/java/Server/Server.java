@@ -104,7 +104,21 @@ public class Server {
 		
 	}
 	
-	public static void sendToGroup() {
+	/**
+	 * 转发群消息
+	 *
+	 * @param message 待转发的群消息
+	 */
+	public static void sendToGroup( String message ) {
+		
+		// TODO
+		
+		// String targetGroupId = MessageOperate.unpackEnvelope(message).getTargetAccountId();
+		
+		// GroupManager.getMember();
+		// for(string memberId : members){
+		//      singleClient
+		
 	
 	}
 	

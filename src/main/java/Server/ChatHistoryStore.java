@@ -1,7 +1,13 @@
 package Server;
 
-import java.util.ArrayList;
 import java.util.Hashtable;
+
+//消息记录
+//最近会话列表
+//消息历史记录
+//离线消息
+//消息漫游
+//聊天记录搜索
 
 public class ChatHistoryStore {
 	

@@ -27,6 +27,11 @@ public class SingleClientThread extends Thread {
 	private Account account;
 	private int heartbeat;
 	
+	private void resetHeartbeat() {
+		
+		heartbeat = HEARTBEAT_MAX;
+	}
+	
 	public String getAccountId() {
 		
 		return account.getId();
@@ -62,14 +67,14 @@ public class SingleClientThread extends Thread {
 		return recvQueue.isEmpty();
 	}
 	
+	public void putMsgToRecvQueue( String message ) {
+		
+		recvQueue.add(message);
+	}
+	
 	public String getMsgFromRecvQueue() throws InterruptedException {
 		
 		return recvQueue.poll(5, TimeUnit.SECONDS);    // 阻塞取
-	}
-	
-	private void resetHeartbeat() {
-		
-		heartbeat = HEARTBEAT_MAX;
 	}
 	
 	public String getMsgFromRecvQueueOffline() {
@@ -93,7 +98,6 @@ label:
 	}
 	
 	
-	
 	/*======================================= related to sendThread =======================================*/
 	
 	private SendThread sendThread;
@@ -104,24 +108,18 @@ label:
 		return sendQueue.isEmpty();
 	}
 	
-	public String getMsgFromSendQueue() throws InterruptedException {
-		
-		return sendQueue.take();
-	}
-	
 	public void putMsgToSendQueue( String message ) {
 		
 		sendQueue.add(message);
 	}
 	
+	public String getMsgFromSendQueue() throws InterruptedException {
+		
+		return sendQueue.take();
+	}
 	
 	
 	/*====================================== related to SingleClientThread ======================================*/
-	
-	public void putMsgToRecvQueue( String message ) {
-		
-		recvQueue.add(message);
-	}
 	
 	/**
 	 * 将待发送的好友列表信息加入发送队列
@@ -180,7 +178,7 @@ label:
 		
 		// A给B发送好友请求，记录一次申请
 		if (!AddFriendReqManager.regAddFriendReq(targetId + sourceId + "false")) // 保存收到添加请求且未转发状态
-			return;
+			return; // 防止重复保存
 		
 		// 如果不是好友则转发添加好友请求
 		if (Server.sendToOne(msg))
@@ -223,15 +221,24 @@ label:
 		Server.sendToOne(msg);  // 给好友添加请求发起者发送反馈
 	}
 	
+	/**
+	 * 处理删除好友请求，从数据库中删除此好友关系
+	 *
+	 * @param msg 删除好友请求
+	 */
 	private void disposeDeleteReq( String msg ) {
-		
-		System.out.println(msg);
 		
 		Envelope envelope = MessageOperate.unpackDelFriendMsg(msg);
 		
 		DatabaseOperator.delFriend(envelope.getSourceAccountId(), envelope.getTargetAccountId());
 	}
 	
+	/**
+	 * 处理查找好友请求，转发查找到好友信息；
+	 * 没查找到，转发空字符串
+	 *
+	 * @param msg 查找好友请求
+	 */
 	private void disposeSearchReq( String msg ) {
 		
 		Envelope envelope = MessageOperate.unpackSearchUserIdMsg(msg);
@@ -243,6 +250,11 @@ label:
 		
 	}
 	
+	/**
+	 * 处理聊天消息
+	 *
+	 * @param msg 聊天消息
+	 */
 	private void disposeChatMsg( String msg ) {
 		
 		Envelope envelope = MessageOperate.unpackEnvelope(msg);
@@ -384,7 +396,7 @@ label:
 		
 		if (OfflineMsg.isAnyOfflineChatMsg(targetId)) {    // 是否有离线聊天消息，没有返回
 			
-			HashSet<String> sourceIds = OfflineMsg.getChatMegSourceIds(targetId);
+			HashSet<String> sourceIds = OfflineMsg.getChatMsgSourceIds(targetId);
 			Iterator<String> it = sourceIds.iterator();
 			while (it.hasNext()) {
 				
@@ -418,7 +430,8 @@ label:
 					if (message == null) {
 						if (heartbeat-- != 0) {
 							continue;
-						} else {
+						} else {    // 心跳包失败
+							sendThread.interrupt();
 							setAccountOffline();
 							return;
 						}
@@ -531,6 +544,8 @@ label:
 		int signInStatus = signIn();
 		
 		if (signInStatus < 0) {
+			
+			getOfflineMsg();
 			
 			logicService();
 			

@@ -7,7 +7,7 @@ public class OfflineMsg {
 	
 	/* ==================================== [ Chat Msg ] ==================================== */
 	
-	// 记录对于某一个用户"key"，有多少好友"key value"给其发送了离线消息
+	// 记录对于某一个用户("key")，有多少好友("key value")给其发送了离线消息
 	private static Hashtable<String, HashSet<String>> offlineChatMsgStatus
 			= new Hashtable<String, HashSet<String>>();
 	private static Hashtable<String, HashSet<String>> offlineReqMsgStatus
@@ -48,10 +48,9 @@ public class OfflineMsg {
 		offlineChatMsgStatus.get(targetId).remove(sourceId);
 	}
 	
-	
 	/* ==================================== [ Req  Msg ] ==================================== */
 	
-	public static HashSet<String> getChatMegSourceIds( String targetId ) {
+	public static HashSet<String> getChatMsgSourceIds( String targetId ) {
 		
 		return offlineChatMsgStatus.get(targetId);
 	}
@@ -83,6 +82,5 @@ public class OfflineMsg {
 		
 		return offlineReqMsgStatus.get(targetId);
 	}
-	
 	
 }
