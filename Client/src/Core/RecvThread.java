@@ -33,6 +33,7 @@ public class RecvThread extends Thread {
 				} catch (IOException e) {
 					// 服务器断开了连接
 					System.out.println("RecvThreadError: net_recv. May be socket close.");
+					flag_recv = false;
 					net_controller.endConnect();
 					// e.printStackTrace();
 				} catch (InterruptedException e) {

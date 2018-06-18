@@ -21,6 +21,9 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+
+import network.commonClass.Account;
+
 import java.io.File;
 import java.nio.file.Files;
 import java.util.List;
@@ -34,6 +37,7 @@ public class InfoModificationWindow extends JFrame{
 	private int i_window_width = 400;
 	private int i_window_height = 615;
 	private int userName = 122392319;
+	private Account account_modify;
 	
 	private JLabel label_headImage,label_loadImage;
 	private JPanel panel_north,panel_south;
@@ -48,7 +52,9 @@ public class InfoModificationWindow extends JFrame{
 		textField_phone,textField_mail,textField_location,
 		textField_person,textField_signature;
 	
-	public InfoModificationWindow() {
+	public InfoModificationWindow(Account account) {
+		this.account_modify = account;
+		
 		this.setTitle("KIM Self-Info");
 		this.setSize(i_window_width,i_window_height);
 		this.setLocationRelativeTo(null);
@@ -62,44 +68,51 @@ public class InfoModificationWindow extends JFrame{
 
 		panel_userName = new JPanel();		// 用户名面板：包含用户Label
 		label_userName = new JLabel("帐 号：");
-		textField_userName = new JTextField(20); textField_userName.setEnabled(false);
-		textField_userName.setText("122392319");
+		textField_userName = new JTextField(20); 
+		textField_userName.setEnabled(false);
+		textField_userName.setText(this.account_modify.getId());
 		panel_userName.setPreferredSize(new Dimension(i_window_width,12));		// 设置panel大小
 		panel_userName.setBorder(BorderFactory.createEmptyBorder(10,0,0,0));	// 设置间距
 		
 		panel_nickName = new JPanel();		// 昵称面板：包含昵称Label、昵称TextField
 		label_nickName = new JLabel("昵 称：");
 		textField_nickName = new JTextField(20);
+		textField_nickName.setText(this.account_modify.getNikeName());
 		panel_nickName.setPreferredSize(new Dimension(i_window_width,12));		// 设置panel大小
 		panel_nickName.setBorder(BorderFactory.createEmptyBorder(10,0,0,0));
 		
 		panel_phone = new JPanel();			// 电话号码面板：包含电话Label、电话TextField
 		label_phone = new JLabel("电 话：");
 		textField_phone = new JTextField(20);
+		textField_phone.setText(this.account_modify.getMobliePhone());
 		panel_phone.setPreferredSize(new Dimension(i_window_width,12));		// 设置panel大小
 		panel_phone.setBorder(BorderFactory.createEmptyBorder(10,0,0,0));
 		
 		panel_mail = new JPanel();			// 邮箱面板：包含邮箱Label、邮箱TextField
 		label_mail = new JLabel("邮 箱：");	
 		textField_mail = new JTextField(20);
+		textField_mail.setText(this.account_modify.getMail());
 		panel_mail.setPreferredSize(new Dimension(i_window_width,12));		// 设置panel大小
 		panel_mail.setBorder(BorderFactory.createEmptyBorder(10,0,0,0));
 		
 		panel_location = new JPanel();		// 归属面板：包含归属Label、归属TextField
 		label_location = new JLabel("归 属：");
 		textField_location = new JTextField(20);
+		textField_location.setText(this.account_modify.getHome());
 		panel_location.setPreferredSize(new Dimension(i_window_width,12));		// 设置panel大小
 		panel_location.setBorder(BorderFactory.createEmptyBorder(10,0,0,0));
 		
 		panel_person = new JPanel();		// 个人面板：包含个人Label、个人TextField
 		label_person = new JLabel("个 人：");
 		textField_person = new JTextField(20);
+		textField_person.setText(this.account_modify.getId());
 		panel_person.setPreferredSize(new Dimension(i_window_width,12));		// 设置panel大小
 		panel_person.setBorder(BorderFactory.createEmptyBorder(10,0,0,0));
 			
 		panel_signature = new JPanel();		// 个性签名面板：包含个签Label、个签TextField
 		label_signature = new JLabel("个 签：");
 		textField_signature = new JTextField(20);
+		textField_signature.setText(this.account_modify.getSignature());
 		panel_signature.setPreferredSize(new Dimension(i_window_width,12));		// 设置panel大小
 		panel_signature.setBorder(BorderFactory.createEmptyBorder(10,0,0,0));
 		
@@ -137,7 +150,7 @@ public class InfoModificationWindow extends JFrame{
                         @SuppressWarnings("unchecked")
 						List<File> list =  (List<File>) (dtde.getTransferable().getTransferData(DataFlavor.javaFileListFlavor));
 
-                        File dest = new File("image/new"+userName+".jpg");		
+                        File dest = new File("image/new" + InfoModificationWindow.this.account_modify.getId() +".jpg");		
                         if(dest.exists())	// 若已存在 则删除原有文件
                         	dest.delete();
                         // 对图片进行缩放 再进行存储和显示
@@ -207,7 +220,9 @@ public class InfoModificationWindow extends JFrame{
 		btn_ok = new JButton("完成");
 		btn_ok.addActionListener(new ActionListener(){
 			public void actionPerformed(ActionEvent e) {
-				InfoModificationWindow.this.dispose();
+//				InfoModificationWindow.this.dispose();
+				// 发送新信息至服务器
+				// 更新个人信息窗口
 			}
 		});	
 		FlowLayout flowLayout_Bottom = new FlowLayout();

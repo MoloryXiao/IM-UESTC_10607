@@ -16,6 +16,7 @@ import network.NetworkForClient.NetworkForClient;
 import network.commonClass.Account;
 import network.commonClass.Envelope;
 import network.commonClass.Message;
+import network.commonClass.Picture;
 import network.messageOperate.MessageOperate;
 /**
  * 程序入口 聊天软件客户端
@@ -28,8 +29,8 @@ import network.messageOperate.MessageOperate;
  * Inital.
  */
 public class ChatClient{
-	private final String host_name = "39.108.95.130";	// server location
-//	private final String host_name = "192.168.1.103";	// local area for test
+//	private final String host_name = "39.108.95.130";	// server location
+	private final String host_name = "192.168.1.103";	// local area for test
 //	private final String host_name = "127.0.0.1";
 	private final int contact_port = 9090;
 	
@@ -41,7 +42,7 @@ public class ChatClient{
 	private EnvelopeRepertory repertory_envelope;
 	
 	private LoginWindow wind_login;				// 登陆窗口
-	private FriendsListWindow wind_friendsList;	// 好友列表
+private static FriendsListWindow wind_friendsList;	// 好友列表
 	private AddFriendWindow wind_addfriend;		// 添加好友窗口
 	private HashMap<String, ChatWindow> hashMap_wind_friendChat;	// 聊天窗口组
 		
@@ -50,10 +51,32 @@ public class ChatClient{
 	
 	public static void main(String []args){
 		setPlugin(true);
+		//test();	
 		ChatClient cc = new ChatClient();
 		cc.start();
 	}
-	
+	static void test() {
+		wind_friendsList = new FriendsListWindow();
+		String id = "122392319";
+        String name = "MurreyXiao";
+        String mobliePhone = "15815166915";
+        String mail = "122392319@qq.com";
+        byte stage = 1;
+        int old = 15;
+        boolean sex = true;
+        String home = "广东汕头";
+        String signature = "123木头人！";
+        boolean isOnline = true;
+		Picture picture = null;
+		try {
+			picture = new Picture("image/p70_piano.jpg");
+		} catch (IOException e) {
+			System.out.println("没有照片");
+			e.printStackTrace();
+		}
+		Account account = new Account(id,name,mobliePhone,mail,stage,old,sex,home,signature,isOnline,picture);
+		wind_friendsList.updateMineInfo(account);
+	}
 	/**
 	 * 使能 BeautyEye-Swing 皮肤包
 	 * @param flag_plugin 皮肤包状态
@@ -75,7 +98,7 @@ public class ChatClient{
 	/**
 	 * 聊天工具客户端构造函数
 	 */
-	public ChatClient() {		
+	public ChatClient() {
 		this.net_controller = new NetworkForClient(host_name,contact_port);
 		this.rs_controller = new RecvSendController(this.net_controller);
 		this.wind_controller = new WindowProducer();
@@ -111,6 +134,14 @@ public class ChatClient{
 					
 				case WindowProducer.ADD_FRIEND_WIND:		// 创建添加好友窗口
 					createAddFriendWindow();
+					break;
+					
+				case WindowProducer.INFO_MINE_WIND:			// 创建个人信息窗口
+					createInfoMineWindow();
+					break;
+				
+				case WindowProducer.INFO_MODIFY_WIND:
+					createInfoModifyWindow();
 					break;
 					
 				default:
@@ -200,6 +231,21 @@ public class ChatClient{
 			hashMap_wind_friendChat.get(friend_ID).setAlwaysOnTop(true);
 			hashMap_wind_friendChat.get(friend_ID).setAlwaysOnTop(false);
 		}		
+	}
+	
+	/**
+	 * 创建个人信息窗口
+	 */
+	private void createInfoMineWindow() {
+		boolean isModification = true;
+		new AccountInfoShowWindow(this.wind_friendsList.getMineAccount(),isModification);
+	}
+	
+	/**
+	 * 创建信息修改窗口
+	 */
+	private void createInfoModifyWindow() {
+		new InfoModificationWindow(this.wind_friendsList.getMineAccount());
 	}
 	
 	/**
@@ -300,6 +346,7 @@ public class ChatClient{
 		System.out.println("【 Add Result】"+MessageOperate.unpackAddFriendResultMsg(str));
 		if(MessageOperate.unpackAddFriendResultMsg(str)) {
 			System.out.println("AddFriendInfo: add the friend success... - OK");
+			RecvSendController.addToSendQueue(MessageOperate.packageAskFriendListMsg());
 			wind_friendsList.addFriendSuccessHint();
 		}
 		else { 

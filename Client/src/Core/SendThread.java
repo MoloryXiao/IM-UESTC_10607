@@ -32,7 +32,8 @@ public class SendThread extends Thread{
 					this.net_controller.sendToServer(this.queue_str_send.take());
 				} catch (IOException e) {
 					System.out.println("SendThreadError: net_sendToServer.");
-					e.printStackTrace();
+					flag_send = false;
+					// e.printStackTrace();
 				} catch (InterruptedException e) {
 					System.out.println("SendThreadError: queue_take.");
 					e.printStackTrace();

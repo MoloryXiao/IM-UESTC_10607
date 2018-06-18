@@ -15,6 +15,8 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
+
+import network.commonClass.Account;
 /**
  * 账户信息显示窗口
  * @author Murrey
@@ -25,6 +27,7 @@ public class AccountInfoShowWindow extends JFrame{
 	private int i_window_width = 350;
 	private int i_window_height = 550;
 	
+	private Account accountShow;
 	private boolean modifyPermission;
 	
 	private JPanel panel_north,panel_center,panel_south;
@@ -34,7 +37,8 @@ public class AccountInfoShowWindow extends JFrame{
 		label_mail,label_level,label_location,label_person,label_signature;
 	private JButton btn_edit,btn_exit;	
 	
-	public AccountInfoShowWindow(boolean modify){
+	public AccountInfoShowWindow(Account account,boolean modify){
+		this.accountShow = account;
 		this.modifyPermission = modify;
 		
 		this.setTitle("KIM Self-Info");
@@ -57,7 +61,7 @@ public class AccountInfoShowWindow extends JFrame{
 		label_headImage.setIcon(imageIcon_headImage);
 		
 		/* 加粗昵称标题 */
-		label_title = new JLabel("Murrey Xiao");
+		label_title = new JLabel(this.accountShow.getNikeName());
 		label_title.setFont(new Font("微软雅黑",Font.BOLD, 20));
 		
 		/* 居中处理 */
@@ -79,14 +83,14 @@ public class AccountInfoShowWindow extends JFrame{
 		panel_center.setLayout(layout_box2);
 		
 		/* 设置内容 */
-		label_userName = new JLabel("账号：  122392319 ");
-		label_nickName = new JLabel("昵称：  Murrey Xiao");
-		label_phone = new JLabel("手机：  17381584856");
-		label_mail = new JLabel("邮箱：  122392319@qq.com");
-		label_level = new JLabel("等级：  ☆☆☆☆☆");	// ☆☆☆☆☆
-		label_person = new JLabel("个人：  20岁 男");
-		label_location = new JLabel("归属：  四川成都");
-		label_signature = new JLabel("个签：  123木头人！");
+		label_userName = new JLabel("账号：  " + this.accountShow.getId());
+		label_nickName = new JLabel("昵称：  " + this.accountShow.getNikeName());
+		label_phone = new JLabel("手机：  " + this.accountShow.getMobliePhone());
+		label_mail = new JLabel("邮箱：  " + this.accountShow.getMail());
+		label_level = new JLabel("等级：  " + this.accountShow.getStage());	// ☆☆☆☆☆
+		label_person = new JLabel("个人：  " + this.accountShow.getOld() + "岁 " + this.accountShow.isMale());
+		label_location = new JLabel("归属：  " + this.accountShow.getHome());
+		label_signature = new JLabel("个签：  " + this.accountShow.getSignature());
 		
 		/* 设置字体 */
 		label_userName.setFont(new Font("宋体",Font.PLAIN, 13));
@@ -143,7 +147,7 @@ public class AccountInfoShowWindow extends JFrame{
 		btn_edit = new JButton("编辑");
 		btn_edit.addActionListener(new ActionListener(){
 			public void actionPerformed(ActionEvent e) {
-				new InfoModificationWindow();
+				WindowProducer.addWindowRequest(WindowProducer.INFO_MODIFY_WIND);
 			}
 		});	
 		btn_exit = new JButton("关闭");
@@ -155,11 +159,11 @@ public class AccountInfoShowWindow extends JFrame{
 		FlowLayout flowLayout_Bottom = new FlowLayout();
 		flowLayout_Bottom.setAlignment(FlowLayout.RIGHT);	// 居右
 		panel_south.setLayout(flowLayout_Bottom);
-		panel_south.add(btn_exit);
-
+		
 		if(this.modifyPermission != false)		// 若显示的是好友账户  则不允许修改
 			panel_south.add(btn_edit);
 		
+		panel_south.add(btn_exit);		
 		this.add(panel_south, BorderLayout.SOUTH);
 		
 		
