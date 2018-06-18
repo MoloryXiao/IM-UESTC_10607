@@ -27,22 +27,23 @@ import network.messageOperate.MessageOperate;
  * Inital.
  */
 public class ChatClient{
-	private final String host_name = "39.108.95.130";	// server location
-//	private final String host_name = "192.168.1.103";	// local area for test
+//	private final String host_name = "39.108.95.130";	// server location
+	private final String host_name = "192.168.1.103";	// local area for test
 //	private final String host_name = "127.0.0.1";
 	private final int contact_port = 9090;
+	
+	private volatile boolean isFriendsListWindCreated = false;
 	
 	private RecvSendController rs_controller;	// 收发线程控制器
 	private NetworkForClient net_controller;	// 通信接口控制器
 	private WindowProducer wind_controller;		// 窗口创建控制器
+	private EnvelopeRepertory repertory_envelope;
 	
 	private LoginWindow wind_login;				// 登陆窗口
 	private FriendsListWindow wind_friendsList;	// 好友列表
 	private AddFriendWindow wind_addfriend;		// 添加好友窗口
 	private HashMap<String, ChatWindow> hashMap_wind_friendChat;	// 聊天窗口组
-	private EnvelopeRepertory repertory_envelope;
-	
-	
+		
 	private String lnotePath = "resource/lnote.data";	// 登陆信息文件
 	private boolean flag_timer1 = false;				// 标记定时任务1 是否被启动过
 	
@@ -100,6 +101,7 @@ public class ChatClient{
 					
 				case WindowProducer.FRIEND_LIST_WIND:		// 创建好友列表
 					wind_friendsList = new FriendsListWindow();		
+					isFriendsListWindCreated = true;
 					break;
 					
 				case WindowProducer.CHAT_WIND:				// 创建好友聊天窗口
@@ -208,7 +210,7 @@ public class ChatClient{
 		if(MessageOperate.unpackIsFinish(message)) {
 			System.out.println("Login: successful.");
 			wind_login.dispose();
-			WindowProducer.addWindowRequest(WindowProducer.FRIEND_LIST_WIND);			
+			WindowProducer.addWindowRequest(WindowProducer.FRIEND_LIST_WIND);	
 			/* 根据"记住密码"与"自动登陆"按钮的情况 重写登陆文件的信息  */
 			rewriteLoginFile();
 		}else {
@@ -275,6 +277,7 @@ public class ChatClient{
 	 * @param str
 	 */
 	private void gainAddFriendRequest(String str){
+		while(!isFriendsListWindCreated) ;
 		String friend_id = MessageOperate.unpackAddFriendMsg(str);
 		wind_friendsList.setNewFriendID(friend_id);
 		wind_friendsList.setNewFriendRequesttBottonVisible(true);
