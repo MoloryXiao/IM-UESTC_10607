@@ -1,4 +1,5 @@
-package Server; /**
+package Server;
+/**
  *
  */
 
@@ -27,11 +28,6 @@ public class SingleClientThread extends Thread {
 	private Account account;
 	private int heartbeat;
 	
-	private void resetHeartbeat() {
-		
-		heartbeat = HEARTBEAT_MAX;
-	}
-	
 	public String getAccountId() {
 		
 		return account.getId();
@@ -51,8 +47,8 @@ public class SingleClientThread extends Thread {
 	SingleClientThread( Socket socket ) throws IOException {
 		
 		client = new CommunicateWithClient(socket);
-		recvQueue = new LinkedBlockingDeque<String>();
-		sendQueue = new LinkedBlockingDeque<String>();
+		recvQueue = new LinkedBlockingDeque<Message>();
+		sendQueue = new LinkedBlockingDeque<Message>();
 		account = null;
 		heartbeat = HEARTBEAT_MAX;
 	}
@@ -60,26 +56,26 @@ public class SingleClientThread extends Thread {
 	/*======================================= related to RecvThread =======================================*/
 	
 	private RecvThread recvThread;
-	private BlockingDeque<String> recvQueue;
+	private BlockingDeque<Message> recvQueue;
 	
 	public boolean isRecvQueueEmpty() {
 		
 		return recvQueue.isEmpty();
 	}
 	
-	public void putMsgToRecvQueue( String message ) {
-		
-		recvQueue.add(message);
-	}
-	
-	public String getMsgFromRecvQueue() throws InterruptedException {
+	public Message getMsgFromRecvQueue() throws InterruptedException {
 		
 		return recvQueue.poll(5, TimeUnit.SECONDS);    // 阻塞取
 	}
 	
-	public String getMsgFromRecvQueueOffline() {
+	private void resetHeartbeat() {
 		
-		String notReqMsg;
+		heartbeat = HEARTBEAT_MAX;
+	}
+	
+	public Message getMsgFromRecvQueueOffline() {
+		
+		Message notReqMsg;
 
 label:
 		while ((notReqMsg = recvQueue.poll()) != null) {
@@ -101,25 +97,31 @@ label:
 	/*======================================= related to sendThread =======================================*/
 	
 	private SendThread sendThread;
-	private BlockingDeque<String> sendQueue;
+	private BlockingDeque<Message> sendQueue;
 	
 	public boolean isSendQueueEmpty() {
 		
 		return sendQueue.isEmpty();
 	}
 	
-	public void putMsgToSendQueue( String message ) {
-		
-		sendQueue.add(message);
-	}
-	
-	public String getMsgFromSendQueue() throws InterruptedException {
+	public Message getMsgFromSendQueue() throws InterruptedException {
 		
 		return sendQueue.take();
 	}
 	
+	public void putMsgToSendQueue( Message message ) {
+		
+		sendQueue.add(message);
+	}
+	
+	
 	
 	/*====================================== related to SingleClientThread ======================================*/
+	
+	public void putMsgToRecvQueue( Message message ) {
+		
+		recvQueue.add(message);
+	}
 	
 	/**
 	 * 将待发送的好友列表信息加入发送队列
@@ -139,9 +141,9 @@ label:
 	 * @param msg 个人信息数据报，如果msg长度超过1，则按修改个人信息处理；
 	 *            否则按请求个人信息处理；
 	 */
-	private void disposeMyselfInfoReq( String msg ) {
+	private void disposeMyselfInfoReq( Message msg ) {
 		
-		if (msg.length() > 1) {
+		if (msg.getText().length() > 1) {
 			// 修改个人信息
 			// TODO 从msg中取出用户修改后的信息 DatabaseOperator.modifyMyInfo(account);
 			
@@ -160,8 +162,8 @@ label:
 	 *
 	 * @param msg 添加好友请求数据报
 	 */
-	private void disposeAddFriendReq( String msg ) {
-		
+	private void disposeAddFriendReq( Message msg ) {
+
 		Envelope envelope = MessageOperate.unpackEnvelope(msg);
 		String targetId = envelope.getTargetAccountId();
 		String sourceId = envelope.getSourceAccountId();
@@ -195,9 +197,10 @@ label:
 	 *
 	 * @param msg 添加好友反馈数据报
 	 */
-	private void disposeAddFriendFeedback( String msg ) {
-		
+	private void disposeAddFriendFeedback( Message msg ) {
+
 		Envelope envelope = MessageOperate.unpackAddFriendFeedbackMsg(msg);
+
 		String targetId = envelope.getTargetAccountId();
 		String sourceId = envelope.getSourceAccountId();
 		
@@ -211,10 +214,10 @@ label:
 				
 				LoggerProvider.logger.error("[ ERROR ] 在数据库中加入好友失败！好友关系："
 						                            + targetId + " and " + sourceId);
-				
+
 				msg = MessageOperate.packageAddFriendFeedbackMsg(
 						new Envelope(targetId, sourceId, "false"));
-				
+
 				putMsgToSendQueue(msg); // 给好友添加请求接受者发送反馈
 			}
 		}
@@ -226,8 +229,10 @@ label:
 	 *
 	 * @param msg 删除好友请求
 	 */
-	private void disposeDeleteReq( String msg ) {
+	private void disposeDeleteReq( Message msg ) {
 		
+		System.out.println(msg);
+
 		Envelope envelope = MessageOperate.unpackDelFriendMsg(msg);
 		
 		DatabaseOperator.delFriend(envelope.getSourceAccountId(), envelope.getTargetAccountId());
@@ -239,7 +244,7 @@ label:
 	 *
 	 * @param msg 查找好友请求
 	 */
-	private void disposeSearchReq( String msg ) {
+	private void disposeSearchReq( Message msg ) {
 		
 		Envelope envelope = MessageOperate.unpackSearchUserIdMsg(msg);
 		
@@ -255,7 +260,7 @@ label:
 	 *
 	 * @param msg 聊天消息
 	 */
-	private void disposeChatMsg( String msg ) {
+	private void disposeChatMsg( Message msg ) {
 		
 		Envelope envelope = MessageOperate.unpackEnvelope(msg);
 		String targetId = envelope.getTargetAccountId();
@@ -270,7 +275,7 @@ label:
 			privateSession.updateBothChatCursor();
 			
 		} else {
-			
+
 			privateSession.updateChatCursor(sourceId);
 			OfflineMsg.putOfflineChatMsg(targetId, sourceId);
 			
@@ -283,7 +288,7 @@ label:
 	
 	private int signIn() {
 		
-		String loginMsg = null;
+		Message loginMsg = null;
 		
 		try {
 			//用户尚未登录，暂时没有创建收发子线程，调用底层recv函数接收好友登录信息
@@ -401,7 +406,7 @@ label:
 			while (it.hasNext()) {
 				
 				PrivateSession privateSession = ChatHistoryStore.getPrivateSession(targetId, it.next());
-				String msg = privateSession.getNextUnreadMsg(targetId);
+				Message msg = privateSession.getNextUnreadMsg(targetId);
 				while (msg != null) {
 					putMsgToSendQueue(msg);
 					msg = privateSession.getNextUnreadMsg(targetId);
@@ -421,7 +426,7 @@ label:
 		/* 登陆成功用户为登录状态，线程持续接受客户端消息，直到判定用户下线 */
 		while (true) {
 			
-			String message = null;
+			Message message = null;
 			
 			try {
 				if (account.getOnline()) {

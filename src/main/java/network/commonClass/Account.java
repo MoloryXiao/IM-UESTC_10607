@@ -1,9 +1,11 @@
 package network.commonClass;
 
+import java.io.IOException;
+
 /**
  * 描述：Account类是用户信息的封装，继承AccountBase类
  * @author 土豆
- * @version 1.0.1
+ * @version 1.1.0
  */
 public class Account extends AccountBase{
 
@@ -20,6 +22,10 @@ public class Account extends AccountBase{
 	 */
 	protected String signature;
 	/**
+	 * 描述：用户头像
+	 */
+	protected Picture picture;
+	/**
 	 * 描述：构造函数
 	 */
 	public Account(){
@@ -27,6 +33,7 @@ public class Account extends AccountBase{
 		name = new String();
 		online = false;
 		signature = new String();
+		picture = null;
 	}
 	/**
 	 * 描述：构造函数
@@ -40,6 +47,33 @@ public class Account extends AccountBase{
 		this.name = new String(name);
 		this.online = online;
 		this.signature = new String(signature);
+//		以下代码用于临时测试，以后删除
+		try {
+			this.picture = new Picture("C:\\Users\\ZiQin\\Desktop\\project\\QQ\\Github\\IM-UESTC_10607\\src\\1.jpg");
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+//		picture = null;
+	}
+	/**
+	 * 描述：构造函数
+	 */
+	public Account(String id, String name, boolean online, String signature, byte[] picture) {
+		super(id);
+		this.name = new String(name);
+		this.online = online;
+		this.signature = new String(signature);
+		this.picture = new Picture(picture);
+	}
+	/**
+	 * 描述：构造函数
+	 */
+	public Account(String id, String name, boolean online, String signature, Picture picture) {
+		super(id);
+		this.name = new String(name);
+		this.online = online;
+		this.signature = new String(signature);
+		this.picture = picture;
 	}
 
 	/**
@@ -92,5 +126,17 @@ public class Account extends AccountBase{
 	public boolean getOnline() {
 		return online;
 	}
-
+	/**
+	 * 描述：获取用户头像
+	 * @return 头像图片字节流
+	 */
+	public Picture getPicture() {
+		return this.picture;
+	}
+	/**
+	 * 描述：设置用户头像
+	 */
+	public void setPicture(byte[] pictureStream) {
+		this.picture = new Picture(pictureStream);
+	}
 }

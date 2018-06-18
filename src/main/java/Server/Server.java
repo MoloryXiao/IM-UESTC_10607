@@ -3,11 +3,11 @@ package Server;
 import Server.Database.DatabaseConnector;
 import Server.util.AdminUtil;
 import Server.util.LoggerProvider;
+import network.commonClass.Message;
 import network.networkDataPacketOperate.MessageOperate;
 
 import java.io.IOException;
 import java.net.Socket;
-import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Map;
 
@@ -89,7 +89,7 @@ public class Server {
 	 * @param message 待转发消息
 	 * @return 是否成功添加至转发对象的发送队列
 	 */
-	public static boolean sendToOne( String message ) {
+	public static boolean sendToOne( Message message ) {
 		
 		Boolean result = true;
 		
