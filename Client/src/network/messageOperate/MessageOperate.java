@@ -29,6 +29,7 @@ public class MessageOperate {
     public static final int REGISTOR = 10;
     public static final int MYSELF = 11;
     public static final int USER_DETAIL = 12;
+    public static final int GET_OTHER_USER_DETAIL = 13;
     public static final String OK = "ok";
     public static final String FALSE = "false";
 
@@ -59,6 +60,10 @@ public class MessageOperate {
                 return REGISTOR;
             case 'I':
                 return MYSELF;
+            case 'U':
+                return USER_DETAIL;
+            case 'G':
+                return GET_OTHER_USER_DETAIL;
             default:
                 return ERROR;
         }
@@ -165,6 +170,15 @@ public class MessageOperate {
                 account.getOld() + '\f' + account.isMale() + '\f' + account.getHome() + '\f' + account.getOnline();
         byte[] stream = account.getPicture().getPictureBytes();
         return new Message(text, stream);
+    }
+
+    /**
+     * 打包用户详细信息请求数据报
+     * @param targetId 希望获取的用户ID
+     * @return 标准通信数据报
+     */
+    public static Message packageUserDetailAsk(String targetId, String sourceId) {
+        return new Message("G" + targetId + '\f' + sourceId, null);
     }
 
     /**
