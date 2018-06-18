@@ -43,8 +43,7 @@ public class LoginWindow extends JFrame{
 	/**
 	 * LoginWindow 构造函数
 	 */
-	public LoginWindow(LoginInfo info_login){
-		
+	public LoginWindow(LoginInfo info_login){		
 		this.setTitle("KIM");
 		this.setSize(i_window_width,i_window_height);
 		this.setLocationRelativeTo(null);

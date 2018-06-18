@@ -13,10 +13,16 @@ import javax.imageio.ImageIO;
  * @author Murrey
  * @version 1.0
  */
+/**
+ * 将一个图片文件（File类型）切成圆形图片
+ * @author Murrey
+ * @param orginal_img 源图片File
+ * @param save_path 转换后的保存路径
+ */
 public class HandyTool {
 	public static void imgCutToCircle(File orginal_img,String save_path) throws IOException {
-        // BufferedImage bi1 = ImageIO.read(new File("image/02.png"));
-		BufferedImage bi1 = ImageIO.read(orginal_img);        
+        // BufferedImage bi1 = ImageIO.read(new File("image/02.png"));	// 通过文件名打开文件
+		BufferedImage bi1 = ImageIO.read(orginal_img);        // 通过 File 类型打开文件
         BufferedImage bi2 = new BufferedImage(bi1.getWidth(), 
         			bi1.getHeight(),BufferedImage.TYPE_INT_RGB);// 根据需要是否使用 BufferedImage.TYPE_INT_ARGB
         Ellipse2D.Double shape = new Ellipse2D.Double(0, 0, bi1.getWidth(), bi1.getHeight());

@@ -2,6 +2,7 @@ package Core;
 
 import java.io.IOException;
 import java.util.concurrent.BlockingQueue;
+import network.commonClass.Message;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import network.NetworkForClient.NetworkForClient;
@@ -14,12 +15,12 @@ import network.NetworkForClient.NetworkForClient;
  */
 public class SendThread extends Thread{
 	private NetworkForClient net_controller;		// 在收发控制器中初始化
-	private BlockingQueue<String> queue_str_send;	// 等待发送消息队列
+	private BlockingQueue<Message> queue_str_send;	// 等待发送消息队列
 	private volatile boolean flag_send;
 	
 	public SendThread(NetworkForClient net_controller) {
 		this.net_controller = net_controller;
-		this.queue_str_send = new LinkedBlockingQueue<String>();
+		this.queue_str_send = new LinkedBlockingQueue<Message>();
 		flag_send = false;
 	}
 	
@@ -31,7 +32,8 @@ public class SendThread extends Thread{
 					this.net_controller.sendToServer(this.queue_str_send.take());
 				} catch (IOException e) {
 					System.out.println("SendThreadError: net_sendToServer.");
-					e.printStackTrace();
+					flag_send = false;
+					// e.printStackTrace();
 				} catch (InterruptedException e) {
 					System.out.println("SendThreadError: queue_take.");
 					e.printStackTrace();
@@ -40,7 +42,7 @@ public class SendThread extends Thread{
 		}
 	}
 	
-	public void addToSendQueue(String message) {
+	public void addToSendQueue(Message message) {
 		try {
 			queue_str_send.put(message);
 		} catch (InterruptedException e) {

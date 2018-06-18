@@ -1,6 +1,7 @@
 package Core;
 
 import network.NetworkForClient.NetworkForClient;
+import network.commonClass.Message;
 
 public class RecvSendController {	
 	
@@ -16,11 +17,11 @@ public class RecvSendController {
 		thread_send.start();
 	}
 	
-	public static void addToSendQueue(String message) {
+	public static void addToSendQueue(Message message) {
 		thread_send.addToSendQueue(message);
 	}
 	
-	public static String getFromRecvQueue() {
+	public static Message getFromRecvQueue() {
 		return thread_recv.getFromRecvQueue();
 	}
 	

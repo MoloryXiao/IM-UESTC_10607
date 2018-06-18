@@ -5,6 +5,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -82,6 +83,17 @@ public class FriendsListWindow extends JFrame{
 		label_head_image.setIcon((new ImageIcon("image/p70_piano.jpg")));
 		label_head_image.setToolTipText("123木头人");
 		label_head_image.setBounds(10, 10, 70, 70);
+		label_head_image.setCursor(new Cursor(Cursor.HAND_CURSOR));
+		label_head_image.addMouseListener(new MouseListener() {		// 点击头像开启信息展示功能
+			public void mouseClicked(MouseEvent e) {
+				System.out.println("Info: Acquire the Mine-Info window.");
+				WindowProducer.addWindowRequest(WindowProducer.INFO_MINE_WIND);
+			}
+			public void mouseEntered(MouseEvent e) {}
+			public void mouseExited(MouseEvent e) {}
+			public void mousePressed(MouseEvent e) {}
+			public void mouseReleased(MouseEvent e) {}
+		});
 		
 		label_name = new JLabel("昵称：等待服务器应答...");
 //		label_name.setFont(new Font("宋体", Font.PLAIN, 13));
@@ -173,6 +185,7 @@ public class FriendsListWindow extends JFrame{
 				Envelope env = new Envelope(new_friend_id, account_mine.getId(), "");
 				if(option == JOptionPane.YES_OPTION) {
 					RecvSendController.addToSendQueue(MessageOperate.packageAddFriendResultMsg(env, true));
+					RecvSendController.addToSendQueue(MessageOperate.packageAskFriendListMsg());
 				}
 				else {
 					RecvSendController.addToSendQueue(MessageOperate.packageAddFriendResultMsg(env, false));
@@ -243,7 +256,12 @@ public class FriendsListWindow extends JFrame{
 	 */
 	public void updateMineInfo(Account myselfAccount) {
 		this.account_mine = new Account(myselfAccount.getId(),myselfAccount.getNikeName(),
-				myselfAccount.getOnline(),myselfAccount.getSignature());		
+				myselfAccount.getMobliePhone(),myselfAccount.getMail(),myselfAccount.getStage(),
+				myselfAccount.getOld(),myselfAccount.isMale(),myselfAccount.getHome(),
+				myselfAccount.getSignature(),myselfAccount.getOnline(),myselfAccount.getPicture());
+		
+//		this.account_mine = new Account(myselfAccount.getId(),myselfAccount.getNikeName(),
+//				myselfAccount.getOnline(),myselfAccount.getSignature());		
 		
 		/* 对窗口相关标签进行更新 */
 		label_name.setText("昵称："+this.account_mine.getNikeName());	// 昵称
@@ -252,6 +270,7 @@ public class FriendsListWindow extends JFrame{
 		
 		label_name.setToolTipText("昵称："+this.account_mine.getNikeName());
 		label_sign.setToolTipText("个性签名："+this.account_mine.getSignature());
+
 	}
 	
 	/**
