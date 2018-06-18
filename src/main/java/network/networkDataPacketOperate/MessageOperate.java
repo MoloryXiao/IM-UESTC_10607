@@ -2,6 +2,7 @@ package network.networkDataPacketOperate;
 
 import java.util.ArrayList;
 
+import network.Builder.AccountBuilder;
 import network.NetworkForServer.ConvertTypeTool;
 import network.commonClass.*;
 
@@ -26,6 +27,8 @@ public class MessageOperate {
 	public static final int BACKADD = 9;
 	public static final int REGISTOR = 10;
 	public static final int MYSELF = 11;
+	public static final int USER_DETAIL = 12;
+	public static final int GET_OTHER_USER_DETAIL = 13;
 	public static final String OK = "ok";
 	public static final String FALSE = "fasle";
 	
@@ -57,6 +60,10 @@ public class MessageOperate {
 				return REGISTOR;
 			case 'I':
 				return MYSELF;
+			case 'U':
+				return USER_DETAIL;
+			case 'G':
+				return GET_OTHER_USER_DETAIL;
 			default:
 				return ERROR;
 		}
@@ -134,6 +141,54 @@ public class MessageOperate {
 			pictureList = addPictureToList(pictureList, ac.getPicture());
 		}
 		return new Message(text, pictureList);
+	}
+
+	/**
+	 * 打包详细的个人信息给客户端
+	 * @param account 用户个人信息
+	 * @return 标准通信数据包
+	 */
+	public static Message packageUserDetail(Account account) {
+		String text = new String("U");
+		text += account.getId() + '\f' + account.getNikeName() + '\f' + account.getSignature() + '\f' +
+				account.getMobliePhone() + '\f' + account.getMail() + '\f' + account.getStage() + '\f' +
+				account.getOld() + '\f' + account.isMale() + '\f' + account.getHome() + '\f' + account.getOnline();
+		byte[] stream = account.getPicture().getPictureBytes();
+		return new Message(text, stream);
+	}
+
+	/**
+	 * 解析用户个人信息的数据包
+	 * @param msg 标准通信数据包
+	 * @return Account对象
+	 */
+	public static Account unpackageUserDetail(Message msg) {
+		String text = msg.getText().substring(1);
+		String[] item = text.split("\f");
+		byte[] stream = msg.getStream();
+		Picture picture = new Picture(stream);
+		byte stage1 = (byte) Integer.parseInt(item[5]);
+		int old1 = Integer.parseInt(item[6]);
+		boolean male = false;
+		if (item[7].equals("true"))
+			male = true;
+		boolean online = false;
+		if (item[9].equals("true"))
+			online = true;
+		Account account = new AccountBuilder(item[0], item[1], item[2])
+				.mobilePhone(item[3]).mail(item[4]).stage(stage1).old(old1).sex(male)
+				.home(item[8]).picture(picture).online(online).createAccount();
+		return account;
+	}
+
+	/**
+	 * 解析用户发来的用户详细个人消息请求
+	 * @param msg 标准通信数据报
+	 * @return 信封（包含接收人ID和发件人ID）
+	 */
+	public static Envelope unpackageUserDetailAsk(Message msg) {
+		String[] item = msg.getText().substring(1).split("\f");
+		return new Envelope(item[0], item[1], "");
 	}
 
 	/**
