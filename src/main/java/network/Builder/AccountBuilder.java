@@ -6,7 +6,7 @@ import network.commonClass.Picture;
 /**
  * 描述：AccounteBuilder
  * @author ZiQin
- * @version 1.0.0
+ * @version 1.0.1
  */
 public class AccountBuilder {
     /**
@@ -54,6 +54,20 @@ public class AccountBuilder {
      */
     protected String home;
 
+    public AccountBuilder() {
+        id = null;
+        name = new String();
+        online = false;
+        signature = new String();
+        picture = null;
+        stage = 0;
+        old = 0;
+        sex = false;
+        home = null;
+        mobliePhone = null;
+        mail = null;
+    }
+
     public AccountBuilder(String id, String name, String signature) {
         this.id = id;
         this.name = name;
@@ -62,6 +76,21 @@ public class AccountBuilder {
 
     public AccountBuilder online(boolean isOnline) {
         this.online = isOnline;
+        return this;
+    }
+
+    public AccountBuilder id(String id) {
+        this.id = id;
+        return this;
+    }
+
+    public AccountBuilder name(String name) {
+        this.name = name;
+        return this;
+    }
+
+    public AccountBuilder signature(String signature) {
+        this.signature = signature;
         return this;
     }
 
