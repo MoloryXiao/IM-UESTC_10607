@@ -6,8 +6,6 @@ import network.Builder.AccountBuilder;
  * 描述：Account类是用户信息的封装，继承AccountBase类
  * @author 土豆
  * @version 1.2.1
- * 【添加】clone 函数
- * @version 1.2.0
  */
 public class Account extends AccountBase{
 	/**
@@ -120,6 +118,24 @@ public class Account extends AccountBase{
 		home = null;
 		mobliePhone = null;
 		mail = null;
+	}
+
+	/**
+	 * 描述：构造函数
+	 * @param other
+	 */
+	public Account(Account other) {
+		id = other.getId();
+		name = other.getNikeName();
+		online = other.getOnline();
+		signature = other.getSignature();
+		picture = other.getPicture();
+		stage = other.getStage();
+		old = other.getOld();
+		sex = other.isMale();
+		home = other.getHome();
+		mobliePhone = other.getMobliePhone();
+		mail = other.getMail();
 	}
 
 	/**
@@ -319,7 +335,7 @@ public class Account extends AccountBase{
     public void setHome(String home) {
 	    this.home = home;
     }
-    
+
     public Account clone() {
     	return new AccountBuilder(this.getId(), this.getNikeName(), this.getSignature()).
 				mobilePhone(this.getMobliePhone()).mail(this.getMail()).stage(this.getStage()).

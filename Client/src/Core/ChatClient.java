@@ -1,9 +1,6 @@
 package Core;
 
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Timer;
@@ -51,7 +48,7 @@ public class ChatClient{
 	private HashMap<String, ChatWindow> hashMap_wind_friendChat;	// 聊天窗口组
 	private AccountInfoShowWindow wind_mineInfoWindow;				// 自身账户信息窗口
 		
-	private String lnotePath = "resource/lnote.data";	// 登陆信息文件
+	private String lnotePath = "./Client/resource/lnote.data";	// 登陆信息文件
 	private boolean flag_timer1 = false;				// 标记定时任务1 是否被启动过
 	private static String infoWindowMark;				// 信息窗口标记位
 	
