@@ -1,5 +1,6 @@
 package network.messageOperate;
 
+import network.Builder.GroupBuilder;
 import network.Builder.AccountBuilder;
 import network.NetworkForClient.ConvertTypeTool;
 import network.commonClass.*;
@@ -10,10 +11,6 @@ import java.util.ArrayList;
 /**
  * 标准通信协议处理类
  * @author ZiQin
- * @version v1.2.1
- * 【删除】原获取个人信息函数
- * 【修改】获取个人详细信息的头标记
- * 【修改】获取好友详细信息的函数名
  * @version V1.2.0
  */
 public class MessageOperate {
@@ -34,6 +31,10 @@ public class MessageOperate {
     public static final int MYSELF = 11;
     public static final int USER_DETAIL = 12;
     public static final int GET_OTHER_USER_DETAIL = 13;
+    public static final int ADD_GROUP = 14;         // 创建组
+    public static final int GET_GROUP_LIST = 15;    // 获取群组列表
+    public static final int CHANGE_GROUP = 16;      // 更改群组信息
+    public static final int UPDATE_GROUP = 17;      // 更新群信息
     public static final String OK = "ok";
     public static final String FALSE = "false";
 
@@ -68,6 +69,14 @@ public class MessageOperate {
                 return USER_DETAIL;
             case 'G':
                 return GET_OTHER_USER_DETAIL;
+            case 'Q':
+                return ADD_GROUP;
+            case 'P':
+                return GET_GROUP_LIST;
+            case 'E':
+                return CHANGE_GROUP;
+            case 'Y':
+                return UPDATE_GROUP;
             default:
                 return ERROR;
         }
@@ -147,9 +156,9 @@ public class MessageOperate {
      * 协议格式：I
      * @return 标准通信协议
      */
-//    public static Message packageAskMyselfInfoMsg() {
-//        return new Message(new String("I"), null);
-//    }
+    public static Message packageAskMyselfInfoMsg() {
+        return new Message(new String("I"), null);
+    }
 
     /**
      * 接受服务器发来的个人信息
@@ -171,7 +180,7 @@ public class MessageOperate {
         String text = new String("I");
         return new Message(text, null);
     }
-    
+
     public static Message packageUserDetail(Account account) {
         String text = new String("U");
         text += account.getId() + '\f' + account.getNikeName() + '\f' + account.getSignature() + '\f' +
@@ -433,12 +442,12 @@ public class MessageOperate {
     /**
      * 打包删除好友的信息
      * 协议格式：DtargetId sourceId
-     * @param target 目标ID
+     * @param targetId 目标ID
      * @param sourceID 发起人ID
      * @return 标准通信协议
      */
-    public static Message packageDelFriendMsg(String target, String sourceID) {
-        String text = new String("D" + target + " " + sourceID);
+    public static Message packageDelFriendMsg(String targetId, String sourceID) {
+        String text = new String("D" + targetId + " " + sourceID);
         return new Message(text, null);
     }
 
@@ -470,6 +479,108 @@ public class MessageOperate {
             }
         }
         return new Envelope(target, "", result);
+    }
+
+    /**
+     * 发送创建群组请求
+     * @param name 群名字
+     * @param description 群描述
+     * @return 标准通信协议包
+     */
+    public static Message packageAskCreateGroup(String sourceId, String name, String description) {
+        String text = new String("Q" + sourceId + '\f' + name + '\f' + description);
+        return new Message(text, null);
+    }
+
+    /**
+     * 解析服务器响应建群的数据报
+     * @param msg 标准通信协议数据报
+     * @return 群组对象
+     */
+    public static Group unpackageRequestCreateGroup(Message msg) {
+        String[] item = msg.getText().substring(1).split("\f");
+        return new GroupBuilder().id(item[0]).name(item[1]).
+                description(item[2]).message(item[3]).createGroup();
+    }
+
+    /**
+     * 打包向服务器请求群组列表
+     * @return 标准通信协议
+     */
+    public static Message packageAskGetGroupList() {
+        return new Message("P", null);
+    }
+
+    /**
+     * 解析服务器发送过来的群组列表数据报
+     * @param msg 标准通信协议
+     * @return 群组列表
+     */
+    public ArrayList<Group> unpackageGroupList(Message msg) {
+        String[] items = msg.getText().substring(1).split("\f");
+        int number = Integer.parseInt(items[0]);
+        ArrayList<Group> groups = new ArrayList<Group>();
+        for (int i = 1; i < number; i++) {
+            String[] item = items[i].split("\n");
+            Group group = new GroupBuilder().id(item[1]).name(item[2]).
+                    description(item[3]).createGroup();
+            groups.add(group);
+        }
+        return groups;
+    }
+
+    /**
+     * 打包修改群信息
+     * @param id 群ID
+     * @param name 更改的群名（不更改使用“”）
+     * @param description 更改的群描述（不更改使用“”）
+     * @return 标准通信协议包
+     */
+    public Message packageChangeGroupMsg(String id, String name, String description) {
+        String text = new String("E" + id + '\f' + name + '\f' + description);
+        return new Message(text, null);
+    }
+
+    /**
+     * 解析更改群消息结果消息报
+     * @param msg 标准通信协议报
+     * @return 群组对象
+     */
+    public Group unpackageRequestChangeGroup(Message msg) {
+        String[] item = msg.getText().substring(1).split("\f");
+        return new GroupBuilder().id(item[0]).name(item[1])
+                .description(item[2]).message(item[3]).createGroup();
+    }
+
+    /**
+     * 打包更新某个群列表成员的消息
+     * @param id 群ID
+     * @param name 群名称
+     * @param description 群描述
+     * @return 标准通信协议数据报
+     */
+    public Message packageUpdateGroup(String id, String name, String description) {
+        return new Message("Y", null);
+    }
+
+    /**
+     * 解析更新某个群的数据报
+     * @param msg 标准通信协议数据报
+     * @return 群组对象
+     */
+    public Group unpackageUpdateGroup(Message msg) {
+        String[] items = msg.getText().substring(1).split("\f");
+        int number = Integer.parseInt(items[0]);
+        String id = items[1];
+        String name = items[2];
+        String description = items[3];
+        ArrayList<Account> member = new ArrayList<Account>();
+        for (int i = 4; i < number; i++) {
+            String[] item = items[i].split("\n");
+            Account account = new AccountBuilder().id(item[0]).name(item[1]).createAccount();
+            member.add(account);
+        }
+        return new GroupBuilder().id(id).name(name).description(description).member(member).createGroup();
     }
 
     /**
