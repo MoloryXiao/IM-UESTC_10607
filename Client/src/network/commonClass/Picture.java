@@ -5,6 +5,7 @@ import javax.imageio.ImageIO;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
+import java.awt.RenderingHints;
 import java.awt.geom.Ellipse2D;
 import java.awt.image.BufferedImage;
 import java.io.*;
@@ -137,7 +138,7 @@ public class Picture {
     	        g2.setBackground(Color.WHITE);
     	        g2.fill(new Rectangle(bi2.getWidth(), bi2.getHeight()));
     	        g2.setClip(shape);
-    	        // 使用 setRenderingHint 设置抗锯齿
+    	        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_ON);// 使用 setRenderingHint 设置抗锯齿
     	        g2.drawImage(picture, 0, 0, null);
     	        g2.dispose();
     	        picture = bi2;
