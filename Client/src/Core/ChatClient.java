@@ -16,11 +16,15 @@ import network.NetworkForClient.NetworkForClient;
 import network.commonClass.Account;
 import network.commonClass.Envelope;
 import network.commonClass.Message;
-import network.commonClass.Picture;
 import network.messageOperate.MessageOperate;
 /**
  * 程序入口 聊天软件客户端
  * @author Murrey LeeKadima
+ * @version 2.2
+ * 【添加】创建个人信息窗口、好友信息窗口、个人信息修改窗口的处理函数
+ * 【添加】服务器反馈的个人信息、好友信息的处理函数
+ * 【修改】获取的个人信息函数(更改为详细版)
+ * 【添加】函数记录将要创建信息窗口的好友ID
  * @version 2.1
  * 【添加】在管理好友中，添加和删除好友
  * @version 2.0
@@ -29,8 +33,8 @@ import network.messageOperate.MessageOperate;
  * Inital.
  */
 public class ChatClient{
-//	private final String host_name = "39.108.95.130";	// server location
-	private final String host_name = "192.168.1.103";	// local area for test
+	private final String host_name = "39.108.95.130";	// server location
+//	private final String host_name = "192.168.1.103";	// local area for test
 //	private final String host_name = "127.0.0.1";
 	private final int contact_port = 9090;
 	
@@ -42,40 +46,19 @@ public class ChatClient{
 	private EnvelopeRepertory repertory_envelope;
 	
 	private LoginWindow wind_login;				// 登陆窗口
-private static FriendsListWindow wind_friendsList;	// 好友列表
+	private FriendsListWindow wind_friendsList;	// 好友列表
 	private AddFriendWindow wind_addfriend;		// 添加好友窗口
 	private HashMap<String, ChatWindow> hashMap_wind_friendChat;	// 聊天窗口组
+	private AccountInfoShowWindow wind_mineInfoWindow;				// 自身账户信息窗口
 		
 	private String lnotePath = "resource/lnote.data";	// 登陆信息文件
 	private boolean flag_timer1 = false;				// 标记定时任务1 是否被启动过
+	private static String infoWindowMark;				// 信息窗口标记位
 	
 	public static void main(String []args){
 		setPlugin(true);
-		//test();	
 		ChatClient cc = new ChatClient();
 		cc.start();
-	}
-	static void test() {
-		wind_friendsList = new FriendsListWindow();
-		String id = "122392319";
-        String name = "MurreyXiao";
-        String mobliePhone = "15815166915";
-        String mail = "122392319@qq.com";
-        byte stage = 1;
-        int old = 15;
-        boolean sex = true;
-        String home = "广东汕头";
-        String signature = "123木头人！";
-        boolean isOnline = true;
-		Picture picture = null;
-		try {
-			picture = new Picture("image/p70_piano.jpg");
-		} catch (IOException e) {
-			System.out.println("没有照片");
-			e.printStackTrace();
-		}
-		Account account = new Account(id,name,mobliePhone,mail,stage,old,sex,home,signature,isOnline,picture);
-		wind_friendsList.updateMineInfo(account);
 	}
 	/**
 	 * 使能 BeautyEye-Swing 皮肤包
@@ -137,10 +120,14 @@ private static FriendsListWindow wind_friendsList;	// 好友列表
 					break;
 					
 				case WindowProducer.INFO_MINE_WIND:			// 创建个人信息窗口
-					createInfoMineWindow();
+					createMineInfoWindow();
 					break;
-				
-				case WindowProducer.INFO_MODIFY_WIND:
+					
+				case WindowProducer.INFO_FRIEND_WIND:		// 创建好友信息窗口
+					createFriendInfoWindow();
+					break;
+					
+				case WindowProducer.INFO_MODIFY_WIND:		// 创建修改信息窗口
 					createInfoModifyWindow();
 					break;
 					
@@ -162,20 +149,27 @@ private static FriendsListWindow wind_friendsList;	// 好友列表
 				case MessageOperate.LOGIN:			// 处理服务器反馈的登陆验证
 					gainLoginResult(str_newMessage);
 					break;
-					
+
 				case MessageOperate.MYSELF:			// 处理服务器反馈的个人信息
 					gainMineAccInfo(str_newMessage);
+					break;
+					
+				case MessageOperate.GET_OTHER_USER_DETAIL:	// 处理服务器反馈的好友账户信息
+					gainFriendAccInfo(str_newMessage);
 					break;
 					
 				case MessageOperate.FRIENDLIST:		// 处理服务器反馈的好友列表
 					gainFriendslistInfo(str_newMessage);
 					break;
+					
 				case MessageOperate.CHAT:			// 处理服务器转发的聊天内容
 					gainChatEnvelope(str_newMessage);
 					break;
+					
 				case MessageOperate.SEARCH:			// 处理服务器反馈的搜索好友结果
 					gainSearchFriendInfo(str_newMessage);
 					break;
+					
 				case MessageOperate.ADDFRIEND:		// 处理好友的添加请求
 					gainAddFriendRequest(str_newMessage);
 					break;
@@ -217,6 +211,9 @@ private static FriendsListWindow wind_friendsList;	// 好友列表
 			hashMap_wind_friendChat.put(friend_ID,chatWind);
 			System.out.println("ChatInfo: open the chating window with " + 
 					account_chatFriend.getNikeName());
+
+			RecvSendController.addToSendQueue(MessageOperate.packageAskOtherUserDetail
+					(friend_ID,wind_friendsList.getMineAccount().getId()));	// 请求好友详细信息
 			
 			// 检查是否有未读消息
 			if(EnvelopeRepertory.isContainsKey(friend_ID)) {
@@ -236,16 +233,26 @@ private static FriendsListWindow wind_friendsList;	// 好友列表
 	/**
 	 * 创建个人信息窗口
 	 */
-	private void createInfoMineWindow() {
+	private void createMineInfoWindow() {
 		boolean isModification = true;
-		new AccountInfoShowWindow(this.wind_friendsList.getMineAccount(),isModification);
+		wind_mineInfoWindow = new AccountInfoShowWindow(this.wind_friendsList.getMineAccount(),isModification);
+	}
+	
+	/**
+	 * 创建好友信息窗口
+	 */
+	private void createFriendInfoWindow() {
+		boolean isModification = false;
+		// 根据事先做好的标记 找到需要显示的好友的信息窗口
+		new AccountInfoShowWindow(hashMap_wind_friendChat.get(this.getFriendInfoMark()).
+				getFriendAccountInfo(),isModification);
 	}
 	
 	/**
 	 * 创建信息修改窗口
 	 */
 	private void createInfoModifyWindow() {
-		new InfoModificationWindow(this.wind_friendsList.getMineAccount());
+		new InfoModificationWindow(wind_mineInfoWindow,this.wind_friendsList.getMineAccount());
 	}
 	
 	/**
@@ -275,11 +282,22 @@ private static FriendsListWindow wind_friendsList;	// 好友列表
 	 */
 	private void gainMineAccInfo(Message message) {
 		Account account_mine = new Account();
-		account_mine = MessageOperate.unpackMyselfInfoMsg(message);
+		account_mine = MessageOperate.unpackageUserDetail(message);
 		
-		printMineAccountInfo(account_mine);
+//		printMineAccountInfo(account_mine);
 		wind_friendsList.updateMineInfo(account_mine);
-		System.out.println("LoginInfo: obtaining the personal account from server... - OK");
+		System.out.println("Info: obtaining the personal account from server... - OK");
+	}
+	
+	/**
+	 * 根据服务器反馈的消息 获取【好友账户信息】并更新到好友账户信息窗口中
+	 */
+	private void gainFriendAccInfo(Message message) {
+		Account account_friend = new Account();
+		account_friend = MessageOperate.unpackageUserDetail(message);
+		
+		hashMap_wind_friendChat.get(account_friend.getId()).setFriendAccountInfo(account_friend);	// 设置好友的详细账号信息
+		System.out.println("Info: obtaining the friend account from server... - OK");
 	}
 	
 	/**
@@ -456,6 +474,17 @@ private static FriendsListWindow wind_friendsList;	// 好友列表
 				e.printStackTrace();
 			}
 		}
+	}
+	
+	/**
+	 * 用于标识需要创建的好友信息窗口
+	 * @param id 好友的ID值
+	 */
+	public static void setFriendInfoMark(String id) {
+		infoWindowMark = id;
+	}
+	public String getFriendInfoMark() {
+		return infoWindowMark;
 	}
 	
 	/**

@@ -1,12 +1,19 @@
 package network.commonClass;
 
 import javax.imageio.ImageIO;
+
+import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
+import java.awt.geom.Ellipse2D;
 import java.awt.image.BufferedImage;
 import java.io.*;
 
 /**
  * 图片操作类
  * @author ZiQin
+ * @version v1.1.0
+ * 【添加】图片切圆功能
  * @version v1.0.0
  */
 public class Picture {
@@ -116,6 +123,25 @@ public class Picture {
         newPicture.getGraphics().drawImage(picture, 0, 0, width / ratio, height / ratio, null);
         picture = newPicture;
         pictureSize = picture2Bytes(newPicture, "jpg").length;
+    }
+    
+    /**
+     * 将图片剪裁成圆形的
+     */
+    public void reduceImageToCircle() {
+    	// BufferedImage bi1 = ImageIO.read(new File("image/02.png"));	// 通过文件名打开文件
+    	        BufferedImage bi2 = new BufferedImage(picture.getWidth(), 
+    	        			picture.getHeight(),BufferedImage.TYPE_INT_RGB);// 根据需要是否使用 BufferedImage.TYPE_INT_ARGB
+    	        Ellipse2D.Double shape = new Ellipse2D.Double(0, 0, picture.getWidth(), picture.getHeight());
+    	        Graphics2D g2 = bi2.createGraphics();
+    	        g2.setBackground(Color.WHITE);
+    	        g2.fill(new Rectangle(bi2.getWidth(), bi2.getHeight()));
+    	        g2.setClip(shape);
+    	        // 使用 setRenderingHint 设置抗锯齿
+    	        g2.drawImage(picture, 0, 0, null);
+    	        g2.dispose();
+    	        picture = bi2;
+    	        pictureSize = this.picture2Bytes(bi2, "jpg").length;
     }
 
     /**

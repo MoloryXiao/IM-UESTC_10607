@@ -14,10 +14,16 @@ import javax.swing.*;
 
 import network.commonClass.Account;
 import network.commonClass.Envelope;
+import network.commonClass.Picture;
 import network.messageOperate.MessageOperate;
 /**
  * 好友列表窗口
  * @author Murrey
+ * @version 3.2
+ * 【修改】请求个人信息的函数
+ * 【注销】群组和其他选项卡
+ * 【优化】更新个人信息的函数
+ * 【优化】显示头像时读取的图片内容
  * @version 3.1
  * 【优化】个人信息的显示样式
  * @version 3.0
@@ -66,7 +72,10 @@ public class FriendsListWindow extends JFrame{
 		this.setAlwaysOnTop(true);	// 是否置顶
 		this.setVisible(true);		// 是否可视化
 		
-		RecvSendController.addToSendQueue(MessageOperate.packageAskMyselfInfoMsg()); // 请求个人信息
+//		RecvSendController.addToSendQueue(MessageOperate.packageAskMyselfInfoMsg()); // 请求个人信息
+		
+		RecvSendController.addToSendQueue(MessageOperate.packageAskUserDetail());	// 请求个人信息
+				
 		RecvSendController.addToSendQueue(MessageOperate.packageAskFriendListMsg()); // 请求好友列表
 	}
 	
@@ -80,7 +89,7 @@ public class FriendsListWindow extends JFrame{
 		panel_top.setPreferredSize(new Dimension(i_window_height,90));
 		
 		label_head_image = new JLabel();	// 头像图标
-		label_head_image.setIcon((new ImageIcon("image/p70_piano.jpg")));
+		//label_head_image.setIcon((new ImageIcon("image/p70_piano.jpg"))); for debugging/old version.
 		label_head_image.setToolTipText("123木头人");
 		label_head_image.setBounds(10, 10, 70, 70);
 		label_head_image.setCursor(new Cursor(Cursor.HAND_CURSOR));
@@ -147,8 +156,8 @@ public class FriendsListWindow extends JFrame{
 		/* Panel面板添加 */
 		panel_middle.add(tabbed_pane);
 		tabbed_pane.add("好友",panel_middle_friends);
-		tabbed_pane.add("群组",panel_middle_groups);
-		tabbed_pane.add("其他",panel_middle_else);
+		//tabbed_pane.add("群组",panel_middle_groups);
+		//tabbed_pane.add("其他",panel_middle_else);
 		panel_middle_friends.add(scroll_friends_list);
 		
 		/* 添加到容器  */
@@ -254,23 +263,20 @@ public class FriendsListWindow extends JFrame{
 	 * 更新用户信息-成员属性
 	 * @param myselfAccount 用户信息
 	 */
-	public void updateMineInfo(Account myselfAccount) {
-		this.account_mine = new Account(myselfAccount.getId(),myselfAccount.getNikeName(),
-				myselfAccount.getMobliePhone(),myselfAccount.getMail(),myselfAccount.getStage(),
-				myselfAccount.getOld(),myselfAccount.isMale(),myselfAccount.getHome(),
-				myselfAccount.getSignature(),myselfAccount.getOnline(),myselfAccount.getPicture());
-		
-//		this.account_mine = new Account(myselfAccount.getId(),myselfAccount.getNikeName(),
-//				myselfAccount.getOnline(),myselfAccount.getSignature());		
+	public void updateMineInfo(Account myselfAccount) {		
+		this.account_mine = myselfAccount.clone();
 		
 		/* 对窗口相关标签进行更新 */
 		label_name.setText("昵称："+this.account_mine.getNikeName());	// 昵称
 		label_sign.setText("个性签名："+this.account_mine.getSignature());	// 个性签名
-		// 头像
+		Picture temp_pic = new Picture();
+		temp_pic = this.account_mine.getPicture().clone();
+		temp_pic.reduceImage(70, 70);
+		temp_pic.reduceImageToCircle();
+		label_head_image.setIcon(new ImageIcon(temp_pic.getPictureBytes()));
 		
 		label_name.setToolTipText("昵称："+this.account_mine.getNikeName());
 		label_sign.setToolTipText("个性签名："+this.account_mine.getSignature());
-
 	}
 	
 	/**

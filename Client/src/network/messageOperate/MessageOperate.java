@@ -10,6 +10,10 @@ import java.util.ArrayList;
 /**
  * 标准通信协议处理类
  * @author ZiQin
+ * @version v1.2.1
+ * 【删除】原获取个人信息函数
+ * 【修改】获取个人详细信息的头标记
+ * 【修改】获取好友详细信息的函数名
  * @version V1.2.0
  */
 public class MessageOperate {
@@ -143,9 +147,9 @@ public class MessageOperate {
      * 协议格式：I
      * @return 标准通信协议
      */
-    public static Message packageAskMyselfInfoMsg() {
-        return new Message(new String("I"), null);
-    }
+//    public static Message packageAskMyselfInfoMsg() {
+//        return new Message(new String("I"), null);
+//    }
 
     /**
      * 接受服务器发来的个人信息
@@ -163,6 +167,11 @@ public class MessageOperate {
      * @param account 用户个人信息
      * @return 标准通信数据包
      */
+    public static Message packageAskUserDetail() {
+        String text = new String("I");
+        return new Message(text, null);
+    }
+    
     public static Message packageUserDetail(Account account) {
         String text = new String("U");
         text += account.getId() + '\f' + account.getNikeName() + '\f' + account.getSignature() + '\f' +
@@ -177,7 +186,7 @@ public class MessageOperate {
      * @param targetId 希望获取的用户ID
      * @return 标准通信数据报
      */
-    public static Message packageUserDetailAsk(String targetId, String sourceId) {
+    public static Message packageAskOtherUserDetail(String targetId, String sourceId) {
         return new Message("G" + targetId + '\f' + sourceId, null);
     }
 
@@ -239,7 +248,8 @@ public class MessageOperate {
             if (friendInfo[2].equals("true")) {
                 isOnline = true;
             }
-            Picture picture = getOnePicture(stream);
+//            Picture picture = getOnePicture(stream);	// for future
+            Picture picture = null;						// for now
             Account account = new Account(friendInfo[0], friendInfo[1], isOnline, friendInfo[3], picture);
             list.add(account);
         }
