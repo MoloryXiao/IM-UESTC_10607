@@ -135,7 +135,7 @@ public class Server {
 	}
 	
 	public static void main( String[] args ) {
-		
+
 		LoggerProvider.logger.info("=================== IM-Server Version 0.7.0 ===================");
 		
 		if (!FileOperator.buildRuntimeEnv()) {
