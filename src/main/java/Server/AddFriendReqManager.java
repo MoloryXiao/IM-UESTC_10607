@@ -28,7 +28,6 @@ public class AddFriendReqManager {
 	
 	public static boolean delAddFriendReq( String targetId, String sourceId ) {
 		
-		return delAddFriendReq(targetId + sourceId + "true")
-				       && delAddFriendReq(targetId + sourceId + "false");
+		return delAddFriendReq(targetId + sourceId);
 	}
 }

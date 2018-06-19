@@ -22,6 +22,8 @@ public class Message {
     public static final int BACKADD = 9;
     public static final int REGISTOR = 10;
     public static final int MYSELF = 11;
+	public static final int USER_DETAIL = 12;
+	public static final int GET_OTHER_USER_DETAIL = 13;
 
     /**
      * 数据包类型
@@ -112,6 +114,10 @@ public class Message {
                 return REGISTOR;
             case 'I':
                 return MYSELF;
+	        case 'U':
+		        return USER_DETAIL;
+	        case 'G':
+		        return GET_OTHER_USER_DETAIL;
             default:
                 return ERROR;
         }

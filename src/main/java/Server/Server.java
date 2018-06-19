@@ -1,7 +1,10 @@
 package Server;
 
 import Server.Database.DatabaseConnector;
+import Server.Group.Group;
+import Server.Group.GroupManager;
 import Server.util.AdminUtil;
+import Server.util.FileOperator;
 import Server.util.LoggerProvider;
 import network.commonClass.Message;
 import network.networkDataPacketOperate.MessageOperate;
@@ -10,6 +13,7 @@ import java.io.IOException;
 import java.net.Socket;
 import java.util.Hashtable;
 import java.util.Map;
+import java.util.Vector;
 
 public class Server {
 	
@@ -67,7 +71,8 @@ public class Server {
 	 */
 	public static boolean isUserOnline( String id ) {
 		
-		return singleClientThreadDb.containsKey(id);
+		return singleClientThreadDb.containsKey(id)
+				       && singleClientThreadDb.get(id).isAccountOffline();
 		
 	}
 	
@@ -80,6 +85,7 @@ public class Server {
 	}
 	
 	public static void sendToAll() {
+	
 	
 	}
 	
@@ -109,27 +115,39 @@ public class Server {
 	 *
 	 * @param message 待转发的群消息
 	 */
-	public static void sendToGroup( String message ) {
+	public static void sendToGroup( Message message ) {
 		
-		// TODO
+		String targetGroupId = MessageOperate.unpackEnvelope(message).getTargetAccountId();
 		
-		// String targetGroupId = MessageOperate.unpackEnvelope(message).getTargetAccountId();
+		Vector<String> groupMembers = GroupManager.getGroupInfo(targetGroupId).getGroupMembers();
 		
-		// GroupManager.getMember();
-		// for(string memberId : members){
-		//      singleClient
+		for (String groupMember : groupMembers) {
+			
+			if (isUserOnline(groupMember))
+				singleClientThreadDb.get(groupMember).putMsgToSendQueue(message);
+			else {
+			
+			}
+			
+			
+		}
 		
-	
 	}
 	
 	public static void main( String[] args ) {
 		
 		LoggerProvider.logger.info("=================== IM-Server Version 0.7.0 ===================");
 		
+		if (!FileOperator.buildRuntimeEnv()) {
+			LoggerProvider.logger.error("[ ERROR ] 无法保证运行文件环境！正在退出……");
+			LoggerProvider.logger.info("=========================== goodbye! ===========================");
+			System.exit(0);
+		}
+		
 		if (!DatabaseConnector.setupDatabase()) {
 			LoggerProvider.logger.error("[ ERROR ] 无法启动服务器！正在退出……");
 			LoggerProvider.logger.info("=========================== goodbye! ===========================");
-			System.exit(0);
+			System.exit(1);
 		}
 		
 		// 启动服务器并开始监听端口:'9090'

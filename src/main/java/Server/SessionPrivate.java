@@ -4,7 +4,7 @@ import network.commonClass.Message;
 
 import java.util.Vector;
 
-class PrivateSession {
+class SessionPrivate {
 	
 	private String idA;
 	private String idB;
@@ -14,7 +14,7 @@ class PrivateSession {
 	private int chatCursorA;    // 已读位置
 	private int chatCursorB;
 	
-	PrivateSession( String idA, String idB ) {
+	SessionPrivate( String idA, String idB ) {
 		
 		this.idA = idA;
 		this.idB = idB;
@@ -81,7 +81,7 @@ class PrivateSession {
 		
 	}
 	
-	public void addToChatMsg( Message msg ) {
+	public void addToChatMsgList( Message msg ) {
 		
 		chatMsgList.add(msg);
 	}

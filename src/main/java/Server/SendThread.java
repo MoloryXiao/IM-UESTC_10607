@@ -45,8 +45,8 @@ public class SendThread extends Thread {
 			
 			try {
 //				    //************************************************
-//					String msg = singleClientThread.getMsgFromSendQueue();
-//					System.out.println("send  to  " + userId + ": " + msg);
+//					Message msg = singleClientThread.getMsgFromSendQueue();
+//					System.out.println("send  to  " + userId + ": " + msg.getText());
 //					System.out.flush();
 //					client.sendToClient(msg);
 //				    //************************************************

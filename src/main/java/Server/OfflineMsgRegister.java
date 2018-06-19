@@ -3,15 +3,12 @@ package Server;
 import java.util.HashSet;
 import java.util.Hashtable;
 
-public class OfflineMsg {
+public class OfflineMsgRegister {
 	
 	/* ==================================== [ Chat Msg ] ==================================== */
 	
-	// 记录对于某一个用户("key")，有多少好友("key value")给其发送了离线消息
-	private static Hashtable<String, HashSet<String>> offlineChatMsgStatus
-			= new Hashtable<String, HashSet<String>>();
-	private static Hashtable<String, HashSet<String>> offlineReqMsgStatus
-			= new Hashtable<String, HashSet<String>>();
+	// 记录对于某一个用户("key")，有哪些好友("key value")给其发送了离线消息
+	private static Hashtable<String, HashSet<String>> offlineChatMsgStatus = new Hashtable<String, HashSet<String>>();
 	
 	/**
 	 * 判断是否有离线聊天消息
@@ -30,6 +27,14 @@ public class OfflineMsg {
 		return result;
 	}
 	
+	private static Hashtable<String, HashSet<String>> offlineReqMsgStatus = new Hashtable<String, HashSet<String>>();
+	
+	/**
+	 * 记录有ID为<bold>sourceId</bold>的用户给ID为<bold>targetId</bold>的用户发送了离线聊天消息
+	 *
+	 * @param targetId 离线消息接受者id
+	 * @param sourceId 离线消息发送者id
+	 */
 	public static void putOfflineChatMsg( String targetId, String sourceId ) {
 
 //		HashSet<String> status = offlineChatMsgStatus.get(targetId);
@@ -37,6 +42,7 @@ public class OfflineMsg {
 //			status = new HashSet<String>();
 //			offlineChatMsgStatus.put(targetId, status);
 //		}
+		
 		// 若尚没有建立发给targetId的记录信息，则建立之
 		HashSet<String> status = offlineChatMsgStatus.computeIfAbsent(targetId, k -> new HashSet<String>());
 		// 记录某一好友给targetID用户发送过消息
@@ -50,6 +56,12 @@ public class OfflineMsg {
 	
 	/* ==================================== [ Req  Msg ] ==================================== */
 	
+	/**
+	 * 获取给id为<bold>targetId</bold>的用户发送了离线消息的用户列表
+	 *
+	 * @param targetId 离线消息接受者id
+	 * @return 所有给targetId用户发送了离线消息的用户列表
+	 */
 	public static HashSet<String> getChatMsgSourceIds( String targetId ) {
 		
 		return offlineChatMsgStatus.get(targetId);
@@ -61,7 +73,7 @@ public class OfflineMsg {
 	 * @param targetId 离线消息接收者id
 	 * @return 是否有未收离线请求类消息
 	 */
-	public static boolean isAnyOfflineRqeMsg( String targetId ) {
+	public static boolean isAnyOfflineReqMsg( String targetId ) {
 		
 		boolean result = false;
 		
@@ -78,9 +90,15 @@ public class OfflineMsg {
 		status.add(sourceId);
 	}
 	
-	public static HashSet<String> getReqMegSourceIds( String targetId ) {
+	public static HashSet<String> getReqMsgSourceIds( String targetId ) {
 		
 		return offlineReqMsgStatus.get(targetId);
+	}
+	
+	public static void removeOfflineReqMsg( String targetId, String sourceId ) {
+		
+		if (offlineReqMsgStatus.containsKey(targetId))
+			offlineReqMsgStatus.get(targetId).remove(sourceId);
 	}
 	
 }

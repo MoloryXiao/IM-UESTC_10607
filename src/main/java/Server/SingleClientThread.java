@@ -33,9 +33,19 @@ public class SingleClientThread extends Thread {
 		return account.getId();
 	}
 	
+	public void setAccountOnline() {
+		
+		account.setOnline(true);
+	}
+	
 	public void setAccountOffline() {
 		
 		account.setOnline(false);
+	}
+	
+	public boolean isAccountOffline() {
+		
+		return account.getOnline();
 	}
 	
 	/**
@@ -53,6 +63,7 @@ public class SingleClientThread extends Thread {
 		heartbeat = HEARTBEAT_MAX;
 	}
 	
+	
 	/*======================================= related to RecvThread =======================================*/
 	
 	private RecvThread recvThread;
@@ -63,16 +74,33 @@ public class SingleClientThread extends Thread {
 		return recvQueue.isEmpty();
 	}
 	
+	/**
+	 * 将一条消息报放入接受对列
+	 *
+	 * @param message 需要放入消息队列的一条消息报
+	 */
+	public void putMsgToRecvQueue( Message message ) {
+		
+		recvQueue.add(message);
+	}
+	
+	/**
+	 * 从消息队列中取一条消息，延迟5秒，若无消息则超时返回
+	 *
+	 * @return 接受队列中的一条消息
+	 * @throws InterruptedException 超时中断
+	 */
 	public Message getMsgFromRecvQueue() throws InterruptedException {
 		
 		return recvQueue.poll(5, TimeUnit.SECONDS);    // 阻塞取
 	}
 	
-	private void resetHeartbeat() {
-		
-		heartbeat = HEARTBEAT_MAX;
-	}
-	
+	/**
+	 * 用户下线，接受队列中还有消息为被处理，调用该函数获取
+	 * 添加好友请求、添加好友反馈、删除好友、聊天，这几种类型的消息
+	 *
+	 * @return Message 接受队列中一条需要处理的离线消息
+	 */
 	public Message getMsgFromRecvQueueOffline() {
 		
 		Message notReqMsg;
@@ -92,6 +120,7 @@ label:
 		return notReqMsg;
 		
 	}
+	
 	
 	
 	/*======================================= related to sendThread =======================================*/
@@ -118,9 +147,10 @@ label:
 	
 	/*====================================== related to SingleClientThread ======================================*/
 	
-	public void putMsgToRecvQueue( Message message ) {
+	
+	private void resetHeartbeat() {
 		
-		recvQueue.add(message);
+		heartbeat = HEARTBEAT_MAX;
 	}
 	
 	/**
@@ -130,7 +160,7 @@ label:
 		
 		putMsgToSendQueue(
 				MessageOperate.packageFriendList(
-						DatabaseOperator.getFriendListFromDb(
+						DatabaseOperator.getFriendsList(
 								account.getId())));
 		
 	}
@@ -144,16 +174,35 @@ label:
 	private void disposeMyselfInfoReq( Message msg ) {
 		
 		if (msg.getText().length() > 1) {
-			// 修改个人信息
-			// TODO 从msg中取出用户修改后的信息 DatabaseOperator.modifyMyInfo(account);
+			// 修改个人信息，从msg中取出用户修改后的信息 DatabaseOperator.modifyMyInfo(account);
+			if (DatabaseOperator.modifyMyInfo(MessageOperate.unpackageUserDetail(msg))) {
+				account = MessageOperate.unpackageUserDetail(msg);
+			} else {
+				// TODO 修改个人信息失败
+			}
 			
 		} else {
 			// 请求个人信息
-			putMsgToSendQueue(MessageOperate.packageUserInfo(account));
-			
+			// @弃用 putMsgToSendQueue(MessageOperate.packageUserInfo(account));
+			putMsgToSendQueue(MessageOperate.packageUserDetail(account));
 		}
 		
 	}
+	
+	/**
+	 * 将客户端发来的查询好友信息请求的结果加入发送队列
+	 *
+	 * @param msg 好友信息请求数据包
+	 */
+	private void disposeFriendInfoReq( Message msg ) {
+		
+		putMsgToSendQueue(
+				MessageOperate.packageOtherUserDetail(
+						DatabaseOperator.getUserDetailsById(
+								MessageOperate.unpackageOtherUserDetailAsk(msg).getTargetAccountId())));
+		
+	}
+	
 	
 	/**
 	 * 2018/04/29 10:39
@@ -163,7 +212,7 @@ label:
 	 * @param msg 添加好友请求数据报
 	 */
 	private void disposeAddFriendReq( Message msg ) {
-
+		
 		Envelope envelope = MessageOperate.unpackEnvelope(msg);
 		String targetId = envelope.getTargetAccountId();
 		String sourceId = envelope.getSourceAccountId();
@@ -178,15 +227,15 @@ label:
 		
 		/*=================================================================================================*/
 		
-		// A给B发送好友请求，记录一次申请
-		if (!AddFriendReqManager.regAddFriendReq(targetId + sourceId + "false")) // 保存收到添加请求且未转发状态
+		/* A给B发送好友请求，记录一次申请 */
+		if (!AddFriendReqManager.regAddFriendReq(targetId + sourceId))
 			return; // 防止重复保存
 		
-		// 如果不是好友则转发添加好友请求
-		if (Server.sendToOne(msg))
-			AddFriendReqManager.regAddFriendReq(targetId + sourceId + "true");  // 保存收到好友添加请求且已转发状态
-		else
-			OfflineMsg.putOfflineReqMsg(targetId, sourceId);
+		/* 转发添加好友请求 */
+		Server.sendToOne(msg);
+		
+		// 保存未处理的好友请求，在用户上线时推送给该用户
+		OfflineMsgRegister.putOfflineReqMsg(targetId, sourceId);
 		
 		/*++++++++++++++++++++++-------------------+++++++++++++++++-------------------+++++++++++++++++-----*/
 		
@@ -198,9 +247,9 @@ label:
 	 * @param msg 添加好友反馈数据报
 	 */
 	private void disposeAddFriendFeedback( Message msg ) {
-
+		
 		Envelope envelope = MessageOperate.unpackAddFriendFeedbackMsg(msg);
-
+		
 		String targetId = envelope.getTargetAccountId();
 		String sourceId = envelope.getSourceAccountId();
 		
@@ -210,18 +259,21 @@ label:
 		
 		if (envelope.getText().equals("true")) { // 被加好友同意添加申请
 			
-			if (!DatabaseOperator.addFriend(targetId, sourceId)) {    // 在数据库中添加好友关系失败，则给双方都发送失败反馈
+			if (!DatabaseOperator.addFriend(targetId, sourceId)) { // 在数据库中添加好友关系失败，则给双方都发送失败反馈
 				
 				LoggerProvider.logger.error("[ ERROR ] 在数据库中加入好友失败！好友关系："
 						                            + targetId + " and " + sourceId);
-
+				
 				msg = MessageOperate.packageAddFriendFeedbackMsg(
 						new Envelope(targetId, sourceId, "false"));
-
+				
 				putMsgToSendQueue(msg); // 给好友添加请求接受者发送反馈
 			}
 		}
-		Server.sendToOne(msg);  // 给好友添加请求发起者发送反馈
+		
+		OfflineMsgRegister.removeOfflineReqMsg(sourceId, targetId); // 该好友请求已处理，删除该记录
+		
+		Server.sendToOne(msg);  // 给好友添加请求发起者转发该反馈
 	}
 	
 	/**
@@ -231,11 +283,11 @@ label:
 	 */
 	private void disposeDeleteReq( Message msg ) {
 		
-		System.out.println(msg);
-
 		Envelope envelope = MessageOperate.unpackDelFriendMsg(msg);
 		
-		DatabaseOperator.delFriend(envelope.getSourceAccountId(), envelope.getTargetAccountId());
+		if (DatabaseOperator.delFriend(envelope.getSourceAccountId(), envelope.getTargetAccountId())) {
+			// TODO 删除好友成功
+		}
 	}
 	
 	/**
@@ -266,20 +318,33 @@ label:
 		String targetId = envelope.getTargetAccountId();
 		String sourceId = envelope.getSourceAccountId();
 		
-		PrivateSession privateSession = ChatHistoryStore.getPrivateSession(targetId, sourceId);
-		
-		privateSession.addToChatMsg(msg);
-		
-		if (Server.sendToOne(msg)) {
+		if (targetId.charAt(0) == 'g') {
+			/*  *** 群聊消息 ***  */
+			SessionGroup groupSession = SessionStore.getGroupSession(targetId.substring(1));
 			
-			privateSession.updateBothChatCursor();
+			groupSession.addToChatMsgList(msg);
+			
+			Server.sendToGroup(msg);
 			
 		} else {
-
-			privateSession.updateChatCursor(sourceId);
-			OfflineMsg.putOfflineChatMsg(targetId, sourceId);
+			/* *** 私聊消息 *** */
+			SessionPrivate privateSession = SessionStore.getPrivateSession(targetId, sourceId);
+			
+			privateSession.addToChatMsgList(msg);
+			
+			if (Server.sendToOne(msg)) {
+				
+				privateSession.updateBothChatCursor();
+				
+			} else {
+				
+				privateSession.updateChatCursor(sourceId);
+				OfflineMsgRegister.putOfflineChatMsg(targetId, sourceId);
+				
+			}
 			
 		}
+		
 		
 	}
 	
@@ -326,7 +391,7 @@ label:
 		}
 		
 		// 在数据库中查询登陆信息，查询成功返回用户account信息，否则返回null
-		account = DatabaseOperator.isLoginInfoCorrect(loginInfo);
+		account = DatabaseOperator.getUserDetailsByLoginInfo(loginInfo);
 		
 		if (account != null) { // 登录信息与数据库中比对成功
 			
@@ -375,37 +440,33 @@ label:
 		
 		String targetId = account.getId();
 		
-		if (OfflineMsg.isAnyOfflineRqeMsg(targetId)) {  // 是否有发给该用户的离线消息
+		/* *** 是否有发给该用户的离线请求类消息 *** */
+		if (OfflineMsgRegister.isAnyOfflineReqMsg(targetId)) {
 			
-			HashSet<String> sourceIds = OfflineMsg.getReqMegSourceIds(targetId); // 获取发给该用户离线请求的用户列表
+			HashSet<String> sourceIds = OfflineMsgRegister.getReqMsgSourceIds(targetId); // 获取发给该用户离线请求的用户列表
 			Iterator<String> it = sourceIds.iterator();
 			while (it.hasNext()) {
 				
 				String sourceId = it.next();
-				// 判断该好友请求是否为离线好友请求
-				if (AddFriendReqManager.isAddReqContain(targetId + sourceId + "false")
-						    && !AddFriendReqManager.isAddReqContain(targetId + sourceId + "true")) {
-					// 是，则发送给用户
-					putMsgToSendQueue(
-							MessageOperate.packageAddFriendMsg(
-									new Envelope(targetId, sourceId, "")));
-				}
-				it.remove();
+				putMsgToSendQueue(
+						MessageOperate.packageAddFriendMsg(
+								new Envelope(targetId, sourceId, "")));
 				
 			}
-			if (sourceIds.isEmpty()) {
+			if (!it.hasNext()) {
 				LoggerProvider.logger.info("[  O K  ] 用户ID：" + targetId + " 离线请求类消息已全部发送！");
 			}
 			
 		}
 		
-		if (OfflineMsg.isAnyOfflineChatMsg(targetId)) {    // 是否有离线聊天消息，没有返回
+		/* *** 是否有离线聊天消息，没有返回 *** */
+		if (OfflineMsgRegister.isAnyOfflineChatMsg(targetId)) {
 			
-			HashSet<String> sourceIds = OfflineMsg.getChatMsgSourceIds(targetId);
+			HashSet<String> sourceIds = OfflineMsgRegister.getChatMsgSourceIds(targetId);
 			Iterator<String> it = sourceIds.iterator();
 			while (it.hasNext()) {
 				
-				PrivateSession privateSession = ChatHistoryStore.getPrivateSession(targetId, it.next());
+				SessionPrivate privateSession = SessionStore.getPrivateSession(targetId, it.next());
 				Message msg = privateSession.getNextUnreadMsg(targetId);
 				while (msg != null) {
 					putMsgToSendQueue(msg);
@@ -462,8 +523,13 @@ label:
 					disposeFriendsListReq();
 					break;
 				
-				case MessageOperate.MYSELF:                 // 处理个人信息数据报
+				case MessageOperate.USER_DETAIL:            // 修改个人信息数据报
+				case MessageOperate.MYSELF:                 // 处理请求个人信息数据报：返回/设置个人信息
 					disposeMyselfInfoReq(message);
+					break;
+				
+				case MessageOperate.GET_OTHER_USER_DETAIL: // 处理请求他人信息的数据报
+					disposeFriendInfoReq(message);
 					break;
 				
 				case MessageOperate.ADDFRIEND:              // 转发添加好友请求

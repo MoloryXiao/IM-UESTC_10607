@@ -2,6 +2,7 @@ package Server;
 
 import Server.util.LoggerProvider;
 import network.NetworkForServer.*;
+import network.commonClass.Message;
 
 import java.io.IOException;
 
@@ -38,14 +39,15 @@ public class RecvThread extends Thread {
 			try {
 
 //				//************************************************
-//				String msg = client.recvFromClient();
-//				System.out.println("recv from " + userId + ": " + msg);
+//				Message msg = client.recvFromClient();
+//				System.out.println("recv from " + userId + ": " + msg.getType() + msg.getText());
 //				System.out.flush();
 //				singleClientThread.putMsgToRecvQueue(msg);
 //				//**************************************************
-//
+				
 				/* 从客户端接受一条消息，并加入接受消息队列，交给ServerThread解析及处理 */
 				singleClientThread.putMsgToRecvQueue(client.recvFromClient());
+				
 			} catch (IOException e) {
 				
 				if (e.getMessage().equals("Connection reset")) {

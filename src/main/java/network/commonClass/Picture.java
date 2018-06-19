@@ -3,6 +3,7 @@ package network.commonClass;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.*;
+import java.net.URL;
 
 /**
  * 图片操作类
@@ -37,14 +38,15 @@ public class Picture {
         this.picture = bytes2Picture(pictureStream);
         pictureSize = pictureStream.length;
     }
-
-    /**
+	
+	/**
      * 构造函数
      * @param filePath 文件路径
      * @throws IOException 文件访问失败
      */
     public Picture(String filePath) throws IOException {
-        picture = ImageIO.read(new File(filePath));
+	
+	    picture = ImageIO.read(new File(filePath));
         pictureSize = picture2Bytes(picture, "jpg").length;
     }
 
@@ -85,6 +87,7 @@ public class Picture {
             return true;
         } catch (IOException e) {
             e.printStackTrace();
+	        new File(filePath).getParentFile().mkdirs();
             return false;
         }
     }
