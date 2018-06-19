@@ -134,7 +134,9 @@ public class InfoModificationWindow extends JFrame{
 		panel_headImage.setLayout(flout);
 		panel_headImage.setPreferredSize(new Dimension(i_window_width,105));		// 设置面板大小
 		panel_headImage.setBorder(BorderFactory.createTitledBorder("头像上传（可拖拽上传）"));				// 设置面板边框
-		label_headImage = new JLabel(new ImageIcon(this.account_modify.getPicture().getPictureBytes()));	// 原头像
+		Picture pic_show = this.account_modify.getPicture().clone();
+		pic_show.reduceImage(100, 100);
+		label_headImage = new JLabel(new ImageIcon(pic_show.getPictureBytes()));	// 原头像
 		label_loadImage = new JLabel(new ImageIcon("image/default.png"));			// 上传的头像
 		btn_upload = new JButton("上传→");		// 上传按钮
 		
@@ -149,45 +151,42 @@ public class InfoModificationWindow extends JFrame{
 			    chooser.setFileFilter(filter);	
 				int returnVal = chooser.showOpenDialog(btn_upload);	// 打开目录窗口 并等待返回值
 				
-//				JFileChooser chooser = new JFileChooser();
-//			    FileNameExtensionFilter filter = new FileNameExtensionFilter(
-//			        "JPG & GIF Images", "jpg", "gif");
-//			    chooser.setFileFilter(filter);
-//			    int returnVal = chooser.showOpenDialog(parent);
-//			    if(returnVal == JFileChooser.APPROVE_OPTION) {
-//			       System.out.println("You chose to open this file: " +
-//			            chooser.getSelectedFile().getName());
-				
 				if (returnVal == JFileChooser.APPROVE_OPTION) {		// 如果符合文件类型  
 					
-					String sourcePath = chooser.getSelectedFile().getAbsolutePath();	// 源图片绝对地址
+					String fileName = chooser.getSelectedFile().getName();
+					String fileType = fileName.substring(fileName.lastIndexOf('.')+1, fileName.length());
 					
-					File sourceFile = new File(sourcePath);	
-					File destFile = new File(destPath);	
-                    if(destFile.exists())
-                    	destFile.delete();
-                    try {
-						Files.copy(sourceFile.toPath(), destFile.toPath());		// 将上传的图片进行拷贝
-					} catch (IOException e1) {
-						System.out.println("Error: cannot read the File "+sourcePath+".");
-						e1.printStackTrace();
-					}
+					if((fileName.lastIndexOf('.') == -1) || !(fileType.equals("jpg"))) {
+						JOptionPane.showMessageDialog(null, "请检查文件类型！");						
+					}else {
+						String sourcePath = chooser.getSelectedFile().getAbsolutePath();	// 源图片绝对地址
+						
+						File sourceFile = new File(sourcePath);	
+						File destFile = new File(destPath);	
+	                    if(destFile.exists())
+	                    	destFile.delete();
+	                    try {
+							Files.copy(sourceFile.toPath(), destFile.toPath());		// 将上传的图片进行拷贝
+						} catch (IOException e1) {
+							System.out.println("Error: cannot read the File "+sourcePath+".");
+							e1.printStackTrace();
+						}
 
-                    try {
-						pic_upload = new Picture(destPath);		// 使用 Picture 对象打开图片
-						pic_upload.reduceImage(100,100);		// 重置图片大小
-						pic_upload.savePicture(destPath, "jpg");
-						label_loadImage.setIcon(new ImageIcon(pic_upload.getPictureBytes()));
-						System.out.println("Info: load the new image successfully.");
-						JOptionPane.showMessageDialog(null, "添加成功！");
-						isImageModified = true;
-					} catch (IOException e1) {
-						e1.printStackTrace();
-						System.out.println("Error: cannot open the File "+destPath+".");
+	                    try {
+							pic_upload = new Picture(destPath);		// 使用 Picture 对象打开图片
+//							pic_upload.reduceImage(100,100);		// 重置图片大小
+							pic_upload.savePicture(destPath, "jpg");
+							Picture pic_show = pic_upload.clone();
+							pic_show.reduceImage(100,100);
+							label_loadImage.setIcon(new ImageIcon(pic_show.getPictureBytes()));
+							System.out.println("Info: load the new image successfully.");
+							JOptionPane.showMessageDialog(null, "添加成功！");
+							isImageModified = true;
+						} catch (IOException e1) {
+							e1.printStackTrace();
+							System.out.println("Error: cannot open the File "+destPath+".");
+						}
 					}
-				}else
-				{
-					JOptionPane.showMessageDialog(null, "请选择正确的文件格式！");
 				}
 			}  
 		});  
@@ -199,26 +198,33 @@ public class InfoModificationWindow extends JFrame{
                 try
                 {
                     if (dtde.isDataFlavorSupported(DataFlavor.javaFileListFlavor))	//如果拖入的文件格式受支持
-                    {
+                    {    					
                         dtde.acceptDrop(DnDConstants.ACTION_COPY_OR_MOVE);	//接收拖拽来的数据
                         @SuppressWarnings("unchecked")
 						List<File> list =  (List<File>) (dtde.getTransferable().getTransferData(DataFlavor.javaFileListFlavor));
 
-                        File dest = new File(destPath);		
-                        if(dest.exists())	// 若已存在 则删除原有文件
-                        	dest.delete();
-                        // 对图片进行缩放 再进行存储和显示
-                        Files.copy(list.get(0).toPath(), dest.toPath());	// 将文件复制到工程目录下
-                        
-                        pic_upload = new Picture(destPath);   
-                        pic_upload.reduceImage(100,100);		// 重置图片大小
-						pic_upload.savePicture(destPath, "jpg");
-                        label_loadImage.setIcon(new ImageIcon(pic_upload.getPictureBytes()));	// 显示新上传的图片
-    					System.out.println("Info: load the image successfully.");
-                        
-	                    JOptionPane.showMessageDialog(null, "添加成功！");
-                        dtde.dropComplete(true);	//指示拖拽操作已完成
-                        isImageModified = true;
+                    	String filePath = list.get(0).toPath().toString();
+    					String fileType = filePath.substring(filePath.lastIndexOf('.')+1, filePath.length());
+    					
+    					if((filePath.lastIndexOf('.') == -1) || !(fileType.equals("jpg"))) {
+    						JOptionPane.showMessageDialog(null, "请检查文件类型！");						
+    					}else {
+    						File dest = new File(destPath);		
+                            if(dest.exists())	// 若已存在 则删除原有文件
+                            	dest.delete();
+                            Files.copy(list.get(0).toPath(), dest.toPath());	// 将文件复制到工程目录下
+                                                        
+                            pic_upload = new Picture(destPath);   
+    						pic_upload.savePicture(destPath, "jpg");
+    						Picture pic_show = pic_upload.clone();
+    						pic_show.reduceImage(100,100);
+                            label_loadImage.setIcon(new ImageIcon(pic_show.getPictureBytes()));	// 显示新上传的图片
+        					System.out.println("Info: load the image successfully.");
+                            
+    	                    JOptionPane.showMessageDialog(null, "添加成功！");
+                            dtde.dropComplete(true);	//指示拖拽操作已完成
+                            isImageModified = true;
+    					}
                     }
                     else
                     {

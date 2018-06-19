@@ -3,10 +3,14 @@ package Core;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowFocusListener;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import javax.swing.*;
@@ -80,6 +84,17 @@ public class ChatWindow extends JFrame{
 		
 		SetNorthPane();
 		SetSouthPane();
+		
+		this.addWindowFocusListener(new WindowFocusListener() {
+			@Override
+			public void windowGainedFocus(WindowEvent e) {
+				// 请求好友详细信息
+				RecvSendController.addToSendQueue(MessageOperate.packageAskOtherUserDetail
+						(ChatWindow.this.account_mine.getId(),ChatWindow.this.account_parent.getId()));	
+			}
+			@Override
+			public void windowLostFocus(WindowEvent e) {}
+		});
 		
 		this.setVisible(true);
 	}

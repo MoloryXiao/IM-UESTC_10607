@@ -17,6 +17,7 @@ import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 
 import network.commonClass.Account;
+import network.commonClass.Picture;
 /**
  * 账户信息显示窗口
  * @author Murrey
@@ -58,8 +59,10 @@ public class AccountInfoShowWindow extends JFrame{
 //		imageIcon_headImage = new ImageIcon("image/level_v3.png");
 //		Image newImage = imageIcon_headImage.getImage().getScaledInstance(30, 30, Image.SCALE_SMOOTH);
 //		label_headImage.setIcon(new ImageIcon(newImage));
+		Picture pic_show = this.accountShow.getPicture().clone();
+		pic_show.reduceImage(100, 100);
 		label_headImage = new JLabel();
-		label_headImage.setIcon(new ImageIcon(this.accountShow.getPicture().getPictureBytes()));
+		label_headImage.setIcon(new ImageIcon(pic_show.getPictureBytes()));
 		
 		/* 加粗昵称标题 */
 		label_title = new JLabel(this.accountShow.getNikeName());
@@ -167,7 +170,9 @@ public class AccountInfoShowWindow extends JFrame{
 	 * @param account
 	 */
 	public void updateAccountInfo(Account account) {
-		label_headImage.setIcon(new ImageIcon(account.getPicture().getPictureBytes()));
+		Picture pic_temp = account.getPicture().clone();
+		pic_temp.reduceImage(100, 100);
+		label_headImage.setIcon(new ImageIcon(pic_temp.getPictureBytes()));
 		label_title.setText(account.getNikeName());
 		label_userID.setText("账号：  " + account.getId());
 		label_nickName.setText("昵称：  " + account.getNikeName());
