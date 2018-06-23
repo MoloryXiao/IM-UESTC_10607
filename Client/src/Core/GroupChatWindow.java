@@ -27,20 +27,18 @@ import javax.swing.border.Border;
 
 /**
  * 好友聊天窗口
- * @author LeeKadima Murrey
- * @version 3.0
- * 【删减】冗余且残缺的成员属性-用于账户标识
- * 【修改】构造方法
- * 【添加】新的标识父子窗口账户信息的成员属性
- * 【添加】消息收发队列方法
+ * @author LeeKadima 
  */
 
 
 public class GroupChatWindow extends JFrame{
-	private Account		account_parent;		// 当前用户账户
-	private Account		account_mine;		// 好友账户
 	
-	private static final String 	ChatWindow_TITLE = "Chating...";
+	private Account					account_me;		// 当前用户账户	
+	private ArrayList<Account>		arrayList_account_group;		// 好友账户
+	
+	//	private Account		account_parent;		// 当前用户账户
+	//	private Account		account_mine;		// 好友账户
+	private static final String 	GroupChatWindow_TITLE = "Chating...";
 	private static final int 		WINDOW_WIDTH = 935;
 	private static final int 		WINDOW_HEIGHT = 680;
 	
@@ -72,32 +70,39 @@ public class GroupChatWindow extends JFrame{
 	private	JTabbedPane			group_notification_tabbed;
 	private JList<String>		notification_list;
 	private JPopupMenu			notification_popup_menu;
-	private JMenuItem			menu_item_1,menu_item_2,menu_item_3;
+	private JMenuItem			menu_item_notification_add,menu_item_notification_delete,menu_item_notification_alter;
 	
 	private JTabbedPane			group_member_tabbed;
 	private	JList<String>		member_list;
 	private JPopupMenu			member_popup_menu;
-	private JMenuItem			menu_item_chat , menu_item_add_friend , menu_item_report;
+	private JMenuItem			menu_item_chat , menu_item_add_friend , menu_item_report , menu_item_delete_friend;
 	private int					seleted_member_index;
-
+	private Vector<String> 		group_names;
+	private Object				group_id;
+	private Object				group_signature;
+	
+	private JScrollPane			
 
 	/**
 	 * 构造函数
-	 * @param myself 自身账号
+	 * @param friend 自身账号
 	 * @param parent_ID
 	 */
-	public GroupChatWindow(Account myself,Account parent) {
-//	public GroupChatWindow() {
-			
+	//
+	
+	public GroupChatWindow(ArrayList<Account> friend , Account me , Object group_id , Object group_signature) {
 		DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		
 		/* 设置窗口定位信息 */
-		this.account_mine = new Account(myself.getId(),myself.getNikeName(),
-				myself.getOnline(),myself.getSignature());
-		this.account_parent = new Account(parent.getId(),parent.getNikeName(),
-				parent.getOnline(),parent.getSignature());
+//		this.account_friend = new Account(friend.getId(),friend.getNikeName(),
+//				friend.getOnline(),friend.getSignature());
 		
-		this.setTitle(ChatWindow_TITLE);
+		this.arrayList_account_group = friend;
+		this.account_me = new Account(me.getId(),me.getNikeName(),
+				me.getOnline(),me.getSignature());
+		this.group_id = group_id;
+		
+		this.setTitle(GroupChatWindow_TITLE);
 		this.setSize(WINDOW_WIDTH, WINDOW_HEIGHT);
 		
 		this.setResizable(false);
@@ -124,43 +129,35 @@ public class GroupChatWindow extends JFrame{
 		
 		notification_popup_menu = new JPopupMenu();
 		notification_list = new JList<String>();
-
-		Vector<String> strings = new Vector<String>();
-		strings.add("xxx");
-		strings.add("yyy");
-		strings.add("zzz");
-		strings.add("zzz");
-		strings.add("zzz");
-		strings.add("zzz");
-		strings.add("zzz");
-		strings.add("zzz");
+		
+		setGroupFriendName(this.arrayList_account_group);
 		
 		JList<String> menu= new JList<>();
-		menu.setListData(strings);
-		notification_list.setListData(strings);
+		menu.setListData(group_names);
+		notification_list.setListData(group_names);
 		
 		
-		menu_item_1 = new JMenuItem("添加");
-		menu_item_2 = new JMenuItem("删除");
-		menu_item_3 = new JMenuItem("修改");
-		menu_item_1.addMouseListener(new MouseAdapter() {
+		menu_item_notification_add = new JMenuItem("添加");
+		menu_item_notification_delete = new JMenuItem("删除");
+		menu_item_notification_alter = new JMenuItem("修改");
+		menu_item_notification_add.addMouseListener(new MouseAdapter() {
 			public void mouseReleased(MouseEvent e) {
 				System.out.println("add notification");
 			}
 		});
-		menu_item_2.addMouseListener(new MouseAdapter() {
+		menu_item_notification_delete.addMouseListener(new MouseAdapter() {
 			public void mouseReleased(MouseEvent e) {
 				System.out.println("delete notification");
 			}
 		});
-		menu_item_3.addMouseListener(new MouseAdapter() {
+		menu_item_notification_alter.addMouseListener(new MouseAdapter() {
 			public void mouseReleased(MouseEvent e) {
 				System.out.println("alter notification");
 			}
 		});
-		notification_popup_menu.add(menu_item_1);
-		notification_popup_menu.add(menu_item_2);
-		notification_popup_menu.add(menu_item_3);
+		notification_popup_menu.add(menu_item_notification_add);
+		notification_popup_menu.add(menu_item_notification_delete);
+		notification_popup_menu.add(menu_item_notification_alter);
 		
 		notification_list.add(notification_popup_menu);
 		notification_list.addMouseListener(new MouseAdapter(){
@@ -201,25 +198,45 @@ public class GroupChatWindow extends JFrame{
 		member_popup_menu = new JPopupMenu();
 			
 		member_list = new JList<String>();
-		member_list.setListData(strings);
+		member_list.setListData(group_names);
 		
 		menu_item_chat = new JMenuItem("发送消息");
-		menu_item_add_friend = new JMenuItem("添加好友");
-		menu_item_report = new JMenuItem("我要举报！");
 		menu_item_chat.addMouseListener(new MouseAdapter() {
 			public void mouseReleased(MouseEvent event) {
 				//System.out.println("发送消息");
 				//从index获得对象的名字，和本对象名字
 			}
 		});
+		
+		menu_item_add_friend = new JMenuItem("添加好友");
 		menu_item_add_friend.addMouseListener(new MouseAdapter() {
 			public void mouseReleased(MouseEvent event) {
+				
 				System.out.println("添加好友");
-			}
+					
+				RecvSendController.addToSendQueue(
+						MessageOperate.packageAddFriendMsg(
+								arrayList_account_group.get(seleted_member_index).getId() , account_me.getId()));
+			}		
 		});
+		
+		menu_item_delete_friend = new JMenuItem("从本群删除");
+		menu_item_delete_friend.addMouseListener(new MouseAdapter() {
+			public void mouseReleased(MouseEvent event) {
+				
+				System.out.println("从本群删除");
+				
+				RecvSendController.addToSendQueue(
+						MessageOperate.packageDelFriendMsg(
+								arrayList_account_group.get(seleted_member_index).getId() , account_me.getId()));
+			}	
+		});
+		
+		menu_item_report = new JMenuItem("我要举报！");
 		menu_item_report.addMouseListener(new MouseAdapter() {
 			public void mouseReleased(MouseEvent event) {
 				System.out.println("举报失败");
+				JOptionPane.showMessageDialog(null, "举报失败！", "提示", JOptionPane.INFORMATION_MESSAGE);
 			}
 		});
 		member_popup_menu.add(menu_item_chat);
@@ -266,12 +283,12 @@ public class GroupChatWindow extends JFrame{
 		panel_north.add(panel_north_center,BorderLayout.CENTER);
 		
 		friend_name_label = new JLabel();
-		friend_name_label.setText(this.account_mine.getNikeName());
+//		friend_name_label.setText(this.account_friend.getNikeName());
 		friend_name_label.setText("Group name");
 		panel_north_center.add(friend_name_label,BorderLayout.CENTER);
 		
 		signature_label = new JLabel();
-		signature_label.setText(this.account_mine.getSignature());
+//		signature_label.setText(this.account_friend.getSignature());
 		signature_label.setText("Group signature");
 		panel_north_center.add(signature_label,BorderLayout.SOUTH);
 //		this.add(panel_north,BorderLayout.NORTH);
@@ -379,6 +396,28 @@ public class GroupChatWindow extends JFrame{
 		panel_south.add(panel_north,BorderLayout.NORTH);		//将北部面板放在南部面板的北面。让北部和南部放一个面板里头。
 		this.add(panel_south,BorderLayout.CENTER);
 	}
+	/**
+	 * 将好友信息列表设置到JList组件中 予以展示
+	 */
+	/*
+
+	
+	public void setGroupsList(ArrayList<Account> inArrList){
+		this.arrayList_account_group = new ArrayList<Account>(inArrList);
+		setGroupFriendName(inArrList);
+	}
+	public void updateFriendsList(ArrayList<Account> inArrList){		//将Account类型改为对应的群组类型
+		setGroupsList(inArrList);			// 将传进来的群组列表设置到成员属性中
+		groupsListShow();					// 在窗口中显示最新的群组列表
+	}
+	*/
+	private void setGroupFriendName(ArrayList<Account> account_friend)
+	{
+		for(int i = 0;i<account_friend.size();i++)
+		{
+			group_names.add(account_friend.get(i).getNikeName());			//数组顺序和名字顺序下标相同（seletedIndex）
+		}
+	}
 	
 	/**
 	 * 触发发送事件时 将内容打印到显示框并转发到服务器
@@ -396,10 +435,14 @@ public class GroupChatWindow extends JFrame{
 			showTextArea.setCaretPosition(showTextArea.getText().length());
 			
 			/* 转发到服务器 */
-			Envelope evp = new Envelope(this.account_mine.getId(),this.account_parent.getId(),sendStr);
+//			Envelope evp = new Envelope("G"+this.group_info.getId() , this.account_me.getId(),sendStr);
+			Envelope evp = new Envelope("G" + this.group_id , this.account_me.getId(),sendStr);
 			RecvSendController.addToSendQueue(MessageOperate.packageEnvelope(evp));
-			System.out.println("ChatInfoSend: " + this.account_parent.getId() + " send “" 
-					+ sendStr + "” to " + this.account_mine.getId());
+			
+//			System.out.println("ChatInfoSend: " + this.account_me.getId() + " send “" 
+//					+ sendStr + "” to " + this.account_friend.getId());
+			System.out.println("ChatInfoSend: " + this.account_me.getId() + " send “" 
+					+ sendStr + "” to " + this.group_id);
 		}
 	}
 	
@@ -408,33 +451,27 @@ public class GroupChatWindow extends JFrame{
 	 */
 	public String getMyIDAndTimeStamp() {
 		String sendTime = DATE_FORMAT.format(new Date());
-		String sendStamp = "ID:"+this.account_parent.getId() + " " + sendTime + "\n";
+		String sendStamp = "ID:"+this.account_me.getId() + " " + sendTime + "\n";
 		
 		return sendStamp;
-//		return sendTime;
 	}
 	
-	private String getFriendIDAndTimeStamp() {
+	private String getFriendIDAndTimeStamp(String id) {
 		String sendTime = DATE_FORMAT.format(new Date());
-		String sendStamp = "ID:"+ this.account_mine.getId() + " " + sendTime + "\n";
+		String sendStamp = "ID:"+ id + " " + sendTime + "\n";
 		
 		return sendStamp;
-//		return sendTime;
 
 	}
 	/**
 	 * 将内容显示到窗口上并换行
 	 * @param Message 需要显示的信息
 	 */
-	public void sendMessageToShowtextfield(String Message)
+	public void sendMessageToGroupShowTextField(String Message , String send_id)
 	{
-		showTextArea.append(new String(getFriendIDAndTimeStamp()) + Message+"\n");
-		
-		showTextArea.append(new String(getFriendIDAndTimeStamp()));
+
+		showTextArea.append(new String(getFriendIDAndTimeStamp(send_id)));
 		showTextArea.append(Message + "\n");
-		
-		showScrollPane.getVerticalScrollBar().setValue(						//聊天窗口置底	方法失效
-				showScrollPane.getVerticalScrollBar().getMaximum());
 
 		showTextArea.setCaretPosition(showTextArea.getText().length());
 	}

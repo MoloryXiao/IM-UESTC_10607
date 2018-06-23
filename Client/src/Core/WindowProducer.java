@@ -10,13 +10,14 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class WindowProducer {
 	private static LinkedBlockingQueue<Integer> queue_request;
 	
-	public static final int LOGIN_WIND = 1;
-	public static final int FRIEND_LIST_WIND = 2;
-	public static final int CHAT_WIND = 3;
-	public static final int ADD_FRIEND_WIND = 4;
-	public static final int INFO_MINE_WIND = 5;
-	public static final int INFO_FRIEND_WIND = 6;
-	public static final int INFO_MODIFY_WIND = 7;
+	public static final int LOGIN_WIND 			= 1;
+	public static final int FRIEND_LIST_WIND 	= 2;
+	public static final int CHAT_WIND 			= 3;
+	public static final int ADD_FRIEND_WIND 	= 4;
+	public static final int INFO_MINE_WIND 		= 5;
+	public static final int INFO_FRIEND_WIND 	= 6;
+	public static final int INFO_MODIFY_WIND 	= 7;
+	public static final int GROUP_CHAT_WIND 	= 8;
 	
 	public WindowProducer() {
 		queue_request = new LinkedBlockingQueue<Integer>();

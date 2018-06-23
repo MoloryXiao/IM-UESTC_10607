@@ -4,6 +4,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.security.acl.Group;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Timer;
@@ -40,43 +41,25 @@ public class ChatClient{
 	private NetworkForClient net_controller;	// 通信接口控制器
 	private WindowProducer wind_controller;		// 窗口创建控制器
 	private EnvelopeRepertory repertory_envelope;
+	private EnvelopeRepertory group_repertory_envelope;
 	
 	private LoginWindow wind_login;				// 登陆窗口
-private static FriendsListWindow wind_friendsList;	// 好友列表
+	private FriendsListWindow wind_friendsList;	// 好友列表
+	private GroupChatWindow		wind_groupList;	// 群组列表
 	private AddFriendWindow wind_addfriend;		// 添加好友窗口
-	private HashMap<String, ChatWindow> hashMap_wind_friendChat;	// 聊天窗口组
+	private HashMap<String, ChatWindow> hashMap_wind_friendChat;		// 聊天窗口组
+	
+	private HashMap<String, GroupChatWindow> hashMap_window_groupChat;	// 聊天组窗口组
 		
 	private String lnotePath = "resource/lnote.data";	// 登陆信息文件
 	private boolean flag_timer1 = false;				// 标记定时任务1 是否被启动过
 	
 	public static void main(String []args){
 		setPlugin(true);
-		//test();	
 		ChatClient cc = new ChatClient();
 		cc.start();
 	}
-	static void test() {
-		wind_friendsList = new FriendsListWindow();
-		String id = "122392319";
-        String name = "MurreyXiao";
-        String mobliePhone = "15815166915";
-        String mail = "122392319@qq.com";
-        byte stage = 1;
-        int old = 15;
-        boolean sex = true;
-        String home = "广东汕头";
-        String signature = "123木头人！";
-        boolean isOnline = true;
-		Picture picture = null;
-		try {
-			picture = new Picture("image/p70_piano.jpg");
-		} catch (IOException e) {
-			System.out.println("没有照片");
-			e.printStackTrace();
-		}
-		Account account = new Account(id,name,mobliePhone,mail,stage,old,sex,home,signature,isOnline,picture);
-		wind_friendsList.updateMineInfo(account);
-	}
+
 	/**
 	 * 使能 BeautyEye-Swing 皮肤包
 	 * @param flag_plugin 皮肤包状态
@@ -103,6 +86,7 @@ private static FriendsListWindow wind_friendsList;	// 好友列表
 		this.rs_controller = new RecvSendController(this.net_controller);
 		this.wind_controller = new WindowProducer();
 		this.hashMap_wind_friendChat = new HashMap<String, ChatWindow>();
+		this.hashMap_window_groupChat = new HashMap<String , GroupChatWindow>();
 		this.repertory_envelope = new EnvelopeRepertory();
 	};
 	
@@ -144,6 +128,10 @@ private static FriendsListWindow wind_friendsList;	// 好友列表
 					createInfoModifyWindow();
 					break;
 					
+				case WindowProducer.GROUP_CHAT_WIND:		//创建群组聊天窗口
+					createGroupChatWindow();
+					break;
+					
 				default:
 					break;
 				}
@@ -170,18 +158,30 @@ private static FriendsListWindow wind_friendsList;	// 好友列表
 				case MessageOperate.FRIENDLIST:		// 处理服务器反馈的好友列表
 					gainFriendslistInfo(str_newMessage);
 					break;
+				
 				case MessageOperate.CHAT:			// 处理服务器转发的聊天内容
 					gainChatEnvelope(str_newMessage);
 					break;
+				
 				case MessageOperate.SEARCH:			// 处理服务器反馈的搜索好友结果
 					gainSearchFriendInfo(str_newMessage);
 					break;
+				
 				case MessageOperate.ADDFRIEND:		// 处理好友的添加请求
 					gainAddFriendRequest(str_newMessage);
 					break;
+				
 				case MessageOperate.BACKADD:		// 处理添加好友结果
 					gainAddFriendInfo(str_newMessage);
-				
+					break;
+					
+				case MessageOperate.FRIENDLIST:		// 处理服务器反馈的群组列表
+					gainGroupFriendslistInfo(str_newMessage);
+					break;
+					
+//				case MessageOperate.GROUPCHAT:		// 处理服务器转发的群聊内容
+//					//gainGroupChatEnvelope(str_newMessage);
+//					break;
 				default: 
 					break;
 						
@@ -191,6 +191,43 @@ private static FriendsListWindow wind_friendsList;	// 好友列表
 		Thread thd_message = new Thread(rnb_message);
 		thd_message.start();
 	};
+	
+	/**
+	 * 创建聊天窗口 并将窗口加入聊天窗口的 hashMap 中 若有离线消息则打到窗口中
+	 */
+	private void createGroupChatWindow( ) {	
+
+		String group_id = wind_friendsList.getGroupID();
+		String group_signature = wind_friendsList.getGroupSinature();
+		
+		// 查看该窗口是否被创建过 若已存在则将该窗口显示 若不存在则新建并加入聊天窗口hashMap中
+		if(!hashMap_window_groupChat.containsKey(group_id)){
+			
+			GroupChatWindow groupChatWindowchatWind = new GroupChatWindow(wind_friendsList.getGroupList() , 
+																		  wind_friendsList.getMineAccount() ,
+																		  group_id , 
+																		  group_signature );
+			hashMap_window_groupChat.put(group_id, groupChatWindowchatWind);
+			System.out.println("ChatInfo: open the chating window with " + 
+					account_chatFriend.getNikeName());
+			
+			// 检查是否有未读消息
+			if(GroupEnvelopeRepertory.isContainsKey(group_id)) {
+				ArrayList<Envelope> arrlist_envelope = new ArrayList<Envelope>();
+				arrlist_envelope = EnvelopeRepertory.getFromBox(group_id);
+				for(int i=0;i<arrlist_envelope.size();i++) 
+					groupChatWindowchatWind.sendMessageToGroupShowTextField(arrlist_envelope.get(i).getText(), 
+																			arrlist_envelope.get(i).getSourceAccountId());
+			}
+		}else{
+			// 显示窗口 并提升到页面顶部
+			hashMap_window_groupChat.get(group_id).setVisible(true);
+			hashMap_window_groupChat.get(group_id).setAlwaysOnTop(true);
+			hashMap_window_groupChat.get(group_id).setAlwaysOnTop(false);
+		}		
+	}
+	
+
 	
 	/**
 	 *  创建添加好友面板，并设置删除好友面板内的好友列表
@@ -301,6 +338,26 @@ private static FriendsListWindow wind_friendsList;	// 好友列表
 	}
 	
 	/**
+	 * 根据服务器反馈的消息 获取【群组列表】并更新到群组列表窗口中
+	 * @param message
+	 */
+	private void gainGroupFriendslistInfo(Message message) {
+		ArrayList<Account> arrayList_group_account_friendsInfo = new ArrayList<Account>();
+//		arrayList_group_account_friendsInfo = MessageOperate.unpackFriendListMsg(message);    待修改  解包群组列表
+		String group_id  = "in gainGroupFriendslistInfo";
+		String group_signature = "in gainGroupFriendslistInfo";
+		
+//		printFriendAccountsList(arrayList_account_friendsInfo);
+		wind_friendsList.updateGroupsList(arrayList_group_account_friendsInfo , group_id , group_signature );
+		
+//		System.out.println("LoginInfo: obtaining the friendList from server... - OK");
+		
+		if(!flag_timer1) {
+			flag_timer1 = true;
+			timerFriendsList();			// 启动定时任务 - 定时拉取好友列表
+		}
+	}
+	/**
 	 * 根据服务器反馈的消息 解析【信封】的收件人 找到对应的窗口并显示
 	 * @param str
 	 */
@@ -319,6 +376,25 @@ private static FriendsListWindow wind_friendsList;	// 好友列表
 		}
 	}
 	
+	/**
+	 * 处理来自群聊的消息
+	 */
+	private void gainGroupChatEnvelope(Message str)			//GroupChatEnvelope!!!
+	{
+		Envelope evp = new Envelope();
+		evp = MessageOperate.unpackEnvelope(str);
+		String friendID = evp.getSourceAccountId();			// 信发送消息的ID	，		   待修改！！！
+		String groupID = evp.getTargetAccountId();			//	封源地址即为群号ID ， 待修改！！！
+		String message = evp.getText();
+		
+		if(!hashMap_window_groupChat.containsKey(groupID))	// 若groupID窗口还没有创建 则存入信封仓库中
+			GroupEnvelopeRepertory.addToBox(groupID, evp);
+		else {		// 若已创建则直接打到对应窗口上
+			hashMap_window_groupChat.get(groupID).sendMessageToGroupShowTextField(message , friendID);	// 根据发送方的ID定位到好友窗口并显示
+			System.out.println("chatInfoRecv: " + groupID + " send “" + message + "” to " + friendID);	//群发送消息给了个人
+		}
+
+	}
 	/**
 	 * 获取好友请求
 	 * @param str
@@ -364,6 +440,7 @@ private static FriendsListWindow wind_friendsList;	// 好友列表
 		timer.schedule(new TimerTask() {
 			public void run() {
 				RecvSendController.addToSendQueue(MessageOperate.packageAskFriendListMsg());
+				//RecvSendController.addToSendQueue(MessageOperate.package()); //请求群组列表
 			}
 		}, 0 ,5000);
 	}

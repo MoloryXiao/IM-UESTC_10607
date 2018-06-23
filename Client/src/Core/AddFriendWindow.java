@@ -267,6 +267,7 @@ class search_panel extends JPanel{
 				int index = search_friend_JjList_string.getSelectedIndex();
 				Object object = search_friend_JjList_string.getModel().getElementAt(index);
 				if (panel_type == ADD_FRIEND_TYPE_PANEL) {
+					
 					RecvSendController.addToSendQueue(
 							MessageOperate.packageAddFriendMsg(
 									(getFriendIDFromClickResult(object.toString())), my_account_id));
