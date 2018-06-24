@@ -188,4 +188,12 @@ public class NetworkForClient {
         System.arraycopy(bt2, 0, bt3, bt1.length, bt2Size);
         return bt3;
     }
+    
+    public String getHostName() {
+    	return this.hostName;
+    }
+    
+    public int getPort() {
+    	return this.port;
+    }
 }

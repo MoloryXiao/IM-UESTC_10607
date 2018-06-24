@@ -1,14 +1,17 @@
 package Core;
 
+
 import java.io.FileNotFoundException;
+
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.security.acl.Group;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.Vector;
 
 import javax.swing.JOptionPane;
 import javax.swing.UIManager;
@@ -17,11 +20,16 @@ import network.NetworkForClient.NetworkForClient;
 import network.commonClass.Account;
 import network.commonClass.Envelope;
 import network.commonClass.Message;
-import network.commonClass.Picture;
+import network.commonClass.Group;
 import network.messageOperate.MessageOperate;
 /**
  * 程序入口 聊天软件客户端
  * @author Murrey LeeKadima
+ * @version 2.2
+ * 【添加】创建个人信息窗口、好友信息窗口、个人信息修改窗口的处理函数
+ * 【添加】服务器反馈的个人信息、好友信息的处理函数
+ * 【修改】获取的个人信息函数(更改为详细版)
+ * 【添加】函数记录将要创建信息窗口的好友ID
  * @version 2.1
  * 【添加】在管理好友中，添加和删除好友
  * @version 2.0
@@ -37,23 +45,27 @@ public class ChatClient{
 	
 	private volatile boolean isFriendsListWindCreated = false;
 	
-	private RecvSendController rs_controller;	// 收发线程控制器
-	private NetworkForClient net_controller;	// 通信接口控制器
-	private WindowProducer wind_controller;		// 窗口创建控制器
-	private EnvelopeRepertory repertory_envelope;
-	private EnvelopeRepertory group_repertory_envelope;
+	private RecvSendController 					rs_controller;				// 收发线程控制器
+	private NetworkForClient 					net_controller;				// 通信接口控制器
+	private WindowProducer 						wind_controller;			// 窗口创建控制器
+	private EnvelopeRepertory 					repertory_envelope;
 	
-	private LoginWindow wind_login;				// 登陆窗口
-	private FriendsListWindow wind_friendsList;	// 好友列表
-	private GroupChatWindow		wind_groupList;	// 群组列表
-	private AddFriendWindow wind_addfriend;		// 添加好友窗口
-	private HashMap<String, ChatWindow> hashMap_wind_friendChat;		// 聊天窗口组
 	
-	private HashMap<String, GroupChatWindow> hashMap_window_groupChat;	// 聊天组窗口组
-		
-	private String lnotePath = "resource/lnote.data";	// 登陆信息文件
-	private boolean flag_timer1 = false;				// 标记定时任务1 是否被启动过
+	private LoginWindow 						wind_login;					// 登陆窗口
+	private FriendsListWindow 					wind_friendsList;			// 好友列表
+	private AddFriendWindow 					wind_addfriend;				// 添加好友窗口
+	private AccountInfoShowWindow 				wind_mineInfoWindow;		// 自身账户信息窗口
 	
+	private HashMap<String, ChatWindow> 		hashMap_wind_friendChat;	// 聊天窗口组
+	
+	private String lnotePath = "resource/lnote.data";						// 登陆信息文件
+	private boolean flag_timer1 = false;									// 标记定时任务1 是否被启动过
+	private static String infoWindowMark;									// 信息窗口标记位
+	
+//	private GroupChatWindow						wind_groupList;				// 群组列表
+	private HashMap<String, GroupChatWindow> 	hashMap_window_groupChat;	// 聊天组窗口组
+	private GroupEnvelopeRepertory 				group_repertory_envelope;	// 聊天窗口组仓库
+
 	public static void main(String []args){
 		setPlugin(true);
 		ChatClient cc = new ChatClient();
@@ -86,8 +98,10 @@ public class ChatClient{
 		this.rs_controller = new RecvSendController(this.net_controller);
 		this.wind_controller = new WindowProducer();
 		this.hashMap_wind_friendChat = new HashMap<String, ChatWindow>();
-		this.hashMap_window_groupChat = new HashMap<String , GroupChatWindow>();
 		this.repertory_envelope = new EnvelopeRepertory();
+		
+		this.hashMap_window_groupChat = new HashMap<String , GroupChatWindow>();
+		this.group_repertory_envelope = new GroupEnvelopeRepertory();
 	};
 	
 	/**
@@ -121,10 +135,14 @@ public class ChatClient{
 					break;
 					
 				case WindowProducer.INFO_MINE_WIND:			// 创建个人信息窗口
-					createInfoMineWindow();
+					createMineInfoWindow();
 					break;
-				
-				case WindowProducer.INFO_MODIFY_WIND:
+					
+				case WindowProducer.INFO_FRIEND_WIND:		// 创建好友信息窗口
+					createFriendInfoWindow();
+					break;
+					
+				case WindowProducer.INFO_MODIFY_WIND:		// 创建修改信息窗口
 					createInfoModifyWindow();
 					break;
 					
@@ -150,15 +168,19 @@ public class ChatClient{
 				case MessageOperate.LOGIN:			// 处理服务器反馈的登陆验证
 					gainLoginResult(str_newMessage);
 					break;
-					
+
 				case MessageOperate.MYSELF:			// 处理服务器反馈的个人信息
 					gainMineAccInfo(str_newMessage);
+					break;
+					
+				case MessageOperate.GET_OTHER_USER_DETAIL:	// 处理服务器反馈的好友账户信息
+					gainFriendAccInfo(str_newMessage);
 					break;
 					
 				case MessageOperate.FRIENDLIST:		// 处理服务器反馈的好友列表
 					gainFriendslistInfo(str_newMessage);
 					break;
-				
+
 				case MessageOperate.CHAT:			// 处理服务器转发的聊天内容
 					gainChatEnvelope(str_newMessage);
 					break;
@@ -166,7 +188,7 @@ public class ChatClient{
 				case MessageOperate.SEARCH:			// 处理服务器反馈的搜索好友结果
 					gainSearchFriendInfo(str_newMessage);
 					break;
-				
+					
 				case MessageOperate.ADDFRIEND:		// 处理好友的添加请求
 					gainAddFriendRequest(str_newMessage);
 					break;
@@ -175,9 +197,12 @@ public class ChatClient{
 					gainAddFriendInfo(str_newMessage);
 					break;
 					
-				case MessageOperate.FRIENDLIST:		// 处理服务器反馈的群组列表
+				case MessageOperate.GET_GROUP_LIST:		// 处理服务器反馈的群组列表
 					gainGroupFriendslistInfo(str_newMessage);
 					break;
+					
+				case MessageOperate.UPDATE_GROUP:
+					gainGroupDetailedInfo(str_newMessage);
 					
 //				case MessageOperate.GROUPCHAT:		// 处理服务器转发的群聊内容
 //					//gainGroupChatEnvelope(str_newMessage);
@@ -196,34 +221,32 @@ public class ChatClient{
 	 * 创建聊天窗口 并将窗口加入聊天窗口的 hashMap 中 若有离线消息则打到窗口中
 	 */
 	private void createGroupChatWindow( ) {	
-
-		String group_id = wind_friendsList.getGroupID();
-		String group_signature = wind_friendsList.getGroupSinature();
+		
+		Group group_createInfo = new Group();
+		group_createInfo = wind_friendsList.getNewChatWindowResource();
 		
 		// 查看该窗口是否被创建过 若已存在则将该窗口显示 若不存在则新建并加入聊天窗口hashMap中
-		if(!hashMap_window_groupChat.containsKey(group_id)){
+		
+		if(!hashMap_window_groupChat.containsKey(group_createInfo.getId())){
 			
-			GroupChatWindow groupChatWindowchatWind = new GroupChatWindow(wind_friendsList.getGroupList() , 
-																		  wind_friendsList.getMineAccount() ,
-																		  group_id , 
-																		  group_signature );
-			hashMap_window_groupChat.put(group_id, groupChatWindowchatWind);
-			System.out.println("ChatInfo: open the chating window with " + 
-					account_chatFriend.getNikeName());
-			
+			GroupChatWindow groupChatWindowchatWind = new GroupChatWindow(wind_friendsList.getMineAccount() , 
+																		  group_createInfo , 
+																		  wind_friendsList);
+			hashMap_window_groupChat.put(group_createInfo.getId(), groupChatWindowchatWind);
 			// 检查是否有未读消息
-			if(GroupEnvelopeRepertory.isContainsKey(group_id)) {
+			if(GroupEnvelopeRepertory.isContainsKey(group_createInfo.getId())) {
 				ArrayList<Envelope> arrlist_envelope = new ArrayList<Envelope>();
-				arrlist_envelope = EnvelopeRepertory.getFromBox(group_id);
+				arrlist_envelope = GroupEnvelopeRepertory.getFromBox(group_createInfo.getId());
 				for(int i=0;i<arrlist_envelope.size();i++) 
 					groupChatWindowchatWind.sendMessageToGroupShowTextField(arrlist_envelope.get(i).getText(), 
 																			arrlist_envelope.get(i).getSourceAccountId());
 			}
-		}else{
+		}
+		else{
 			// 显示窗口 并提升到页面顶部
-			hashMap_window_groupChat.get(group_id).setVisible(true);
-			hashMap_window_groupChat.get(group_id).setAlwaysOnTop(true);
-			hashMap_window_groupChat.get(group_id).setAlwaysOnTop(false);
+			hashMap_window_groupChat.get(group_createInfo.getId()).setVisible(true);
+			hashMap_window_groupChat.get(group_createInfo.getId()).setAlwaysOnTop(true);
+			hashMap_window_groupChat.get(group_createInfo.getId()).setAlwaysOnTop(false);
 		}		
 	}
 	
@@ -254,6 +277,9 @@ public class ChatClient{
 			hashMap_wind_friendChat.put(friend_ID,chatWind);
 			System.out.println("ChatInfo: open the chating window with " + 
 					account_chatFriend.getNikeName());
+
+			RecvSendController.addToSendQueue(MessageOperate.packageAskOtherUserDetail
+					(friend_ID,wind_friendsList.getMineAccount().getId()));	// 请求好友详细信息
 			
 			// 检查是否有未读消息
 			if(EnvelopeRepertory.isContainsKey(friend_ID)) {
@@ -273,16 +299,26 @@ public class ChatClient{
 	/**
 	 * 创建个人信息窗口
 	 */
-	private void createInfoMineWindow() {
+	private void createMineInfoWindow() {
 		boolean isModification = true;
-		new AccountInfoShowWindow(this.wind_friendsList.getMineAccount(),isModification);
+		wind_mineInfoWindow = new AccountInfoShowWindow(this.wind_friendsList.getMineAccount(),isModification);
+	}
+	
+	/**
+	 * 创建好友信息窗口
+	 */
+	private void createFriendInfoWindow() {
+		boolean isModification = false;
+		// 根据事先做好的标记 找到需要显示的好友的信息窗口
+		new AccountInfoShowWindow(hashMap_wind_friendChat.get(this.getFriendInfoMark()).
+				getFriendAccountInfo(),isModification);
 	}
 	
 	/**
 	 * 创建信息修改窗口
 	 */
 	private void createInfoModifyWindow() {
-		new InfoModificationWindow(this.wind_friendsList.getMineAccount());
+		new InfoModificationWindow(wind_mineInfoWindow,this.wind_friendsList.getMineAccount());
 	}
 	
 	/**
@@ -312,11 +348,22 @@ public class ChatClient{
 	 */
 	private void gainMineAccInfo(Message message) {
 		Account account_mine = new Account();
-		account_mine = MessageOperate.unpackMyselfInfoMsg(message);
+		account_mine = MessageOperate.unpackageUserDetail(message);
 		
-		printMineAccountInfo(account_mine);
+//		printMineAccountInfo(account_mine);
 		wind_friendsList.updateMineInfo(account_mine);
-		System.out.println("LoginInfo: obtaining the personal account from server... - OK");
+		System.out.println("Info: obtaining the personal account from server... - OK");
+	}
+	
+	/**
+	 * 根据服务器反馈的消息 获取【好友账户信息】并更新到好友账户信息窗口中
+	 */
+	private void gainFriendAccInfo(Message message) {
+		Account account_friend = new Account();
+		account_friend = MessageOperate.unpackageUserDetail(message);
+		
+		hashMap_wind_friendChat.get(account_friend.getId()).setFriendAccountInfo(account_friend);	// 设置好友的详细账号信息
+		System.out.println("Info: obtaining the friend account from server... - OK");
 	}
 	
 	/**
@@ -327,9 +374,8 @@ public class ChatClient{
 		ArrayList<Account> arrayList_account_friendsInfo = new ArrayList<Account>();
 		arrayList_account_friendsInfo = MessageOperate.unpackFriendListMsg(message);
 		
-//		printFriendAccountsList(arrayList_account_friendsInfo);
 		wind_friendsList.updateFriendsList(arrayList_account_friendsInfo);
-//		System.out.println("LoginInfo: obtaining the friendList from server... - OK");
+
 		
 		if(!flag_timer1) {
 			flag_timer1 = true;
@@ -342,20 +388,30 @@ public class ChatClient{
 	 * @param message
 	 */
 	private void gainGroupFriendslistInfo(Message message) {
-		ArrayList<Account> arrayList_group_account_friendsInfo = new ArrayList<Account>();
-//		arrayList_group_account_friendsInfo = MessageOperate.unpackFriendListMsg(message);    待修改  解包群组列表
-		String group_id  = "in gainGroupFriendslistInfo";
-		String group_signature = "in gainGroupFriendslistInfo";
 		
-//		printFriendAccountsList(arrayList_account_friendsInfo);
-		wind_friendsList.updateGroupsList(arrayList_group_account_friendsInfo , group_id , group_signature );
-		
+		ArrayList<Group> groups_Info =  MessageOperate.unpackageGroupList(message);    //待修改  解包群组列表	
+		wind_friendsList.updateGroupsList(groups_Info);	
 //		System.out.println("LoginInfo: obtaining the friendList from server... - OK");
 		
 		if(!flag_timer1) {
 			flag_timer1 = true;
-			timerFriendsList();			// 启动定时任务 - 定时拉取好友列表
+			timerFriendsList();			// 启动定时任务 - 定时拉取群组列表
 		}
+	}
+	
+	private void gainGroupDetailedInfo(Message message) {
+		
+		Group groups_Info =  MessageOperate.unpackageUpdateGroup(message);    //待修改  解包群组列表	
+//		System.out.println("group detailed info:" + groups_Info.size());
+		ArrayList<Account> accounts = groups_Info.getMember();
+		for(int i =0;i<accounts.size();i++) {
+			System.out.println(accounts.get(i).getNikeName());
+		}
+		System.out.println("hash group size:" + hashMap_window_groupChat.size());
+		
+		while(!hashMap_window_groupChat.containsKey(groups_Info.getId()));						//阻塞等待群窗口创建出来，才设置群窗口的成员
+		hashMap_window_groupChat.get(groups_Info.getId()).setGroupFriendName(groups_Info.getMember());
+//		wind_friendsList.asdfasdfupdateGroupsList(groups_Info);	 // here we need to debug
 	}
 	/**
 	 * 根据服务器反馈的消息 解析【信封】的收件人 找到对应的窗口并显示
@@ -364,15 +420,32 @@ public class ChatClient{
 	public void gainChatEnvelope(Message str) {
 		Envelope evp = new Envelope();
 		evp = MessageOperate.unpackEnvelope(str);
-		String friendID = evp.getSourceAccountId();	// 信封源地址即为好友地址
+		String friendID = evp.getSourceAccountId();	// 信封源地址即为好友地址/群地址
 		String destID = evp.getTargetAccountId();
 		String message = evp.getText();
 		
-		if(!hashMap_wind_friendChat.containsKey(friendID))	// 若窗口还没有创建 则存入信封仓库中
-			EnvelopeRepertory.addToBox(friendID, evp);
-		else {		// 若已创建则直接打到对应窗口上
-			hashMap_wind_friendChat.get(friendID).sendMessageToShowtextfield(message);	// 根据发送方的ID定位到好友窗口并显示
-			System.out.println("chatInfoRecv: " + friendID + " send “" + message + "” to " + destID);
+		System.out.println("chat friend_ID:" + friendID);
+		System.out.println("chat dest_ID:" + destID);
+		System.out.println("chat message:" + message);
+		
+		//看ID前有没有G标识群消息
+		if(destID.contains("g")) {
+			destID = destID.substring(1);
+			System.out.println("Gourp ID:" + destID);
+			if(!hashMap_window_groupChat.containsKey(destID))
+				GroupEnvelopeRepertory.addToBox(destID, evp);
+			else {
+				hashMap_window_groupChat.get(destID).sendMessageToGroupShowTextField(message, friendID);
+				System.out.println("chatInfoRecv: " + friendID + " send “" + message + "” to " + destID);	//群发送消息给了个人
+			}
+		}
+		else {
+			if(!hashMap_wind_friendChat.containsKey(friendID))	// 若窗口还没有创建 则存入信封仓库中
+				EnvelopeRepertory.addToBox(friendID, evp);
+			else {		// 若已创建则直接打到对应窗口上
+				hashMap_wind_friendChat.get(friendID).sendMessageToShowtextfield(message);	// 根据发送方的ID定位到好友窗口并显示
+				System.out.println("chatInfoRecv: " + friendID + " send “" + message + "” to " + destID);
+			}
 		}
 	}
 	
@@ -440,7 +513,7 @@ public class ChatClient{
 		timer.schedule(new TimerTask() {
 			public void run() {
 				RecvSendController.addToSendQueue(MessageOperate.packageAskFriendListMsg());
-				//RecvSendController.addToSendQueue(MessageOperate.package()); //请求群组列表
+				RecvSendController.addToSendQueue(MessageOperate.packageAskGetGroupList());
 			}
 		}, 0 ,5000);
 	}
@@ -533,6 +606,17 @@ public class ChatClient{
 				e.printStackTrace();
 			}
 		}
+	}
+	
+	/**
+	 * 用于标识需要创建的好友信息窗口
+	 * @param id 好友的ID值
+	 */
+	public static void setFriendInfoMark(String id) {
+		infoWindowMark = id;
+	}
+	public String getFriendInfoMark() {
+		return infoWindowMark;
 	}
 	
 	/**

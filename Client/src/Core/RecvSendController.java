@@ -13,7 +13,7 @@ public class RecvSendController {
 		RecvSendController.net_controller = net_controller;
 		thread_recv = new RecvThread(RecvSendController.net_controller);
 		thread_send = new SendThread(RecvSendController.net_controller);
-		thread_recv.start();
+		thread_recv.start(); 
 		thread_send.start();
 	}
 	
@@ -28,18 +28,23 @@ public class RecvSendController {
 	public static boolean connectToServer() {
 		boolean flag = net_controller.connectToServer();
 		if(flag) {
-			thread_recv.setFlagRecv(true);
-			thread_send.setFlagSend(true);
+			setRecvSendThreadStatus(true);
 		}
 		return flag;
 	}
 	public static void closeSocket() {
-		closeRecvSendThread();
+		setRecvSendThreadStatus(false);
 		net_controller.endConnect();
+		// 也有可能是连接失效
+//		String hostName = net_controller.getHostName();
+//		int port = net_controller.getPort();
+//		net_controller = new NetworkForClient(hostName,port);
+//		thread_recv = new RecvThread(RecvSendController.net_controller);
+//		thread_send = new SendThread(RecvSendController.net_controller);
 	}
 	
-	public static void closeRecvSendThread() {
-		thread_recv.setFlagRecv(false);
-		thread_send.setFlagSend(false);
+	public static void setRecvSendThreadStatus(boolean status) {
+		thread_recv.setFlagRecv(status);
+		thread_send.setFlagSend(status);
 	}
 }

@@ -3,19 +3,29 @@ package Core;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowFocusListener;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import javax.swing.*;
 
 import network.commonClass.Account;
 import network.commonClass.Envelope;
+import network.commonClass.Picture;
 import network.messageOperate.MessageOperate;
 
 /**
  * 好友聊天窗口
  * @author LeeKadima Murrey
+ * @version 3.1
+ * 【添加】点击好友头像获取好友信息的功能
+ * 【添加】设置好友详细信息的接口函数
  * @version 3.0
  * 【删减】冗余且残缺的成员属性-用于账户标识
  * 【修改】构造方法
@@ -44,7 +54,6 @@ public class ChatWindow extends JFrame{
 	private JPanel 				panelUnderSplit,panelUnderSplit_UpPanel,panelUnderSplit_BottomPanel;
 	private JButton 			send_button,close_button;
 	private JTextArea 			inputTextArea,showTextArea;
-	private ImageIcon 			head_img_icon;
 	private FlowLayout 			flowLayout_Bottom;
 	private JSplitPane 			splitPane;
 	private FlowLayout 			flowLayout;
@@ -64,18 +73,28 @@ public class ChatWindow extends JFrame{
 		/* 设置窗口定位信息 */
 		this.account_mine = new Account(myself.getId(),myself.getNikeName(),
 				myself.getOnline(),myself.getSignature());
-		this.account_parent = new Account(parent.getId(),parent.getNikeName(),
-				parent.getOnline(),parent.getSignature());
+		this.account_parent = parent.clone();
 		
 		this.setTitle(ChatWindow_TITLE);
 		this.setSize(WINDOW_WIDTH, WINDOW_HEIGHT);
 		
 		this.setResizable(false);
-		this.setLocationRelativeTo(null);							//窗口剧中
+		this.setLocationRelativeTo(null);							//窗口居中
 		this.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		
 		SetNorthPane();
 		SetSouthPane();
+		
+		this.addWindowFocusListener(new WindowFocusListener() {
+			@Override
+			public void windowGainedFocus(WindowEvent e) {
+				// 请求好友详细信息
+				RecvSendController.addToSendQueue(MessageOperate.packageAskOtherUserDetail
+						(ChatWindow.this.account_mine.getId(),ChatWindow.this.account_parent.getId()));	
+			}
+			@Override
+			public void windowLostFocus(WindowEvent e) {}
+		});
 		
 		this.setVisible(true);
 	}
@@ -89,9 +108,20 @@ public class ChatWindow extends JFrame{
 		panel_north.setLayout(new BorderLayout(5,5));
 		panel_north.setPreferredSize(new Dimension(WINDOW_WIDTH, 105));
 
-		head_img_icon = new ImageIcon("image/HeadImage.jpg");
-		head_img_label = new JLabel(head_img_icon);
+		head_img_label = new JLabel(new ImageIcon("image/blank.jpg"));
 		head_img_label.setPreferredSize(new Dimension(150,150));
+		head_img_label.setCursor(new Cursor(Cursor.HAND_CURSOR));
+		head_img_label.addMouseListener(new MouseListener() {		// 点击头像开启信息展示功能
+			public void mouseClicked(MouseEvent e) {
+				System.out.println("Info: Acquire the Friend-Info window.");
+				WindowProducer.addWindowRequest(WindowProducer.INFO_FRIEND_WIND);
+				ChatClient.setFriendInfoMark(ChatWindow.this.account_mine.getId());
+			}
+			public void mouseEntered(MouseEvent e) {}
+			public void mouseExited(MouseEvent e) {}
+			public void mousePressed(MouseEvent e) {}
+			public void mouseReleased(MouseEvent e) {}
+		});
 		panel_north.add(head_img_label,BorderLayout.WEST);
 		
 		panel_north_center = new JPanel();
@@ -280,5 +310,23 @@ public class ChatWindow extends JFrame{
 		}
 	}
 	
-	/**************** setter and getter ****************/
+	/**
+	 * 设置好友的详细信息
+	 * @param account 好友账户
+	 */
+	public void setFriendAccountInfo(Account account) {
+		this.account_mine = account.clone();
+		Picture pic_temp;
+		pic_temp = this.account_mine.getPicture();
+		pic_temp.reduceImage(100, 100);
+		this.head_img_label.setIcon(new ImageIcon(pic_temp.getPictureBytes()));
+	}
+	
+	/**
+	 * 获取好友的账户
+	 * @return 聊天窗口的好友账户
+	 */
+	public Account getFriendAccountInfo() {
+		return this.account_mine;
+	}
 }

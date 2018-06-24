@@ -21,15 +21,25 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
+import network.Builder.AccountBuilder;
 import network.commonClass.Account;
+import network.commonClass.Picture;
+import network.messageOperate.MessageOperate;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.util.List;
 /**
  * 信息修改窗口 用于修改个人信息
  * @author Murrey
+ * @version 2.0/0619
+ * 【链接】工程代码 将常量改为变量
+ * 【优化】上传图片功能和拖拽功能 并保存到本地和上传到服务器
+ * 【优化】头像显示
+ * 【添加】完成按钮的事件处理
  * @version 1.0/0618
  * Init.
  */
@@ -39,6 +49,8 @@ public class InfoModificationWindow extends JFrame{
 	private int userName = 122392319;
 	private Account account_modify;
 	
+	private boolean isImageModified = false;
+	
 	private JLabel label_headImage,label_loadImage;
 	private JPanel panel_north,panel_south;
 	private JPanel panel_nickName,panel_userName,panel_phone,
@@ -47,19 +59,20 @@ public class InfoModificationWindow extends JFrame{
 		label_mail,label_location,label_person,label_signature;
 	private JButton btn_exec,btn_ok;	
 	private JButton btn_upload;
+	private Picture pic_upload;
 	
 	private JTextField textField_nickName,textField_userName,
 		textField_phone,textField_mail,textField_location,
 		textField_person,textField_signature;
 	
-	public InfoModificationWindow(Account account) {
-		this.account_modify = account;
+	public InfoModificationWindow(AccountInfoShowWindow wind_father,Account account) {
+		this.account_modify = account.clone();
 		
-		this.setTitle("KIM Self-Info");
+		this.setTitle("KIM Info-Modification");
 		this.setSize(i_window_width,i_window_height);
 		this.setLocationRelativeTo(null);
 		this.setResizable(false);
-		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		this.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		this.setIconImage((new ImageIcon("image/chick.png")).getImage());
 		
 		// 北部容器
@@ -103,9 +116,9 @@ public class InfoModificationWindow extends JFrame{
 		panel_location.setBorder(BorderFactory.createEmptyBorder(10,0,0,0));
 		
 		panel_person = new JPanel();		// 个人面板：包含个人Label、个人TextField
-		label_person = new JLabel("个 人：");
+		label_person = new JLabel("年 龄：");
 		textField_person = new JTextField(20);
-		textField_person.setText(this.account_modify.getId());
+		textField_person.setText(this.account_modify.getOld()+"");
 		panel_person.setPreferredSize(new Dimension(i_window_width,12));		// 设置panel大小
 		panel_person.setBorder(BorderFactory.createEmptyBorder(10,0,0,0));
 			
@@ -120,21 +133,61 @@ public class InfoModificationWindow extends JFrame{
 		FlowLayout flout = new FlowLayout(FlowLayout.CENTER); flout.setHgap(20);	// 布局设置
 		panel_headImage.setLayout(flout);
 		panel_headImage.setPreferredSize(new Dimension(i_window_width,105));		// 设置面板大小
-		panel_headImage.setBorder(BorderFactory.createTitledBorder("头像上传（可拖拽上传）"));	// 设置面板边框
-		label_headImage = new JLabel(new ImageIcon("image/loginHeadImage.jpg"));	// 原头像
-		label_loadImage = new JLabel(new ImageIcon("image/default.png"));				// 上传的头像
-		btn_upload = new JButton("上传→");	// 上传按钮
-		btn_upload.addActionListener(new ActionListener() {		//按钮点击事件
+		panel_headImage.setBorder(BorderFactory.createTitledBorder("头像上传（可拖拽上传）"));				// 设置面板边框
+		Picture pic_show = this.account_modify.getPicture().clone();
+		pic_show.reduceImage(100, 100);
+		label_headImage = new JLabel(new ImageIcon(pic_show.getPictureBytes()));	// 原头像
+		label_loadImage = new JLabel(new ImageIcon("image/default.png"));			// 上传的头像
+		btn_upload = new JButton("上传→");		// 上传按钮
+		
+		String destPath = "image/" + InfoModificationWindow.this.account_modify.getId() +".jpg";	// 拷贝时用到的新文件路径
+		btn_upload.addActionListener(new ActionListener() {		// 按钮点击事件
 			public void actionPerformed(ActionEvent e) {	
-				JFileChooser chooser = new JFileChooser();		//设置选择器  
-				chooser.setMultiSelectionEnabled(false);		//设为多选  
-				int returnVal = chooser.showOpenDialog(btn_upload);			//是否打开文件选择框 
+				JFileChooser chooser = new JFileChooser();		// 设置选择器  
+				chooser.setMultiSelectionEnabled(false);		// 设为单选  
 				
-				if (returnVal == JFileChooser.APPROVE_OPTION) {		//如果符合文件类型  
-					String newImgPath = "image/"+chooser.getSelectedFile().getName();
-					label_loadImage.setIcon(new ImageIcon(newImgPath));;
-					System.out.println("Info: load the image successfully.");
-				}  
+				FileNameExtensionFilter filter = new FileNameExtensionFilter("JPG & GIF Images","jpg");	// 设置文件过滤器
+				       // ("JPG & GIF Images", "jpg", "gif");
+			    chooser.setFileFilter(filter);	
+				int returnVal = chooser.showOpenDialog(btn_upload);	// 打开目录窗口 并等待返回值
+				
+				if (returnVal == JFileChooser.APPROVE_OPTION) {		// 如果符合文件类型  
+					
+					String fileName = chooser.getSelectedFile().getName();
+					String fileType = fileName.substring(fileName.lastIndexOf('.')+1, fileName.length());
+					
+					if((fileName.lastIndexOf('.') == -1) || !(fileType.equals("jpg"))) {
+						JOptionPane.showMessageDialog(null, "请检查文件类型！");						
+					}else {
+						String sourcePath = chooser.getSelectedFile().getAbsolutePath();	// 源图片绝对地址
+						
+						File sourceFile = new File(sourcePath);	
+						File destFile = new File(destPath);	
+	                    if(destFile.exists())
+	                    	destFile.delete();
+	                    try {
+							Files.copy(sourceFile.toPath(), destFile.toPath());		// 将上传的图片进行拷贝
+						} catch (IOException e1) {
+							System.out.println("Error: cannot read the File "+sourcePath+".");
+							e1.printStackTrace();
+						}
+
+	                    try {
+							pic_upload = new Picture(destPath);		// 使用 Picture 对象打开图片
+//							pic_upload.reduceImage(100,100);		// 重置图片大小
+							pic_upload.savePicture(destPath, "jpg");
+							Picture pic_show = pic_upload.clone();
+							pic_show.reduceImage(100,100);
+							label_loadImage.setIcon(new ImageIcon(pic_show.getPictureBytes()));
+							System.out.println("Info: load the new image successfully.");
+							JOptionPane.showMessageDialog(null, "添加成功！");
+							isImageModified = true;
+						} catch (IOException e1) {
+							e1.printStackTrace();
+							System.out.println("Error: cannot open the File "+destPath+".");
+						}
+					}
+				}
 			}  
 		});  
 		new DropTarget(panel_headImage, DnDConstants.ACTION_COPY_OR_MOVE, new DropTargetAdapter()
@@ -145,21 +198,33 @@ public class InfoModificationWindow extends JFrame{
                 try
                 {
                     if (dtde.isDataFlavorSupported(DataFlavor.javaFileListFlavor))	//如果拖入的文件格式受支持
-                    {
+                    {    					
                         dtde.acceptDrop(DnDConstants.ACTION_COPY_OR_MOVE);	//接收拖拽来的数据
                         @SuppressWarnings("unchecked")
 						List<File> list =  (List<File>) (dtde.getTransferable().getTransferData(DataFlavor.javaFileListFlavor));
 
-                        File dest = new File("image/new" + InfoModificationWindow.this.account_modify.getId() +".jpg");		
-                        if(dest.exists())	// 若已存在 则删除原有文件
-                        	dest.delete();
-                        // 对图片进行缩放 再进行存储和显示
-                        Files.copy(list.get(0).toPath(), dest.toPath());	// 将文件复制到工程目录下
-                        label_loadImage.setIcon(new ImageIcon(dest.getAbsolutePath()));
-    					System.out.println("Info: load the image successfully.");
-                        
-	                    JOptionPane.showMessageDialog(null, "添加成功！");
-                        dtde.dropComplete(true);	//指示拖拽操作已完成
+                    	String filePath = list.get(0).toPath().toString();
+    					String fileType = filePath.substring(filePath.lastIndexOf('.')+1, filePath.length());
+    					
+    					if((filePath.lastIndexOf('.') == -1) || !(fileType.equals("jpg"))) {
+    						JOptionPane.showMessageDialog(null, "请检查文件类型！");						
+    					}else {
+    						File dest = new File(destPath);		
+                            if(dest.exists())	// 若已存在 则删除原有文件
+                            	dest.delete();
+                            Files.copy(list.get(0).toPath(), dest.toPath());	// 将文件复制到工程目录下
+                                                        
+                            pic_upload = new Picture(destPath);   
+    						pic_upload.savePicture(destPath, "jpg");
+    						Picture pic_show = pic_upload.clone();
+    						pic_show.reduceImage(100,100);
+                            label_loadImage.setIcon(new ImageIcon(pic_show.getPictureBytes()));	// 显示新上传的图片
+        					System.out.println("Info: load the image successfully.");
+                            
+    	                    JOptionPane.showMessageDialog(null, "添加成功！");
+                            dtde.dropComplete(true);	//指示拖拽操作已完成
+                            isImageModified = true;
+    					}
                     }
                     else
                     {
@@ -220,11 +285,24 @@ public class InfoModificationWindow extends JFrame{
 		btn_ok = new JButton("完成");
 		btn_ok.addActionListener(new ActionListener(){
 			public void actionPerformed(ActionEvent e) {
-//				InfoModificationWindow.this.dispose();
+				account_modify.setNickName(textField_nickName.getText());
+				account_modify.setMobliePhone(textField_phone.getText());
+				account_modify.setMail(textField_mail.getText());
+				account_modify.setHome(textField_location.getText());
+				account_modify.setOld(Integer.parseInt(textField_person.getText()));
+				account_modify.setSignature(textField_signature.getText());
+				if(isImageModified) account_modify.setPicture(pic_upload.getPictureBytes());				
+				
 				// 发送新信息至服务器
+				RecvSendController.addToSendQueue(MessageOperate.packageUserDetail(account_modify));	// 请求个人信息
 				// 更新个人信息窗口
+				wind_father.updateAccountInfo(account_modify);
+				// 更新好友列表窗口的个人信息
+				RecvSendController.addToSendQueue(MessageOperate.packageAskUserDetail());
+				
+				InfoModificationWindow.this.dispose();
 			}
-		});	
+		});
 		FlowLayout flowLayout_Bottom = new FlowLayout();
 		flowLayout_Bottom.setAlignment(FlowLayout.RIGHT);	// 居右		
 		panel_south.setLayout(flowLayout_Bottom);		

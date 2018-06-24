@@ -31,6 +31,8 @@ import java.util.Vector;
 /**
  * 添加好友窗口
  * @author LeeKadima
+ * @version 1.1
+ * 【注销】查询群组功能
  * @version 1.0
  * 【实现】添加好友功能基本实现
  * @version 
@@ -123,7 +125,7 @@ public class AddFriendWindow extends JFrame {
 		
 		search_panel search_group_panel = new search_panel("请输入群组号码" , search_panel.ADD_FRIEND_TYPE_PANEL);
 		find_group_option.add(search_group_panel,BorderLayout.CENTER);
-		option_tabbed.addTab("添加群组", find_group_option);
+//		option_tabbed.addTab("添加群组", find_group_option);
 		
 //		------------------delete friend panel---------------------------
 		delete_friend_option = new JPanel();

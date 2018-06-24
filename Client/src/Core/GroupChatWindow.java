@@ -20,11 +20,13 @@ import javax.swing.*;
 
 import com.sun.jmx.snmp.tasks.ThreadService;
 
+import javafx.scene.Group;
 import network.commonClass.Account;
 import network.commonClass.Envelope;
 import network.messageOperate.MessageOperate;
 import javax.swing.border.Border;
 
+import Core.FriendsListWindow;
 /**
  * 好友聊天窗口
  * @author LeeKadima 
@@ -34,10 +36,8 @@ import javax.swing.border.Border;
 public class GroupChatWindow extends JFrame{
 	
 	private Account					account_me;		// 当前用户账户	
-	private ArrayList<Account>		arrayList_account_group;		// 好友账户
+	private ArrayList<Account>		arrayList_account_groupMembers;		// 好友账户
 	
-	//	private Account		account_parent;		// 当前用户账户
-	//	private Account		account_mine;		// 好友账户
 	private static final String 	GroupChatWindow_TITLE = "Chating...";
 	private static final int 		WINDOW_WIDTH = 935;
 	private static final int 		WINDOW_HEIGHT = 680;
@@ -77,11 +77,12 @@ public class GroupChatWindow extends JFrame{
 	private JPopupMenu			member_popup_menu;
 	private JMenuItem			menu_item_chat , menu_item_add_friend , menu_item_report , menu_item_delete_friend;
 	private int					seleted_member_index;
-	private Vector<String> 		group_names;
-	private Object				group_id;
-	private Object				group_signature;
 	
-	private JScrollPane			
+	private String				group_id;
+	private String				group_name;
+	private String				group_signature;
+//	---------------------
+	private FriendsListWindow	wind_friendsList;
 
 	/**
 	 * 构造函数
@@ -90,17 +91,17 @@ public class GroupChatWindow extends JFrame{
 	 */
 	//
 	
-	public GroupChatWindow(ArrayList<Account> friend , Account me , Object group_id , Object group_signature) {
+	public GroupChatWindow(Account me , network.commonClass.Group group_info , FriendsListWindow friendsListWindow) {
 		DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		
-		/* 设置窗口定位信息 */
-//		this.account_friend = new Account(friend.getId(),friend.getNikeName(),
-//				friend.getOnline(),friend.getSignature());
-		
-		this.arrayList_account_group = friend;
+		/* 设置窗口定位信息 */		
 		this.account_me = new Account(me.getId(),me.getNikeName(),
 				me.getOnline(),me.getSignature());
-		this.group_id = group_id;
+		this.group_id   = group_info.getId();
+		this.group_name = group_info.getName();
+		this.group_signature = group_info.getDescription();
+		this.arrayList_account_groupMembers = group_info.getMember();
+		this.wind_friendsList = friendsListWindow;
 		
 		this.setTitle(GroupChatWindow_TITLE);
 		this.setSize(WINDOW_WIDTH, WINDOW_HEIGHT);
@@ -130,11 +131,12 @@ public class GroupChatWindow extends JFrame{
 		notification_popup_menu = new JPopupMenu();
 		notification_list = new JList<String>();
 		
-		setGroupFriendName(this.arrayList_account_group);
 		
 		JList<String> menu= new JList<>();
-		menu.setListData(group_names);
-		notification_list.setListData(group_names);
+		Vector<String> vec_str_nothing = new Vector<>();
+		vec_str_nothing.add("nothing to show");
+		menu.setListData(vec_str_nothing);
+		notification_list.setListData(vec_str_nothing);
 		
 		
 		menu_item_notification_add = new JMenuItem("添加");
@@ -171,25 +173,11 @@ public class GroupChatWindow extends JFrame{
 				 }
 			}
 		});
-		/*
-		notification_list.addFocusListener(new FocusListener() {
-			
-			@Override
-			public void focusLost(FocusEvent arg0) {
-				notification_list.setSelectedIndices(new int[] {});
-			}
-			
-			@Override
-			public void focusGained(FocusEvent arg0) {
-				// TODO Auto-generated method stub
-				;
-			}
-		});
-		*/
+
 		group_notification_tabbed.addTab("群通知", panel_east_up);
 		panel_east_up.add(notification_list,BorderLayout.CENTER);
 		panel_east.add(group_notification_tabbed,BorderLayout.NORTH);
-//		-----------  DOWN  -----------
+//		---------------------------------  DOWN  --------------------------------------------
 		group_member_tabbed = new JTabbedPane();
 		
 		panel_east_down = new JScrollPane();
@@ -198,13 +186,16 @@ public class GroupChatWindow extends JFrame{
 		member_popup_menu = new JPopupMenu();
 			
 		member_list = new JList<String>();
-		member_list.setListData(group_names);
+		setGroupFriendName(this.arrayList_account_groupMembers);
 		
 		menu_item_chat = new JMenuItem("发送消息");
 		menu_item_chat.addMouseListener(new MouseAdapter() {
 			public void mouseReleased(MouseEvent event) {
 				//System.out.println("发送消息");
 				//从index获得对象的名字，和本对象名字
+				System.out.println(arrayList_account_groupMembers.get(seleted_member_index).getNikeName());
+				wind_friendsList.setNewWindowResource(arrayList_account_groupMembers.get(seleted_member_index));
+				WindowProducer.addWindowRequest(WindowProducer.CHAT_WIND);
 			}
 		});
 		
@@ -216,7 +207,7 @@ public class GroupChatWindow extends JFrame{
 					
 				RecvSendController.addToSendQueue(
 						MessageOperate.packageAddFriendMsg(
-								arrayList_account_group.get(seleted_member_index).getId() , account_me.getId()));
+								arrayList_account_groupMembers.get(seleted_member_index).getId() , account_me.getId()));
 			}		
 		});
 		
@@ -226,9 +217,9 @@ public class GroupChatWindow extends JFrame{
 				
 				System.out.println("从本群删除");
 				
-				RecvSendController.addToSendQueue(
-						MessageOperate.packageDelFriendMsg(
-								arrayList_account_group.get(seleted_member_index).getId() , account_me.getId()));
+//				RecvSendController.addToSendQueue(
+//						MessageOperate.packageDelFriendMsg(
+//								arrayList_account_groupMembers.get(seleted_member_index).getId() , account_me.getId()));
 			}	
 		});
 		
@@ -248,8 +239,8 @@ public class GroupChatWindow extends JFrame{
 			public void mouseReleased(MouseEvent e) {
 				if( e.isPopupTrigger() && member_list.getSelectedIndex() != -1) {
 					member_popup_menu.show(e.getComponent(), e.getX(), e.getY());
-					System.out.println("This is B "+member_list.getSelectedIndex());
 					seleted_member_index = member_list.getSelectedIndex();
+					System.out.println("seleted member:" + seleted_member_index);
 				}
 				
 			}
@@ -257,7 +248,6 @@ public class GroupChatWindow extends JFrame{
 		group_member_tabbed.addTab("群成员", panel_east_down);
 		panel_east_down.setViewportView(member_list);
 		panel_east_down.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-//		panel_east_down.add(member_list);
 		panel_east.add(group_member_tabbed,BorderLayout.CENTER);
 //		------------------------------
 		this.add(panel_east,BorderLayout.EAST);
@@ -283,13 +273,11 @@ public class GroupChatWindow extends JFrame{
 		panel_north.add(panel_north_center,BorderLayout.CENTER);
 		
 		friend_name_label = new JLabel();
-//		friend_name_label.setText(this.account_friend.getNikeName());
-		friend_name_label.setText("Group name");
+		friend_name_label.setText(group_name);
 		panel_north_center.add(friend_name_label,BorderLayout.CENTER);
 		
 		signature_label = new JLabel();
-//		signature_label.setText(this.account_friend.getSignature());
-		signature_label.setText("Group signature");
+		signature_label.setText(group_signature);
 		panel_north_center.add(signature_label,BorderLayout.SOUTH);
 //		this.add(panel_north,BorderLayout.NORTH);
 	}
@@ -411,12 +399,23 @@ public class GroupChatWindow extends JFrame{
 		groupsListShow();					// 在窗口中显示最新的群组列表
 	}
 	*/
-	private void setGroupFriendName(ArrayList<Account> account_friend)
+	public void setGroupFriendName(ArrayList<Account> account_friend)
 	{
-		for(int i = 0;i<account_friend.size();i++)
-		{
-			group_names.add(account_friend.get(i).getNikeName());			//数组顺序和名字顺序下标相同（seletedIndex）
+		Vector<String> vec_str_membersName = new Vector<>();
+		
+//		System.out.println("group member size:"+account_friend.size());
+		
+		if (null == account_friend) {
+			vec_str_membersName.add("The group have no member");
 		}
+		else {		
+			for(int i = 0;i<account_friend.size();i++)
+			{
+				vec_str_membersName.add(account_friend.get(i).getNikeName());			//数组顺序和名字顺序下标相同（seletedIndex）
+			}
+		}
+		arrayList_account_groupMembers = account_friend;
+		member_list.setListData(vec_str_membersName);
 	}
 	
 	/**
@@ -436,7 +435,7 @@ public class GroupChatWindow extends JFrame{
 			
 			/* 转发到服务器 */
 //			Envelope evp = new Envelope("G"+this.group_info.getId() , this.account_me.getId(),sendStr);
-			Envelope evp = new Envelope("G" + this.group_id , this.account_me.getId(),sendStr);
+			Envelope evp = new Envelope("g" + this.group_id , this.account_me.getId(),sendStr);
 			RecvSendController.addToSendQueue(MessageOperate.packageEnvelope(evp));
 			
 //			System.out.println("ChatInfoSend: " + this.account_me.getId() + " send “" 
