@@ -10,7 +10,7 @@ import network.commonClass.*;
 /**
  * 标准通信协议
  * @author ZiQin
- * @version v1.3.0
+ * @version v1.3.1
  */
 public class MessageOperate {
 	
@@ -34,6 +34,10 @@ public class MessageOperate {
 	public static final int GET_GROUP_LIST = 15;    // 获取群组列表
 	public static final int CHANGE_GROUP = 16;      // 更改群组信息
 	public static final int UPDATE_GROUP = 17;      // 更新群信息
+    public static final int ADD_GROUP_BACK = 18;    // 对添加群的反馈
+    public static final int USER_ADD_GROUP = 19;    // 用户添加群请求
+    public static final int SEARCH_GROUP = 20;      // 搜索群
+    public static final int DEL_GROUP = 21;         // 删除群
 	public static final String OK = "ok";
 	public static final String FALSE = "fasle";
 	
@@ -43,7 +47,9 @@ public class MessageOperate {
 	 * @return 信息类型
 	 */
 	public static int getMsgType(Message msg ) {
-		
+		if (msg.getText().length() == 0 || msg == null) {
+		    return ERROR;
+        }
 		switch (msg.getText().charAt(0)) {
 			case 'C':
 				return CHAT;
@@ -77,6 +83,14 @@ public class MessageOperate {
 				return CHANGE_GROUP;
 			case 'Y':
 				return UPDATE_GROUP;
+            case 'H':
+                return ADD_GROUP_BACK;
+            case 'J':
+                return USER_ADD_GROUP;
+            case 'Z':
+                return SEARCH_GROUP;
+            case 'V':
+                return DEL_GROUP;
 			default:
 				return ERROR;
 		}
@@ -538,6 +552,98 @@ public class MessageOperate {
     }
 
 	/**
+	 * 解包更新某个群的请求
+	 * @param msg 标准通信协议数据报
+	 * @return 群id
+	 */
+	public static String unpackageAskUpdateGroup(Message msg) {
+
+    	return msg.getText().substring(1);
+	}
+
+    /**
+     * 解析请求搜索群的数据报
+     * @param msg 标准通信协议
+     * @return 搜索的群号
+     */
+    public static String unpackageAskSearchGroup(Message msg) {
+	    return new String(msg.getText().substring(1));
+    }
+
+    /**
+     * 打包搜索群的结果
+     * @param group 搜索到的群（仅需要ID、群名、群描述）
+     * @return 标准通信协议包
+     */
+    public static Message packageSearchGroupRes(Group group) {
+        String text = "Z";
+        text += group.getId() + "\f" + group.getName() + "\f" + group.getDescription();
+        return new Message(text, null);
+    }
+
+    /**
+     * 解析添加群请求的信息报
+     * @param msg 标准通信协议
+     * @return 希望添加的群id
+     */
+    public static String unpackageAskAddGroup(Message msg) {
+        return msg.getText().substring(1);
+    }
+
+    /**
+     * 打包通知群主有人请求加群的信息
+     * @param gid user想加入的群
+     * @param user 想入群的user（仅包含id和name）
+     * @return 标准通信协议
+     */
+    public static Message packageAskGroupOwnerUserAddGroup(String gid, Account user) {
+        String text = "J";
+        text += gid + '\f' + user.getId() + '\f' + user.getNikeName();
+        return new Message(text, null);
+    }
+
+    /**
+     * 解包群主对用户进群与否的信息
+     * @param msg 标准通信协议包
+     * @return 群主的想法（同意与否）
+     */
+    public static AddGroupResult unpackageAddGroupRes(Message msg) {
+        String[] item = msg.getText().substring(1).split("\f");
+        boolean ac = item[2].equals("true") ? true : false;
+        return new AddGroupResult(item[0], item[1], ac);
+    }
+
+    /**
+     * 打包群主的意见（同意加群否）
+     * @param addGroupResult 群主的意见
+     * @return 标准通信协议包
+     */
+    public static Message packageAddGroupResToUser(AddGroupResult addGroupResult) {
+        String text = "H";
+        text += addGroupResult.getGid() + "\f" + addGroupResult.isAccept();
+        return new Message(text, null);
+    }
+
+    /**
+     * 解包请求删除群
+     * @param msg 标准通信协议
+     * @return 群id
+     */
+    public static String unpackageAskDelGroup(Message msg) {
+        return msg.getText().substring(1);
+    }
+
+    /**
+     * 打包删除群的结果
+     * @param gid 群id
+     * @param result 删除结果
+     * @return 标准通信协议
+     */
+    public static Message packageDelGroupRes(String gid, boolean result) {
+        return new Message(new String("V" + gid + "\f" + result), null);
+    }
+
+    /**
 	 * 判断结果是否可行
 	 * @param ok 结果
 	 * @return 判断结果
