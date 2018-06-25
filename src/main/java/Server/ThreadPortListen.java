@@ -8,7 +8,7 @@ import java.net.Socket;
 /**
  * @author 97njczh
  */
-public class PortListenThread extends Thread {
+public class ThreadPortListen extends Thread {
 	
 	private static final int MAX_ERROR = 5;             // 连续创建线程失败次数
 	private static final int SLEEP_TIME = 10000;        // 线程睡眠时间
@@ -16,7 +16,7 @@ public class PortListenThread extends Thread {
 	private NetworkForServer loginSock = new NetworkForServer();
 	private int listenPort;
 	
-	PortListenThread( int port ) {
+	ThreadPortListen( int port ) {
 		
 		listenPort = port;
 		

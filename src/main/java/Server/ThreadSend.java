@@ -12,13 +12,13 @@ import network.commonClass.Message;
  *
  * @author 97njczh
  */
-public class SendThread extends Thread {
+public class ThreadSend extends Thread {
 	
 	private volatile boolean exit = false;
 	
 	private String userId;
 	private CommunicateWithClient client;
-	private SingleClientThread singleClientThread;
+	private ThreadSingleClient singleClientThread;
 	
 	/**
 	 * @param exit 要设置的 exit
@@ -28,7 +28,7 @@ public class SendThread extends Thread {
 		this.exit = exit;
 	}
 	
-	public SendThread( CommunicateWithClient client, String userId, SingleClientThread singleClientThread ) {
+	public ThreadSend( CommunicateWithClient client, String userId, ThreadSingleClient singleClientThread ) {
 		
 		this.client = client;
 		this.userId = userId;

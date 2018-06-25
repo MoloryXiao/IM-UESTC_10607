@@ -30,12 +30,23 @@ public class OfflineMsgRegister {
 	private static Hashtable<String, HashSet<String>> offlineReqMsgStatus = new Hashtable<String, HashSet<String>>();
 	
 	/**
+	 * 获取给id为<bold>targetId</bold>的用户发送了离线消息的用户列表
+	 *
+	 * @param targetId 离线消息接受者id
+	 * @return 所有给targetId用户发送了离线消息的用户列表
+	 */
+	public static HashSet<String> getChatMsgSourceIds( String targetId ) {
+		
+		return offlineChatMsgStatus.get(targetId);
+	}
+	
+	/**
 	 * 记录有ID为<bold>sourceId</bold>的用户给ID为<bold>targetId</bold>的用户发送了离线聊天消息
 	 *
 	 * @param targetId 离线消息接受者id
 	 * @param sourceId 离线消息发送者id
 	 */
-	public static void putOfflineChatMsg( String targetId, String sourceId ) {
+	public static void regOfflineChatMsg( String targetId, String sourceId ) {
 
 //		HashSet<String> status = offlineChatMsgStatus.get(targetId);
 //		if (status == null) {    // 说明还没有发给targetId的离线消息
@@ -49,22 +60,11 @@ public class OfflineMsgRegister {
 		status.add(sourceId);
 	}
 	
+	/* ==================================== [ Req  Msg ] ==================================== */
+	
 	public static void removeOfflineChatMsg( String targetId, String sourceId ) {
 		
 		offlineChatMsgStatus.get(targetId).remove(sourceId);
-	}
-	
-	/* ==================================== [ Req  Msg ] ==================================== */
-	
-	/**
-	 * 获取给id为<bold>targetId</bold>的用户发送了离线消息的用户列表
-	 *
-	 * @param targetId 离线消息接受者id
-	 * @return 所有给targetId用户发送了离线消息的用户列表
-	 */
-	public static HashSet<String> getChatMsgSourceIds( String targetId ) {
-		
-		return offlineChatMsgStatus.get(targetId);
 	}
 	
 	/**
@@ -84,7 +84,7 @@ public class OfflineMsgRegister {
 		return result;
 	}
 	
-	public static void putOfflineReqMsg( String targetId, String sourceId ) {
+	public static void regOfflineReqMsg( String targetId, String sourceId ) {
 		
 		HashSet<String> status = offlineReqMsgStatus.computeIfAbsent(targetId, k -> new HashSet<String>());
 		status.add(sourceId);

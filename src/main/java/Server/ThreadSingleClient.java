@@ -5,6 +5,7 @@ package Server;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.concurrent.BlockingDeque;
@@ -20,7 +21,7 @@ import network.NetworkForServer.*;
 /**
  * @author 97njczh
  */
-public class SingleClientThread extends Thread {
+public class ThreadSingleClient extends Thread {
 	
 	private static final int HEARTBEAT_MAX = 3;
 	
@@ -43,10 +44,11 @@ public class SingleClientThread extends Thread {
 		account.setOnline(false);
 	}
 	
-	public boolean isAccountOffline() {
-		
-		return account.getOnline();
-	}
+	private ThreadRecv recvThread;
+	private ThreadSend sendThread;
+	
+	
+	/*===================================== [ related to ThreadRecv ] =====================================*/
 	
 	/**
 	 * 构造函数
@@ -54,7 +56,7 @@ public class SingleClientThread extends Thread {
 	 * @param socket 连接用的socket
 	 * @throws IOException 连接异常
 	 */
-	SingleClientThread( Socket socket ) throws IOException {
+	ThreadSingleClient( Socket socket ) throws IOException {
 		
 		client = new CommunicateWithClient(socket);
 		recvQueue = new LinkedBlockingDeque<Message>();
@@ -62,11 +64,6 @@ public class SingleClientThread extends Thread {
 		account = null;
 		heartbeat = HEARTBEAT_MAX;
 	}
-	
-	
-	/*======================================= related to RecvThread =======================================*/
-	
-	private RecvThread recvThread;
 	private BlockingDeque<Message> recvQueue;
 	
 	public boolean isRecvQueueEmpty() {
@@ -123,9 +120,12 @@ label:
 	
 	
 	
-	/*======================================= related to sendThread =======================================*/
+	/*===================================== [ related to sendThread ] =====================================*/
 	
-	private SendThread sendThread;
+	public boolean getAccountOnlineStatus() {
+		
+		return account.getOnline();
+	}
 	private BlockingDeque<Message> sendQueue;
 	
 	public boolean isSendQueueEmpty() {
@@ -133,19 +133,19 @@ label:
 		return sendQueue.isEmpty();
 	}
 	
-	public Message getMsgFromSendQueue() throws InterruptedException {
-		
-		return sendQueue.take();
-	}
-	
 	public void putMsgToSendQueue( Message message ) {
 		
 		sendQueue.add(message);
 	}
 	
+	public Message getMsgFromSendQueue() throws InterruptedException {
+		
+		return sendQueue.take();
+	}
 	
 	
-	/*====================================== related to SingleClientThread ======================================*/
+	
+	/*================================= [ related to ThreadSingleClient ] ====================================*/
 	
 	
 	private void resetHeartbeat() {
@@ -154,7 +154,7 @@ label:
 	}
 	
 	/**
-	 * 将待发送的好友列表信息加入发送队列
+	 * DESCRIPTION：将待发送的好友列表信息加入发送队列
 	 */
 	private void disposeFriendsListReq() {
 		
@@ -166,27 +166,65 @@ label:
 	}
 	
 	/**
-	 * 将待发送的用户个人信息加入发送队列
+	 * #1 ADD TIME：2018/06/22 22:29 Version 0.8.1
+	 * DESCRIPTION：将待发送的好友列表信息加入发送队列
+	 */
+	private void disposeGroupsListReq() {
+		
+		putMsgToSendQueue(
+				MessageOperate.packageGroupList(
+						DatabaseOperator.getGroupsList(
+								account.getId())));
+	}
+	
+	/**
+	 * DESCRIPTION：将待发送的用户个人信息加入发送队列
 	 *
-	 * @param msg 个人信息数据报，如果msg长度超过1，则按修改个人信息处理；
-	 *            否则按请求个人信息处理；
+	 * @param msg 个人信息数据报，如果msg长度等于1，则按请求个人信息处理；
+	 *            否则按修改个人信息处理。
 	 */
 	private void disposeMyselfInfoReq( Message msg ) {
 		
-		if (msg.getText().length() > 1) {
-			// 修改个人信息，从msg中取出用户修改后的信息 DatabaseOperator.modifyMyInfo(account);
-			if (DatabaseOperator.modifyMyInfo(MessageOperate.unpackageUserDetail(msg))) {
-				account = MessageOperate.unpackageUserDetail(msg);
-			} else {
-				// TODO 修改个人信息失败
-			}
+		if (msg.getText().length() > 1) { // 修改个人信息
 			
-		} else {
-			// 请求个人信息
-			// @弃用 putMsgToSendQueue(MessageOperate.packageUserInfo(account));
+			if (DatabaseOperator.modifyMyInfo(MessageOperate.unpackageUserDetail(msg))) {
+				
+				account = MessageOperate.unpackageUserDetail(msg);
+			}// TODO 修改个人信息失败
+			
+		} else { // 请求个人信息
+			
 			putMsgToSendQueue(MessageOperate.packageUserDetail(account));
 		}
 		
+	}
+	
+	/**
+	 * #1 ADD TIME：2018/06/22 22:22 Version 0.8.1
+	 * DESCRIPTION：处理群组信息数据报
+	 *
+	 * @param msg 群组信息数据报，如果msg长度等于1，则按请求群组信息处理；
+	 *            否则按修改群组信息处理，只有群所有者和群管理员可以修改群信息。
+	 */
+	private void disposeGroupInfoReq( Message msg ) {
+		
+		if (msg.getText().length() > 6) { // TODO 通过长度判断有bug
+			// TODO 修改群组信息
+//			// 修改群组信息，从msg中取出群组修改后的信息 DatabaseOperator.modifyMyInfo(account);
+//			if (DatabaseOperator.modifyMyInfo(MessageOperate.unpackageUserDetail(msg))) {
+//				account = MessageOperate.unpackageUserDetail(msg);
+//			} else {
+//				// TODO 修改个人信息失败
+//			}
+		
+			
+		} else { // 请求群组信息
+			putMsgToSendQueue(
+					MessageOperate.packageUpdateGroup(
+							GroupManager.getGroupDetails(
+									MessageOperate.unpackageAskUpdateGroup(msg))));
+			
+		}
 	}
 	
 	/**
@@ -196,13 +234,18 @@ label:
 	 */
 	private void disposeFriendInfoReq( Message msg ) {
 		
+		Account accountInfo = DatabaseOperator.getUserDetailsById(
+				MessageOperate.unpackageOtherUserDetailAsk(msg).getTargetAccountId());
+		
+		if (Server.isUserOnline(accountInfo.getId()))
+			accountInfo.setOnline(true);
+		
 		putMsgToSendQueue(
-				MessageOperate.packageOtherUserDetail(
-						DatabaseOperator.getUserDetailsById(
-								MessageOperate.unpackageOtherUserDetailAsk(msg).getTargetAccountId())));
+				MessageOperate.packageOtherUserDetail(accountInfo));
 		
 	}
 	
+	// TODO 与添加、删除、查找群请求复用
 	
 	/**
 	 * 2018/04/29 10:39
@@ -211,7 +254,7 @@ label:
 	 *
 	 * @param msg 添加好友请求数据报
 	 */
-	private void disposeAddFriendReq( Message msg ) {
+	private void disposeAddReq( Message msg ) {
 		
 		Envelope envelope = MessageOperate.unpackEnvelope(msg);
 		String targetId = envelope.getTargetAccountId();
@@ -234,10 +277,8 @@ label:
 		/* 转发添加好友请求 */
 		Server.sendToOne(msg);
 		
-		// 保存未处理的好友请求，在用户上线时推送给该用户
-		OfflineMsgRegister.putOfflineReqMsg(targetId, sourceId);
-		
-		/*++++++++++++++++++++++-------------------+++++++++++++++++-------------------+++++++++++++++++-----*/
+		/* 保存未处理的好友请求，在用户上线时推送给该用户 */
+		OfflineMsgRegister.regOfflineReqMsg(targetId, sourceId);
 		
 	}
 	
@@ -246,7 +287,7 @@ label:
 	 *
 	 * @param msg 添加好友反馈数据报
 	 */
-	private void disposeAddFriendFeedback( Message msg ) {
+	private void disposeAddFeedback( Message msg ) {
 		
 		Envelope envelope = MessageOperate.unpackAddFriendFeedbackMsg(msg);
 		
@@ -281,7 +322,7 @@ label:
 	 *
 	 * @param msg 删除好友请求
 	 */
-	private void disposeDeleteReq( Message msg ) {
+	private void disposeDelReq( Message msg ) {
 		
 		Envelope envelope = MessageOperate.unpackDelFriendMsg(msg);
 		
@@ -308,9 +349,10 @@ label:
 	}
 	
 	/**
-	 * 处理聊天消息
+	 * #1 MOD TIME：2018/06/22 15:26 version 0.8.1
+	 * DESCRIPTION：处理私聊与群聊消息
 	 *
-	 * @param msg 聊天消息
+	 * @param msg 私聊与群聊消息
 	 */
 	private void disposeChatMsg( Message msg ) {
 		
@@ -319,41 +361,59 @@ label:
 		String sourceId = envelope.getSourceAccountId();
 		
 		if (targetId.charAt(0) == 'g') {
-			/*  *** 群聊消息 ***  */
-			SessionGroup groupSession = SessionStore.getGroupSession(targetId.substring(1));
 			
-			groupSession.addToChatMsgList(msg);
+			/*-------------------------------------- [ 群聊消息 ] --------------------------------------*/
 			
-			Server.sendToGroup(msg);
+			SessionGroup groupSession = SessionStore.getGroupSession(targetId);
+			
+			groupSession.addToChatMsgList(msg); // 保存群聊消息
+			
+			boolean[] result = Server.sendToGroup(msg); // 转发群消息，并记录转发情况
+			
+			groupSession.updateChatCursor(result);  // 更新消息阅读游标
+			
+			ArrayList<Account> memberIds = GroupManager.getGroupDetails(targetId).getGroupMembers();
+			for (int i = 0; i < result.length; i++)
+				if (!result[i])
+					// 记录群离线记录时，应该将消息发送人SourceId替换为群，而接受者Target替换为群成员
+					OfflineMsgRegister.regOfflineChatMsg(memberIds.get(i).getId(), targetId);
 			
 		} else {
-			/* *** 私聊消息 *** */
+			
+			/*-------------------------------------- [ 私聊消息 ] --------------------------------------*/
+			
 			SessionPrivate privateSession = SessionStore.getPrivateSession(targetId, sourceId);
 			
 			privateSession.addToChatMsgList(msg);
 			
-			if (Server.sendToOne(msg)) {
+			if (Server.sendToOne(msg)) { // 转发聊天消息，判断是否为离线消息
 				
-				privateSession.updateBothChatCursor();
+				privateSession.updateBothChatCursor();  // 消息接受者在线，则更新双方阅读游标
 				
 			} else {
 				
-				privateSession.updateChatCursor(sourceId);
-				OfflineMsgRegister.putOfflineChatMsg(targetId, sourceId);
+				privateSession.updateChatCursor(sourceId);  // 消息接受者不在线，则仅更新发送者阅读游标
+				OfflineMsgRegister.regOfflineChatMsg(targetId, sourceId);   // 记录有离线消息
 				
 			}
 			
 		}
 		
-		
 	}
 	
+	// TODO
+	private void disposeCreateGroupReq() {
 	
-	/* ===================================================================================================== */
+	}
+
+//	private void dispose
+	
+	
+	/* ============================================== [ 主逻辑部分 ] ========================================== */
 	
 	private int signIn() {
 		
-		Message loginMsg = null;
+		Message loginMsg;
 		
 		try {
 			//用户尚未登录，暂时没有创建收发子线程，调用底层recv函数接收好友登录信息
@@ -371,15 +431,15 @@ label:
 			return 2;   // 登录错误代码 2，未登录并试图进行其他操作
 			
 		}
-		// 解析出用户登录信息
-		Login loginInfo = MessageOperate.unpackLoginMsg(loginMsg);
+		
+		Login loginInfo = MessageOperate.unpackLoginMsg(loginMsg);    // 解析出用户登录信息
 		
 		if (Server.isUserOnline(loginInfo.getAccountId())) {  // 用户重复登录
 			
 			try {
 				
 				client.sendToClient(MessageOperate.packageNotFinishMsg());    // TODO 需要给用户反馈不同的提示
-				LoggerProvider.logger.error("[ ERROR ] 用户ID：" + loginInfo.getAccountId() + "重复登陆！已发送反馈！");
+				LoggerProvider.logger.error("[ ERROR ] 用户ID：" + loginInfo.getAccountId() + " 重复登陆！已发送反馈！");
 				
 			} catch (IOException e) {
 				
@@ -395,13 +455,16 @@ label:
 		
 		if (account != null) { // 登录信息与数据库中比对成功
 			
+			// 设置用户在线
+			setAccountOnline();
+			
 			// 在服务器的服务子线程数据库中注册该线程
 			Server.regServerThread(this);
 			
 			// 客户服务子线程创建其子线程：收线程和发线程，注意：收应该首先创建
 			// 由于在发线程中返回登录成功信息，因此放在后面创建以确保收发线程都已创建
-			recvThread = new RecvThread(client, account.getId(), this);
-			sendThread = new SendThread(client, account.getId(), this);
+			recvThread = new ThreadRecv(client, account.getId(), this);
+			sendThread = new ThreadSend(client, account.getId(), this);
 			
 			LoggerProvider.logger.info("[ LOGIN ] 用户ID：" + loginInfo.getAccountId() + " login successful!");
 			LoggerProvider.logger.info("[  O K  ] 当前在线人数【 "
@@ -466,12 +529,27 @@ label:
 			Iterator<String> it = sourceIds.iterator();
 			while (it.hasNext()) {
 				
-				SessionPrivate privateSession = SessionStore.getPrivateSession(targetId, it.next());
-				Message msg = privateSession.getNextUnreadMsg(targetId);
-				while (msg != null) {
-					putMsgToSendQueue(msg);
-					msg = privateSession.getNextUnreadMsg(targetId);
+				String sourceId = it.next();
+				
+				if (sourceId.charAt(0) == 'g') {
+					
+					SessionGroup groupSession = SessionStore.getGroupSession(sourceId);
+					Message msg = groupSession.getNextUnreadMsg(targetId);
+					while (msg != null) {
+						putMsgToSendQueue(msg);
+						msg = groupSession.getNextUnreadMsg(targetId);
+					}
+					
+				} else {
+					
+					SessionPrivate privateSession = SessionStore.getPrivateSession(targetId, sourceId);
+					Message msg = privateSession.getNextUnreadMsg(targetId);
+					while (msg != null) {
+						putMsgToSendQueue(msg);
+						msg = privateSession.getNextUnreadMsg(targetId);
+					}
 				}
+				
 				it.remove();
 				
 			}
@@ -523,36 +601,50 @@ label:
 					disposeFriendsListReq();
 					break;
 				
-				case MessageOperate.USER_DETAIL:            // 修改个人信息数据报
-				case MessageOperate.MYSELF:                 // 处理请求个人信息数据报：返回/设置个人信息
-					disposeMyselfInfoReq(message);
-					break;
-				
-				case MessageOperate.GET_OTHER_USER_DETAIL: // 处理请求他人信息的数据报
-					disposeFriendInfoReq(message);
-					break;
-				
-				case MessageOperate.ADDFRIEND:              // 转发添加好友请求
-					disposeAddFriendReq(message);
+				case MessageOperate.GET_GROUP_LIST:         // 获取群列表
+					disposeGroupsListReq();
 					break;
 				
 				case MessageOperate.CHAT:                   // 转发聊天消息
 					disposeChatMsg(message);
 					break;
 				
+				case MessageOperate.USER_DETAIL:            // 修改个人信息数据报
+				case MessageOperate.MYSELF:                 // 处理请求个人信息数据报：返回/设置个人信息
+					disposeMyselfInfoReq(message);
+					break;
+				
+				case MessageOperate.CHANGE_GROUP:           // 修改群信息请求
+				case MessageOperate.UPDATE_GROUP:           // 处理更新群信息请求
+					disposeGroupInfoReq(message);
+					break;
+				
+				case MessageOperate.GET_OTHER_USER_DETAIL:  // 处理请求他人信息的数据报
+					disposeFriendInfoReq(message);
+					break;
+				
+				case MessageOperate.ADDFRIEND:              // 转发添加好友请求
+					disposeAddReq(message);
+					break;
+				
 				case MessageOperate.BACKADD:                // 处理并转发添加好友反馈
-					disposeAddFriendFeedback(message);
+					disposeAddFeedback(message);
 					break;
 				
 				case MessageOperate.DELETE:                 // 处理删除好友请求
-					disposeDeleteReq(message);
+					disposeDelReq(message);
 					break;
 				
 				case MessageOperate.SEARCH:                 // 处理查找好友请求
 					disposeSearchReq(message);
 					break;
 				
+				case MessageOperate.ADD_GROUP:              // 创建群组请求
+					// TODO disposeAddReq();
+					break;
+				
 				default:
+					LoggerProvider.logger.warn("[ ERROR ] 无法识别的数据报！内容为：\'" + message + "\'");
 					break;
 			} // end switch
 			
@@ -595,20 +687,17 @@ label:
 		}
 		
 		if (signInStatus >= 10000) {
-			
 			LoggerProvider.logger.info("[  O K  ] 重复登录用户ID：" + signInStatus + " 服务子线程已结束！");
 		} else if (signInStatus == -1) {
-			
 			LoggerProvider.logger.info("[  O K  ] 用户ID：" + account.getId() + " 服务子线程已结束！");
 		} else {
-			
 			LoggerProvider.logger.info("[  O K  ] 用户服务子线程已结束！");
 		}
 		System.out.println("===============================================================");
 		
 	}
 	
-	/* ===============================================[ run ]=============================================== */
+	/* =============================================== [ run ] =============================================== */
 	
 	public void run() {
 		
