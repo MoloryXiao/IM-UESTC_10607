@@ -503,7 +503,7 @@ public class MessageOperate {
         text += Integer.toString(groups.size());
         String item = null;
         for (int i = 0; i < groups.size(); i++) {
-            item = '\f' + groups.get(i).getId() + '\n' + groups.get(i).getName() +
+            item = '\f' + groups.get(i).getGid() + '\n' + groups.get(i).getName() +
                     '\n' + groups.get(i).getDescription();
             text += item;
         }
@@ -551,6 +551,25 @@ public class MessageOperate {
         return new Message(text, null);
     }
 
+    /**
+     * 打包更新某个群的数据报
+     *
+     * @param group 群
+     * @return 标准通信协议数据报
+     */
+    public static Message packageUpdateGroup( Group group ) {
+
+        String text = "Y";
+        ArrayList<Account> member = group.getGroupMembers();
+        text += Integer.toString(member.size());
+        text += '\f' + group.getGid() + '\f' + group.getName() + '\f' +
+                group.getDescription();
+        for (int i = 0; i < member.size(); i++) {
+            text += '\f' + member.get(i).getId() + '\n' + member.get(i).getNikeName();
+        }
+        return new Message(text, null);
+    }
+
 	/**
 	 * 解包更新某个群的请求
 	 * @param msg 标准通信协议数据报
@@ -577,7 +596,7 @@ public class MessageOperate {
      */
     public static Message packageSearchGroupRes(Group group) {
         String text = "Z";
-        text += group.getId() + "\f" + group.getName() + "\f" + group.getDescription();
+        text += group.getGid() + "\f" + group.getName() + "\f" + group.getDescription();
         return new Message(text, null);
     }
 
