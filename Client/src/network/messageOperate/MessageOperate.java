@@ -11,7 +11,7 @@ import java.util.ArrayList;
 /**
  * 标准通信协议处理类
  * @author ZiQin
- * @version V1.2.0
+ * @version V1.2.1
  */
 public class MessageOperate {
 
@@ -35,6 +35,10 @@ public class MessageOperate {
     public static final int GET_GROUP_LIST = 15;    // 获取群组列表
     public static final int CHANGE_GROUP = 16;      // 更改群组信息
     public static final int UPDATE_GROUP = 17;      // 更新群信息
+    public static final int ADD_GROUP_BACK = 18;    // 对添加群的反馈
+    public static final int USER_ADD_GROUP = 19;    // 用户添加群请求
+    public static final int SEARCH_GROUP = 20;      // 搜索群
+    public static final int DEL_GROUP = 21;         // 删除群
     public static final String OK = "ok";
     public static final String FALSE = "false";
 
@@ -44,6 +48,9 @@ public class MessageOperate {
      * @return 返回检查类型的结果
      */
     public static int getMsgType(Message msg) {
+        if (msg == null || msg.getText().length() == 0) {
+            return ERROR;
+        }
         switch (msg.getText().charAt(0)) {
             case 'C':
                 return CHAT;
@@ -77,6 +84,14 @@ public class MessageOperate {
                 return CHANGE_GROUP;
             case 'Y':
                 return UPDATE_GROUP;
+            case 'H':
+                return ADD_GROUP_BACK;
+            case 'J':
+                return USER_ADD_GROUP;
+            case 'Z':
+                return SEARCH_GROUP;
+            case 'V':
+                return DEL_GROUP;
             default:
                 return ERROR;
         }
@@ -173,7 +188,6 @@ public class MessageOperate {
 
     /**
      * 打包详细的个人信息给服务器
-     * @param account 用户个人信息
      * @return 标准通信数据包
      */
     public static Message packageAskUserDetail() {
@@ -578,6 +592,89 @@ public class MessageOperate {
             member.add(account);
         }
         return new GroupBuilder().id(id).name(name).description(description).member(member).createGroup();
+    }
+
+    /**
+     * 打包搜索群的请求
+     * @param gid 群组Id
+     * @return 标准通信协议包
+     */
+    public static Message packageAskSearchGroup(String gid) {
+        return new Message(new String("Z" + gid), null);
+    }
+
+    /**
+     * 解析群搜索结果
+     * @param msg 标准通信协议包
+     * @return 群基本信息（仅包含ID、群名、群描述）
+     */
+    public static Group unpackageSearchGroupRes(Message msg) {
+        String[] item = msg.getText().substring(1).split("\f");
+        return new GroupBuilder().id(item[0]).name(item[1]).description(item[2]).createGroup();
+    }
+
+    /**
+     * 打包添加群请求
+     * @param gid 目标群id
+     * @return 标准通信协议包
+     */
+    public static Message packageAskAddGroup(String gid) {
+        return new Message(new String("J" + gid), null);
+    }
+
+    /**
+     * 解包user请求群主添加群的消息
+     * @param msg 标准通信协议包
+     * @return 群id和user的信息（仅包含id和name）
+     */
+    public static AddGroupRequest unpackageAskGroupOwnerUserAddGroup(Message msg) {
+        String[] item = msg.getText().substring(1).split("\f");
+        Account account = new AccountBuilder().id(item[1]).name(item[2]).createAccount();
+        AddGroupRequest addGroupRequest = new AddGroupRequest(item[0], account);
+        return addGroupRequest;
+    }
+
+    /**
+     * 打包是否允许user添加组的消息
+     * @param gid 群组id
+     * @param uid 被允许与否的用户
+     * @param feedback 同意与否
+     * @return 标准通信协议包
+     */
+    public static Message packageAddGroupRes(String gid, String uid, boolean feedback) {
+        String text = "H";
+        text += gid + "\f" + uid + "\f" + feedback;
+        return new Message(text, null);
+    }
+
+    /**
+     * 解包群主的意见（同意与否）
+     * @param msg 标准通信协议
+     * @return 群主的意见（仅群id和群主意见（同意与否））
+     */
+    public static AddGroupResult unpackageAddGroupResFromOwner(Message msg) {
+        String[] item = msg.getText().substring(1).split("\f");
+        boolean ac = item[1].equals("true") ? true : false;
+        return new AddGroupResult(item[0], null, ac);
+    }
+
+    /**
+     * 打包删除群请求
+     * @param gid 群id
+     * @return 标准通信协议
+     */
+    public static Message pacakgeAskDelGroup(String gid) {
+        return new Message(new String("V" + gid), null);
+    }
+
+    /**
+     * 解包删除群消息结果
+     * @param msg 标准通信协议
+     * @return 删除群消息结果
+     */
+    public static DelGroupResult unpackageDelGroupRes(Message msg) {
+        String[] item = msg.getText().substring(1).split("\f");
+        return new DelGroupResult(item[0], item[1].equals("true") ? true : false);
     }
 
     /**

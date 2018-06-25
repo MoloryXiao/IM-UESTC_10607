@@ -108,7 +108,7 @@ public class ChatWindow extends JFrame{
 		panel_north.setLayout(new BorderLayout(5,5));
 		panel_north.setPreferredSize(new Dimension(WINDOW_WIDTH, 105));
 
-		head_img_label = new JLabel(new ImageIcon("image/blank.jpg"));
+		head_img_label = new JLabel(new ImageIcon("./Client/image/blank.jpg"));
 		head_img_label.setPreferredSize(new Dimension(150,150));
 		head_img_label.setCursor(new Cursor(Cursor.HAND_CURSOR));
 		head_img_label.addMouseListener(new MouseListener() {		// 点击头像开启信息展示功能
