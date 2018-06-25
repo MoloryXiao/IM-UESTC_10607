@@ -2,17 +2,16 @@ package Server;
 
 import Server.util.LoggerProvider;
 import network.NetworkForServer.*;
-import network.commonClass.Message;
 
 import java.io.IOException;
 
-public class RecvThread extends Thread {
+public class ThreadRecv extends Thread {
 	
 	private volatile boolean exit = false;
 	
 	private String userId;
 	private CommunicateWithClient client;
-	private SingleClientThread singleClientThread;
+	private ThreadSingleClient singleClientThread;
 	
 	/**
 	 * @param exit 要设置的 exit
@@ -22,7 +21,7 @@ public class RecvThread extends Thread {
 		this.exit = exit;
 	}
 	
-	public RecvThread( CommunicateWithClient client, String userId, SingleClientThread singleClientThread ) {
+	public ThreadRecv( CommunicateWithClient client, String userId, ThreadSingleClient singleClientThread ) {
 		
 		this.client = client;
 		this.userId = userId;

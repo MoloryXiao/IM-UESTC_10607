@@ -12,19 +12,21 @@ import java.util.Hashtable;
 public class SessionStore {
 	
 	/* ================================= [ private session ] ================================= */
-	// <private session id , private session>
+	
 	private static Hashtable<String, SessionPrivate> privateSessionRepository
-			= new Hashtable<String, SessionPrivate>();
-	/* ================================= [  group  session ] ================================= */
-	// <group session id , private session>
+			= new Hashtable<String, SessionPrivate>();    // <private session id , private session>
+	// groupSessionRepository中的GroupId没有开头的g
 	private static Hashtable<String, SessionGroup> groupSessionRepository
-			= new Hashtable<String, SessionGroup>();
+			= new Hashtable<String, SessionGroup>();    // <group session id , private session>
+	
+	/* ================================= [  group  session ] ================================= */
 	
 	public static SessionPrivate getPrivateSession( String targetId, String sourceId ) {
 		
 		String idA;
 		String idB;
 		
+		// 小ID在前，大ID在后
 		if (targetId.compareToIgnoreCase(sourceId) < 0) {
 			idA = targetId;
 			idB = sourceId;
@@ -34,7 +36,6 @@ public class SessionStore {
 		}
 		
 		SessionPrivate privateSession = privateSessionRepository.get(idA + idB);
-		
 		if (privateSession == null) {
 			privateSession = new SessionPrivate(idA, idB);
 			privateSessionRepository.put(idA + idB, privateSession);
@@ -45,13 +46,14 @@ public class SessionStore {
 	
 	public static SessionGroup getGroupSession( String groupId ) {
 		
-		SessionGroup groupSession = groupSessionRepository.get(groupId);
+		if (groupId.charAt(0) == 'g')
+			groupId = groupId.substring(1);
 		
+		SessionGroup groupSession = groupSessionRepository.get(groupId);
 		if (groupSession == null) {
 			groupSession = new SessionGroup(groupId);
 			groupSessionRepository.put(groupId, groupSession);
 		}
-		
 		return groupSession;
 	}
 	

@@ -1,16 +1,16 @@
 package Server;
 
 import Server.Database.DatabaseConnector;
-import Server.Group.Group;
-import Server.Group.GroupManager;
 import Server.util.AdminUtil;
 import Server.util.FileOperator;
 import Server.util.LoggerProvider;
+import network.commonClass.Account;
 import network.commonClass.Message;
 import network.networkDataPacketOperate.MessageOperate;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.Vector;
@@ -22,22 +22,22 @@ public class Server {
 	// TODO group相关
 	
 	
-	/*======================================= SingleClientThread Database =======================================*/
+	/*======================================= ThreadSingleClient Database =======================================*/
 	
-	private static Map<String, SingleClientThread> singleClientThreadDb = new Hashtable<String, SingleClientThread>();
+	private static Map<String, ThreadSingleClient> singleClientThreadDb = new Hashtable<String, ThreadSingleClient>();
 	
-	public static Map<String, SingleClientThread> getSingleClientThreadDb() {
+	public static Map<String, ThreadSingleClient> getSingleClientThreadDb() {
 		
 		return singleClientThreadDb;
 	}
 	
-	/*======================================= SingleClientThread Manager  =======================================*/
+	/*======================================= ThreadSingleClient Manager  =======================================*/
 	
 	public static boolean newServerThread( Socket clientSocket ) {
 		
 		try {
 			
-			SingleClientThread singleClientThread = new SingleClientThread(clientSocket);
+			ThreadSingleClient singleClientThread = new ThreadSingleClient(clientSocket);
 			singleClientThread.start();
 			LoggerProvider.logger.info("[  O K  ] 用户服务子线程创建成功！");
 			return true;
@@ -53,7 +53,7 @@ public class Server {
 		
 	}
 	
-	public static void regServerThread( SingleClientThread singleClientThread ) {
+	public static void regServerThread( ThreadSingleClient singleClientThread ) {
 		
 		singleClientThreadDb.put(singleClientThread.getAccountId(), singleClientThread);
 	}
@@ -64,16 +64,16 @@ public class Server {
 	}
 	
 	/**
-	 * 判断该id的用户是否在线状态，即通过查询是否在客户服务子线程中来判断
+	 * 判断该id的用户是否在线状态
+	 * 即通过用户服务子线程是否在线程库以及用户在线位是否为true来判断
 	 *
 	 * @param id 待判断用户的id
-	 * @return 在客户服务子线程数据库中即在线，返回true；否则，返回false.
+	 * @return 用户在线，返回true；否则，返回false.
 	 */
 	public static boolean isUserOnline( String id ) {
 		
-		return singleClientThreadDb.containsKey(id)
-				       && singleClientThreadDb.get(id).isAccountOffline();
-		
+		return (singleClientThreadDb.containsKey(id)
+				        && singleClientThreadDb.get(id).getAccountOnlineStatus()) || id.equals("9999");
 	}
 	
 	/**
@@ -84,59 +84,62 @@ public class Server {
 		return singleClientThreadDb.size();
 	}
 	
-	public static void sendToAll() {
-	
-	
-	}
-	
 	/**
-	 * 转发消息
+	 * MOD #2 TIME：2018/06/22 15:23 version 0.8.1
+	 * DESCRIPTION：转发消息
 	 *
 	 * @param message 待转发消息
 	 * @return 是否成功添加至转发对象的发送队列
 	 */
 	public static boolean sendToOne( Message message ) {
 		
-		Boolean result = true;
+		Boolean result = false;
 		
 		String targetId = MessageOperate.unpackEnvelope(message).getTargetAccountId();
 		
-		if (isUserOnline(targetId))
+		if (isUserOnline(targetId)) {
 			singleClientThreadDb.get(targetId).putMsgToSendQueue(message);
-		else
-			result = false;
+			result = true;
+		}
 		
 		return result;
 		
 	}
 	
 	/**
-	 * 转发群消息
+	 * MOD #1 TIME：2018/06/22 15:46 version 0.8.1
+	 * DESCRIPTION：转发群消息
 	 *
 	 * @param message 待转发的群消息
 	 */
-	public static void sendToGroup( Message message ) {
+	public static boolean[] sendToGroup( Message message ) {
 		
+		String sourceUserId = MessageOperate.unpackEnvelope(message).getSourceAccountId();
 		String targetGroupId = MessageOperate.unpackEnvelope(message).getTargetAccountId();
+		ArrayList<Account> groupMembers = GroupManager.getGroupDetails(targetGroupId).getGroupMembers();
 		
-		Vector<String> groupMembers = GroupManager.getGroupInfo(targetGroupId).getGroupMembers();
+		boolean[] result = new boolean[groupMembers.size()]; // 转发结果数组，默认值为false
 		
-		for (String groupMember : groupMembers) {
+		for (int i = 0; i < groupMembers.size(); i++) {
 			
-			if (isUserOnline(groupMember))
-				singleClientThreadDb.get(groupMember).putMsgToSendQueue(message);
-			else {
-			
+			if (sourceUserId.equals(groupMembers.get(i).getId())) { // 如果是发送者本人
+				result[i] = true;
+				continue;
+			} else if (isUserOnline(groupMembers.get(i).getId())) { // 如果群成员在线
+				singleClientThreadDb.get(groupMembers.get(i).getId()).putMsgToSendQueue(message);
+				result[i] = true;
 			}
-			
-			
 		}
+		
+		return result;
 		
 	}
 	
 	public static void main( String[] args ) {
-
-		LoggerProvider.logger.info("=================== IM-Server Version 0.7.0 ===================");
+		
+		/*====================================== [ 初始化 ] ====================================== */
+		
+		LoggerProvider.logger.info("=================== IM-Server Version 0.8.3 ===================");
 		
 		if (!FileOperator.buildRuntimeEnv()) {
 			LoggerProvider.logger.error("[ ERROR ] 无法保证运行文件环境！正在退出……");
@@ -150,10 +153,14 @@ public class Server {
 			System.exit(1);
 		}
 		
-		// 启动服务器并开始监听端口:'9090'
-		(new PortListenThread(9090)).start();
+		if (!GroupManager.loadGroups(10)) {
+			LoggerProvider.logger.error("[ ERROR ] 无法预载入群组信息！");
+		}
 		
-		// 运行时带cmd参数，进入命令行控制模式
+		/* 启动服务器并开始监听端口:'9090' */
+		(new ThreadPortListen(9090)).start();
+		
+		/* 运行时带cmd参数，进入命令行控制模式 */
 		if (args.length == 1 && args[0].equals("cmd")) AdminUtil.adminMode();
 		
 		// System.out.println("[ ATTENTION ] 主线程退出!");

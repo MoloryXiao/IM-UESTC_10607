@@ -32,7 +32,7 @@ public class MessageOperate {
 	public static final int GET_OTHER_USER_DETAIL = 13;
 	public static final int ADD_GROUP = 14;         // 创建组
 	public static final int GET_GROUP_LIST = 15;    // 获取群组列表
-	public static final int CHANGE_GROUP = 16;      // 更改群组信息
+	public static final int CHANGE_GROUP = 16;      // 修改群组信息
 	public static final int UPDATE_GROUP = 17;      // 更新群信息
     public static final int ADD_GROUP_BACK = 18;    // 对添加群的反馈
     public static final int USER_ADD_GROUP = 19;    // 用户添加群请求
