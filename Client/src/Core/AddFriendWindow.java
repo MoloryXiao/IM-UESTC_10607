@@ -23,9 +23,11 @@ import javax.swing.*;
 import javax.swing.JOptionPane;
 
 import network.commonClass.Account;
+import network.commonClass.Group;
 import network.messageOperate.MessageOperate;
 
 import java.awt.event.*;
+import java.util.ArrayList;
 import java.util.Vector;
 
 /**
@@ -44,12 +46,13 @@ public class AddFriendWindow extends JFrame {
 	private static final int ADD_FRIEND_WINDOW_HEIGHT = 550;
 	
 	private JTabbedPane		option_tabbed;
-	private JPanel			search_friend_option,find_group_option,delete_friend_option;
+	private JPanel			search_friend_option,delete_friend_option,search_group_option,delete_group_option;
 	private JPanel 			center_panel;
-	private search_panel	search_friend_panel,delete_friend_panel;
+	private search_panel	search_friend_panel,delete_friend_panel,search_group_panel,delete_group_panel;
 
 	private String			mine_id;
 	Vector<String> 			friend_info;
+	Vector<String>			group_info;
 
 	public AddFriendWindow(String login_id) {
 		
@@ -70,6 +73,7 @@ public class AddFriendWindow extends JFrame {
 		mine_id = new String();
 		mine_id = id;
 		friend_info = new Vector<String>();
+		group_info = new Vector<String>();
 	}
 	private void setCenterPane() {
 		
@@ -97,7 +101,7 @@ public class AddFriendWindow extends JFrame {
 			}
 		};
 		
-		KeyListener search_button_key_listener = new KeyListener() {
+		KeyListener search_button_key_listener = new KeyListener() {							//搜索按钮回车监听
 			public void keyTyped(KeyEvent arg0) {}
 			public void keyReleased(KeyEvent arg0) {}
 			public void keyPressed(KeyEvent e) {
@@ -119,14 +123,6 @@ public class AddFriendWindow extends JFrame {
 		search_friend_option.add(search_friend_panel,BorderLayout.CENTER);
 		option_tabbed.addTab("添加好友",search_friend_option);
 		
-//		------------------Find Group---------------------------
-		find_group_option = new JPanel();
-		find_group_option.setLayout(new BorderLayout());
-		
-		search_panel search_group_panel = new search_panel("请输入群组号码" , search_panel.ADD_FRIEND_TYPE_PANEL);
-		find_group_option.add(search_group_panel,BorderLayout.CENTER);
-//		option_tabbed.addTab("添加群组", find_group_option);
-		
 //		------------------delete friend panel---------------------------
 		delete_friend_option = new JPanel();
 		delete_friend_option.setLayout(new BorderLayout());
@@ -135,7 +131,59 @@ public class AddFriendWindow extends JFrame {
 		delete_friend_option.add(delete_friend_panel,BorderLayout.CENTER);	
 		option_tabbed.addTab("删除好友", delete_friend_option);
 
-		this.add(center_panel,BorderLayout.CENTER);
+		this.add(center_panel,BorderLayout.CENTER);		
+//		------------------Find Group---------------------------
+		search_group_option = new JPanel();
+		search_group_option.setLayout(new BorderLayout());
+		
+		search_group_panel = new search_panel("请输入群组号码" , search_panel.ADD_GROUP_TYPE_PANEL);
+		search_group_panel.setMyAccountID(mine_id);
+		
+		ActionListener group_search_button_click_listener = new ActionListener() {		//设置添加群组选项卡内搜索按钮监听器
+			public void actionPerformed(ActionEvent e) {
+				if(search_group_panel.isSafetyInput()) {
+					
+//					RecvSendController.addToSendQueue(
+//							MessageOperate.packgroup(									//查找群
+//									search_group_panel.getTextArea() , mine_id));	
+				}
+			}
+		};
+		
+		KeyListener group_search_button_key_listener = new KeyListener() {			//设置添加群组选项卡内搜索按钮回车监听器
+			public void keyTyped(KeyEvent arg0) {}
+			public void keyReleased(KeyEvent arg0) {}
+			public void keyPressed(KeyEvent e) {
+				if(e.getKeyChar() == KeyEvent.VK_ENTER) {
+					if(search_group_panel.isSafetyInput()) {
+						
+//						RecvSendController.addToSendQueue(
+//								MessageOperate.packageSearch(						//查找群
+//								search_group_panel.getTextArea() , mine_id));	
+						
+					}		
+				}
+				
+			}
+		}; 
+		
+		search_group_panel.setSearchbuttonListener(group_search_button_click_listener);
+		search_group_panel.setTextAreaKeyListener(group_search_button_key_listener);
+		
+		search_group_option.add(search_group_panel,BorderLayout.CENTER);
+		option_tabbed.addTab("添加群组", search_group_option);
+		
+//		------------------delete group panel---------------------------
+		delete_group_option= new JPanel();
+		delete_group_option.setLayout(new BorderLayout());
+		
+		delete_group_panel = new search_panel("请输入查找号码" , search_panel.DELETE_GROUP_TYPE_PANEL);
+		delete_group_option.add(delete_group_panel,BorderLayout.CENTER);	
+		option_tabbed.addTab("删除好友", delete_group_option);
+
+		
+//		---------------------------------------------
+		this.add(center_panel,BorderLayout.CENTER);	
 	}
 
 	/**
@@ -160,13 +208,35 @@ public class AddFriendWindow extends JFrame {
 	public void setDeleteFriendPanelList(Vector<String> vec_delete_friend) {
 		delete_friend_panel.showFriendInfoInSearchList(vec_delete_friend);
 	}
+	
+	public void ShowGroupListInSearchGroupPanel(Group group) {
+		if (null== group) {
+			search_group_panel.showFriendInfoInSearchLable("没有找到符合搜索条件的群组");
+		}
+		else {
+			search_group_panel.setAndshowGroupInSearchGroupList(group);
+		}
+	}
+	
+	public void ShowGroupListInDeleteGroupPanel(ArrayList<Group> groups) {
+		if (null== groups) {
+			delete_group_panel.showFriendInfoInSearchLable("没有找到符合搜索条件的群组");
+		}
+		else {
+			delete_group_panel.setAndshowGroupsInSearchGroupList(groups);
+		}
+	}
+	
 }
 
 
 class search_panel extends JPanel{
 	
-	public  static final int ADD_FRIEND_TYPE_PANEL = 0;
-	public  static final int DELETE_FRIEND_TYPE_PANEL = 1;
+	public  static final int ADD_FRIEND_TYPE_PANEL 		= 0;
+	public  static final int DELETE_FRIEND_TYPE_PANEL 	= 1;
+	public	static final int ADD_GROUP_TYPE_PANEL 		= 2;
+	public	static final int DELETE_GROUP_TYPE_PANEL 	= 3;
+	
 	
 	private static String my_account_id = null;
 	
@@ -175,16 +245,22 @@ class search_panel extends JPanel{
 	private JPanel 	  			search_component_panel,search_result_panel,south_panel;
 	private JLabel				search_result_lable;
 	
-	private JList<String>		search_friend_JjList_string;
-	private Vector<String> 		friend_list;
+	private JList<String>		search_jList_string;
+	private Vector<String> 		search_list_vector;
 	
 	private String			 	text_area_string;
 	private int					panel_type;
+	
+//	-------------------------------------------
+	private network.commonClass.Group				search_result_group;
+	private ArrayList<network.commonClass.Group>	search_result_groups;
 	
 	public search_panel(String text_area_str , int type) {
 		
 		text_area_string = text_area_str;
 		panel_type = type;
+		
+		initVariableByType();						//根据panel类型初始化相关的变量
 		
 		this.setLayout(new BorderLayout());
 		
@@ -230,11 +306,11 @@ class search_panel extends JPanel{
 		JPanel blank_panel = new JPanel();
 		blank_panel.setPreferredSize(new Dimension(300,0));
 		
-		search_friend_JjList_string = new JList<String>();
-		search_friend_JjList_string.setPreferredSize(new Dimension(0,300));		//设置默认宽度
-		search_friend_JjList_string.addMouseListener(new MouseAdapter() {
+		search_jList_string = new JList<String>();
+		search_jList_string.setPreferredSize(new Dimension(0,300));		//设置默认宽度
+		search_jList_string.addMouseListener(new MouseAdapter() {
 			public void mouseClicked(MouseEvent e){
-				if(search_friend_JjList_string.getSelectedIndex() != -1) {
+				if(search_jList_string.getSelectedIndex() != -1) {
 					if(e.getClickCount() == 1){
 						function_button.setVisible(true);
 					}
@@ -244,11 +320,11 @@ class search_panel extends JPanel{
 
 		search_result_lable = new JLabel();
 		
-		search_result_panel.add(search_friend_JjList_string,BorderLayout.NORTH);
+		search_result_panel.add(search_jList_string,BorderLayout.NORTH);
 		search_result_panel.add(search_result_lable,BorderLayout.CENTER);
 		search_result_panel.add(blank_panel,BorderLayout.WEST);
 		
-		search_friend_JjList_string.setVisible(false);
+		search_jList_string.setVisible(false);
 		search_result_lable.setVisible(false);
 		
 		this.add(search_result_panel,BorderLayout.CENTER);
@@ -266,8 +342,8 @@ class search_panel extends JPanel{
 		function_button.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				int index = search_friend_JjList_string.getSelectedIndex();
-				Object object = search_friend_JjList_string.getModel().getElementAt(index);
+				int index = search_jList_string.getSelectedIndex();
+				Object object = search_jList_string.getModel().getElementAt(index);
 				if (panel_type == ADD_FRIEND_TYPE_PANEL) {
 					
 					RecvSendController.addToSendQueue(
@@ -286,6 +362,28 @@ class search_panel extends JPanel{
 					deleteFriendFrmListByIndex(index);
 
 				}
+				else if(panel_type == ADD_GROUP_TYPE_PANEL) {
+//					RecvSendController.addToSendQueue(					
+//							MessageOperate.packagegrou(						//TODO ALTER ADD_GROUP_REQUSET
+//									(search_result_group.getId(), my_account_id));
+//							
+//					JOptionPane.showMessageDialog(null, "已发送群组添加请求");
+
+				}
+				else if(panel_type == DELETE_GROUP_TYPE_PANEL) {
+					
+//					RecvSendController.addToSendQueue(
+//							MessageOperate.packageDelGroupMsg(				//TODO ALTER ALTER_GROUP_REQUSET
+//									(search_result_groups.get(search_jList_string.getSelectedIndex()).getId()), my_account_id));
+
+					RecvSendController.addToSendQueue(MessageOperate.packageUpdateGroup(search_result_groups.
+															get(search_jList_string.getSelectedIndex()).
+															getId()));	// 拉取群组列表
+					JOptionPane.showMessageDialog(null, "已删除好友");
+					deleteFriendFrmListByIndex(index);
+
+				}
+				
 				
 			}
 		});
@@ -295,11 +393,13 @@ class search_panel extends JPanel{
 		
 	}
 	
+
+	
 	private void setFunctionButtonName() {
-		if (panel_type == 0) {
+		if (panel_type == 0 || panel_type == 2) {
 			function_button.setText("添加");
 		}
-		else if(panel_type == 1){
+		else if(panel_type == 1 || panel_type == 3){
 			function_button.setText("删除");
 		}
 		else {
@@ -334,7 +434,7 @@ class search_panel extends JPanel{
 	public boolean isSafetyInput(){
 		if(search_text_field.getText().equals("") || search_text_field.getText().contains(" ")) {
 
-			search_friend_JjList_string.setVisible(false);
+			search_jList_string.setVisible(false);
 			search_result_lable.setVisible(true);
 			function_button.setVisible(false);
 			search_result_lable.setText("请输入正确的Kim号码");
@@ -345,7 +445,7 @@ class search_panel extends JPanel{
 	
 	
 	private void setJListVisbleAndLableNot() {
-		search_friend_JjList_string.setVisible(true);
+		search_jList_string.setVisible(true);
 		search_result_lable.setVisible(false);
 	}
 	
@@ -358,36 +458,29 @@ class search_panel extends JPanel{
 		search_text_field.setText(content);
 	}
 	
-//	public void () {
-//		
-//	}
 	public void setTextAreaKeyListener(KeyListener keyListener) {
 		search_text_field.addKeyListener(keyListener);
 	}
 	
 	private void deleteFriendFrmListByIndex(int index) {
-		friend_list.remove(index);
+		search_list_vector.remove(index);
 	}
 
 	public void showFriendInfoInSearchLable(String content) {
 		
-		search_friend_JjList_string.setVisible(false);
+		search_jList_string.setVisible(false);
 		search_result_lable.setVisible(true);
 		search_result_lable.setText(content);
 	}
 	public void showFriendInfoInSearchList(Vector<String> friend_info) {
-		friend_list = new Vector<String>();
-		friend_list = friend_info;
+		search_list_vector = new Vector<String>();
+		search_list_vector = friend_info;
 		setJListVisbleAndLableNot();
-		search_friend_JjList_string.setListData(friend_info);
-	}
-
-	public void showAllFriendInDeletePanel() {
-		setJListVisbleAndLableNot();
-		search_friend_JjList_string.setListData(friend_list);
+		search_jList_string.setListData(friend_info);
 	}
 	
 	public void setFunctionBtnVisble(boolean chs) {
+		search_list_vector = new Vector<>();
 		if (chs == true) {
 			function_button.setVisible(true);
 		}
@@ -395,6 +488,42 @@ class search_panel extends JPanel{
 			function_button.setVisible(false);
 		}
 	}
+//	---------------------------------------------
+	private void initVariableByType() {
+		
+		search_list_vector = new Vector<>();
+		
+		if(ADD_GROUP_TYPE_PANEL == panel_type) {
+			search_result_group = new network.commonClass.Group();
+		}
+		if(DELETE_GROUP_TYPE_PANEL == panel_type) {
+			search_result_groups = new ArrayList<>();
+		}
+	}
+	
+	public void setAndshowGroupInSearchGroupList(network.commonClass.Group group) {
+		
+		if(!search_list_vector.isEmpty())
+			search_list_vector.clear();
+		
+		search_list_vector.add(group.getId()+ " " + group.getName() + " " + group.getDescription());
+		
+		search_jList_string.setListData(search_list_vector);
+	}
+	public void setAndshowGroupsInSearchGroupList(ArrayList<network.commonClass.Group> groups) {
+		
+		if(!search_list_vector.isEmpty())
+			search_list_vector.clear();
+		
+		Group tmp = new Group();
+		for(int i = 0 ; i<groups.size() ; i++) {
+			tmp = groups.get(i);
+			search_list_vector.add(tmp.getId()+ " " + tmp.getName() + " " + tmp.getDescription());
+			search_jList_string.setListData(search_list_vector);
+		}
+	}
+
+	
 }
 
 

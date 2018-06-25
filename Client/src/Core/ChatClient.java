@@ -38,8 +38,8 @@ import network.messageOperate.MessageOperate;
  * Inital.
  */
 public class ChatClient{
-//	private final String host_name = "39.108.95.130";	// server location
-	private final String host_name = "192.168.1.103";	// local area for test
+	private final String host_name = "39.108.95.130";	// server location
+//	private final String host_name = "192.168.1.103";	// local area for test
 //	private final String host_name = "127.0.0.1";
 	private final int contact_port = 9090;
 	
@@ -203,9 +203,13 @@ public class ChatClient{
 					
 				case MessageOperate.UPDATE_GROUP:
 					gainGroupDetailedInfo(str_newMessage);
+					break;
 					
-//				case MessageOperate.GROUPCHAT:		// 处理服务器转发的群聊内容
-//					//gainGroupChatEnvelope(str_newMessage);
+				case MessageOperate.ADD_GROUP:		// 处理添加群组请求
+					gainGroupChatEnvelope(str_newMessage);
+					break;
+					
+//				case MessageOperate.group			// 处理推出群组
 //					break;
 				default: 
 					break;
@@ -440,9 +444,12 @@ public class ChatClient{
 			}
 		}
 		else {
-			if(!hashMap_wind_friendChat.containsKey(friendID))	// 若窗口还没有创建 则存入信封仓库中
+			if(!hashMap_wind_friendChat.containsKey(friendID)) {	// 若窗口还没有创建 则存入信封仓库中
+				System.out.println("Dont have Chinese" + friendID);
 				EnvelopeRepertory.addToBox(friendID, evp);
+			}
 			else {		// 若已创建则直接打到对应窗口上
+				System.out.println("have Chinese" + friendID);
 				hashMap_wind_friendChat.get(friendID).sendMessageToShowtextfield(message);	// 根据发送方的ID定位到好友窗口并显示
 				System.out.println("chatInfoRecv: " + friendID + " send “" + message + "” to " + destID);
 			}
@@ -468,6 +475,8 @@ public class ChatClient{
 		}
 
 	}
+	
+	
 	/**
 	 * 获取好友请求
 	 * @param str
@@ -503,7 +512,14 @@ public class ChatClient{
 			wind_friendsList.addFriendFailureHing();
 		}
 	}
-
+	
+	private void gainAddGroupRequest(Message str){
+		while(!isFriendsListWindCreated) ;
+		String friend_id = MessageOperate.unpackAddFriendMsg(str);
+		
+		wind_friendsList.setNewAddGroupFriendID(friend_id);
+		wind_friendsList.setNewFriendRequesttBottonVisible(true);
+	}
 	/**
 	 * 定时任务1：定时拉取好友列表
 	 * 前提：好友列表窗口已被创建

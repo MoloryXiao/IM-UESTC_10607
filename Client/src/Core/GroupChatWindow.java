@@ -10,6 +10,8 @@ import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowFocusListener;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -23,6 +25,7 @@ import com.sun.jmx.snmp.tasks.ThreadService;
 import javafx.scene.Group;
 import network.commonClass.Account;
 import network.commonClass.Envelope;
+import network.commonClass.Message;
 import network.messageOperate.MessageOperate;
 import javax.swing.border.Border;
 
@@ -35,7 +38,7 @@ import Core.FriendsListWindow;
 
 public class GroupChatWindow extends JFrame{
 	
-	private Account					account_me;		// 当前用户账户	
+	private Account					account_me;							// 当前用户账户	
 	private ArrayList<Account>		arrayList_account_groupMembers;		// 好友账户
 	
 	private static final String 	GroupChatWindow_TITLE = "Chating...";
@@ -105,10 +108,21 @@ public class GroupChatWindow extends JFrame{
 		
 		this.setTitle(GroupChatWindow_TITLE);
 		this.setSize(WINDOW_WIDTH, WINDOW_HEIGHT);
+		this.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		
 		this.setResizable(false);
 		this.setLocationRelativeTo(null);							//窗口剧中
-		this.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		
+		this.addWindowFocusListener(new WindowFocusListener() {
+			
+			@Override
+			public void windowGainedFocus(WindowEvent arg0) {
+				RecvSendController.addToSendQueue(MessageOperate.packageUpdateGroup(group_id));
+			}
+			
+			
+			public void windowLostFocus(WindowEvent arg0) {}
+		});
 		
 		SetNorthPane();
 		SetSouthPane();

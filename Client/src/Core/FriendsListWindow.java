@@ -43,7 +43,8 @@ public class FriendsListWindow extends JFrame{
 	private int 				i_groups_sum;	//add
 	
 	private int 				i_online_count;
-	private String 				new_friend_id;	
+	private String 				new_friend_id;			//新的好友请求ID
+	private String 				new_add_group_friend_id;
 	
 	private JScrollPane 		scroll_friends_list;
 	private JScrollPane			scroll_groups_list;
@@ -53,7 +54,8 @@ public class FriendsListWindow extends JFrame{
 	private JTabbedPane 		tabbed_pane;
 	private JList<String> 		jList_str_friendsName;
 	private JList<String>		jList_str_groupsName;		//add
-	private JButton				btn_manage_friend,btn_logout,btn_logoff,btn_new_friend_request;
+	private JButton				btn_manage_friend,btn_logout,btn_logoff,
+								btn_new_friend_request,btn_new_group_friend_request;
 	
 	private ArrayList<Account> 	arrayList_account_friends;
 	private ArrayList<Group>	arrayList_account_groups;		//account type should be changed to group type
@@ -243,6 +245,26 @@ public class FriendsListWindow extends JFrame{
 					RecvSendController.addToSendQueue(MessageOperate.packageAddFriendResultMsg(env, false));
 				}
 				btn_new_friend_request.setVisible(false);
+			}
+		});
+		
+		btn_new_group_friend_request = new JButton("新的群组请求");
+		btn_new_group_friend_request.setVisible(false);
+		
+		btn_new_group_friend_request.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				int option = JOptionPane.showConfirmDialog(null, 
+													"来自:" + new_add_group_friend_id + "的群组添加请求，是否同意？", "新的群组请求", 
+													JOptionPane.YES_NO_OPTION);
+				Envelope env = new Envelope(new_add_group_friend_id, account_mine.getId(), "");
+				if(option == JOptionPane.YES_OPTION) {
+					RecvSendController.addToSendQueue(MessageOperate.packageAddFriendResultMsg(env, true));
+					RecvSendController.addToSendQueue(MessageOperate.packageAskFriendListMsg());
+				}
+				else {
+					RecvSendController.addToSendQueue(MessageOperate.packageAddFriendResultMsg(env, false));
+				}
+				btn_new_group_friend_request.setVisible(false);
 			}
 		});
 		
@@ -476,6 +498,10 @@ public class FriendsListWindow extends JFrame{
 	}
 	public void setNewFriendID(String str) {
 		new_friend_id = str;
+	}
+	
+	public void setNewAddGroupFriendID(String str) {
+		new_add_group_friend_id = str;
 	}
 	
 	public void addFriendSuccessHint() {
