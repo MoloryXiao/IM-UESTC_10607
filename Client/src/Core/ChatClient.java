@@ -38,8 +38,8 @@ import network.messageOperate.MessageOperate;
  * Inital.
  */
 public class ChatClient{
-//	private final String host_name = "39.108.95.130";	// server location
-	private final String host_name = "192.168.1.103";	// local area for test
+	private final String host_name = "39.108.95.130";	// server location
+//	private final String host_name = "192.168.1.103";	// local area for test
 //	private final String host_name = "127.0.0.1";
 	private final int contact_port = 9090;
 	
