@@ -67,9 +67,7 @@ public class DatabaseOperator {
 				       .old(Integer.parseInt(rs.getString("old")))
 				       .sex(rs.getString("sex").charAt(0) == '1')
 				       .home(rs.getString("home_address"))
-				       //.picture(new Picture(Account.class.getClassLoader().getResource("default.jpg").getPath()))
 				       .picture(picture) // TODO 客户端需要处理为null的情况
-				       //.picture(new Picture(filePath))
 				       .online(Server.isUserOnline(rs.getString("id")))
 				       .createAccount();
 		
@@ -274,8 +272,9 @@ public class DatabaseOperator {
 		
 		try {
 			
-			rs.last();
-			if (rs.getRow() == 2) result = true;
+			if (rs != null)
+				if (rs.last())
+					if (rs.getRow() == 2) result = true;
 			
 		} catch (SQLException e) {
 			

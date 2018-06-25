@@ -3,8 +3,13 @@ package Server;
  *
  */
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
 import java.net.Socket;
+import java.net.URL;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -64,6 +69,7 @@ public class ThreadSingleClient extends Thread {
 		account = null;
 		heartbeat = HEARTBEAT_MAX;
 	}
+	
 	private BlockingDeque<Message> recvQueue;
 	
 	public boolean isRecvQueueEmpty() {
@@ -126,6 +132,7 @@ label:
 		
 		return account.getOnline();
 	}
+	
 	private BlockingDeque<Message> sendQueue;
 	
 	public boolean isSendQueueEmpty() {
@@ -152,6 +159,42 @@ label:
 		
 		heartbeat = HEARTBEAT_MAX;
 	}
+	
+	private Message chatWithAi( Message msg ) {
+		
+		String sourceId = MessageOperate.unpackEnvelope(msg).getSourceAccountId();
+		
+		try {
+			String info = URLEncoder.encode(MessageOperate.unpackEnvelope(msg).getText(), "utf-8");
+			String userid = URLEncoder.encode(sourceId, "utf-8");
+			String getURL = "http://www.tuling123.com/openapi/api?key=a8c67fb54b6a4648a92d7e84c6f4c20a"
+					                + "&info=" + info + "&userid=" + userid;
+			
+			HttpURLConnection conn = (HttpURLConnection) (new URL(getURL)).openConnection();
+			conn.connect();
+			
+			BufferedReader reader = new BufferedReader(
+					new InputStreamReader(conn.getInputStream(), "utf-8"));
+			StringBuffer sBuffer = new StringBuffer();
+			
+			String temp;
+			while ((temp = reader.readLine()) != null)
+				sBuffer.append(temp);
+			
+			msg = MessageOperate.packageEnvelope(sourceId, "9999", sBuffer.substring(23, sBuffer.length() - 2));
+			
+			reader.close();
+			conn.disconnect();
+			
+		} catch (IOException e) {
+			
+			msg = MessageOperate.packageEnvelope(sourceId, "9999", "小A不在!");
+			e.printStackTrace();
+		}
+		
+		return msg;
+	}
+	
 	
 	/**
 	 * DESCRIPTION：将待发送的好友列表信息加入发送队列
@@ -232,7 +275,7 @@ label:
 	 *
 	 * @param msg 好友信息请求数据包
 	 */
-	private void disposeFriendInfoReq( Message msg ) {
+	private void disposeFriendDetailsReq( Message msg ) {
 		
 		Account accountInfo = DatabaseOperator.getUserDetailsById(
 				MessageOperate.unpackageOtherUserDetailAsk(msg).getTargetAccountId());
@@ -381,6 +424,11 @@ label:
 		} else {
 			
 			/*-------------------------------------- [ 私聊消息 ] --------------------------------------*/
+			
+			if (targetId.equals("9999")) {    // 与AI聊天
+				Server.sendToOne(chatWithAi(msg));
+				return;
+			}
 			
 			SessionPrivate privateSession = SessionStore.getPrivateSession(targetId, sourceId);
 			
@@ -620,7 +668,7 @@ label:
 					break;
 				
 				case MessageOperate.GET_OTHER_USER_DETAIL:  // 处理请求他人信息的数据报
-					disposeFriendInfoReq(message);
+					disposeFriendDetailsReq(message);
 					break;
 				
 				case MessageOperate.ADDFRIEND:              // 转发添加好友请求
@@ -678,7 +726,7 @@ label:
 	private void closeSingleClientThread( int signInStatus ) {
 		
 		try {
-			
+			while (sendQueue.size() != 0) ;
 			client.endConnect();    // 关闭套接字
 			
 		} catch (IOException e) {
