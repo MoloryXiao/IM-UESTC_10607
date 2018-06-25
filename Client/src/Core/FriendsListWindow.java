@@ -71,7 +71,7 @@ public class FriendsListWindow extends JFrame{
 	public FriendsListWindow(){				
 		/* 设置窗口基本信息 */
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);					// 设置关闭键操作
-		this.setIconImage((new ImageIcon("image/chick.png")).getImage());		// 设置图标
+		this.setIconImage((new ImageIcon("./Client/image/chick.png")).getImage());		// 设置图标
 		setWindowSize();			// 设置窗口尺寸
 		setWindowRight();			// 设置窗口位于屏幕右侧
 		this.setResizable(false);	// 是否可拖拽

@@ -140,7 +140,7 @@ public class InfoModificationWindow extends JFrame{
 		label_loadImage = new JLabel(new ImageIcon("image/default.png"));			// 上传的头像
 		btn_upload = new JButton("上传→");		// 上传按钮
 		
-		String destPath = "image/" + InfoModificationWindow.this.account_modify.getId() +".jpg";	// 拷贝时用到的新文件路径
+		String destPath = "./Client/image/" + InfoModificationWindow.this.account_modify.getId() +".jpg";	// 拷贝时用到的新文件路径
 		btn_upload.addActionListener(new ActionListener() {		// 按钮点击事件
 			public void actionPerformed(ActionEvent e) {	
 				JFileChooser chooser = new JFileChooser();		// 设置选择器  

@@ -3,7 +3,7 @@ package network.commonClass;
 /**
  * 数据包
  * @author ZiQin
- * @version v1.0.0
+ * @version v1.0.1
  */
 public class Message {
 
@@ -26,6 +26,10 @@ public class Message {
     public static final int GET_GROUP_LIST = 15;    // 获取群组列表
     public static final int CHANGE_GROUP = 16;      // 更改群组信息
     public static final int UPDATE_GROUP = 17;      // 更新群信息
+    public static final int ADD_GROUP_BACK = 18;    // 对添加群的反馈
+    public static final int USER_ADD_GROUP = 19;    // 用户添加群请求
+    public static final int SEARCH_GROUP = 20;      // 搜索群
+    public static final int DEL_GROUP = 21;         // 删除群
 
     /**
      * 数据包类型
@@ -92,6 +96,9 @@ public class Message {
      * @return 返回检查类型的结果
      */
     private static int getMsgType(String msg) {
+        if (msg == null || msg.length() == 0) {
+            return ERROR;
+        }
         switch (msg.charAt(0)) {
             case 'C':
                 return CHAT;
@@ -121,6 +128,14 @@ public class Message {
                 return CHANGE_GROUP;
             case 'Y':
                 return UPDATE_GROUP;
+            case 'H':
+                return ADD_GROUP_BACK;
+            case 'J':
+                return USER_ADD_GROUP;
+            case 'Z':
+                return SEARCH_GROUP;
+            case 'V':
+                return DEL_GROUP;
             default:
                 return ERROR;
         }
