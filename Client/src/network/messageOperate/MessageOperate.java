@@ -48,6 +48,9 @@ public class MessageOperate {
      * @return 返回检查类型的结果
      */
     public static int getMsgType(Message msg) {
+        if (msg == null || msg.getText().length() == 0) {
+            return ERROR;
+        }
         switch (msg.getText().charAt(0)) {
             case 'C':
                 return CHAT;
