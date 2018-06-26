@@ -22,6 +22,7 @@
 	            <p class="p-input pos">
 	                <label for="pc_tel">请输入验证码</label>
 	                <input type="text" name="vcodetext" id="pc_tel">
+	                
 	             </p>
 	            <button class="lang-btn next" onclick="return checkVerifyCode()">下一步</button>
 	       	</form>
@@ -33,5 +34,26 @@
 <script src="./js/agree.js"></script>
 <script src="./js/reset.js"></script>
 <script src="./js/checkInput.js"></script>
+<script>
+function checkVerifyCode()
+{
+	var vcode = document.forms["recvVCode"]["vcodetext"].value;
+	var rightVcode=<%=request.getSession().getAttribute("VCode")%>;
+	var str = new RegExp(/^[0-9]{6}$/);
+	if (vcode == "" || vcode == null) {
+		alert("验证码不能为空");
+		return false;
+	}
+	else if (!str.test(vcode)) {
+		alert("验证码必须为6位");
+		return false;
+	}
+	else if (rightVcode != vcode) {
+		alert("验证码错误");
+		document.getElementById("pc_tel").value = "";
+		return false;
+	}
+}
+</script>
 </body>
 </html>
