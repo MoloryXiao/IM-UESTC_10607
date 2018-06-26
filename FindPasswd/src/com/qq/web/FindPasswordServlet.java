@@ -117,10 +117,11 @@ public class FindPasswordServlet extends HttpServlet {
 					String phoneNumber = rSet.getString("phone_number");
 					System.out.println(phoneNumber);
 					String vcode = createRandomVcode();
+					System.out.println(vcode);
 					SmsServer.sendsms(phoneNumber, vcode);
-					this.getServletContext().setAttribute("VCode", vcode);
-					this.getServletContext().setAttribute("id", id);
-					this.getServletContext().setAttribute("db", databaseOperator);
+					request.getSession().setAttribute("VCode", vcode);
+					request.getSession().setAttribute("id",  id);
+					request.getSession().setAttribute("db", databaseOperator);
 					return OK;
 				}
 				else {

@@ -32,20 +32,6 @@ function isEmptyForID()
 	}
 }
 
-function checkVerifyCode()
-{
-	var vcode = document.forms["recvVCode"]["vcodetext"].value;
-	var str = new RegExp(/^[0-9]{6}$/);
-	if (vcode == "" || vcode == null) {
-		alert("验证码不能为空");
-		return false;
-	}
-	else if (!str.test(vcode)) {
-		alert("验证码必须为6位");
-		return false;
-	}
-}
-
 function isEmpty(passwd, id)
 {
 	if (passwd == "" || passwd == null) {

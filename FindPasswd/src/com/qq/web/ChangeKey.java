@@ -9,6 +9,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.mysql.fabric.xmlrpc.base.Data;
 import com.qq.database.DatabaseOperator;
 
 /**
@@ -80,8 +81,9 @@ public class ChangeKey extends HttpServlet {
 	 * @throws SQLException SQL异常
 	 */
 	private byte change(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException, SQLException {
-		String id = (String) this.getServletContext().getAttribute("id");
-		DatabaseOperator databaseOperator = (DatabaseOperator) this.getServletContext().getAttribute("db");
+
+		String id = (String) request.getSession().getAttribute("id");
+		DatabaseOperator databaseOperator = (DatabaseOperator) request.getSession().getAttribute("db");
 		String key = request.getParameter("key");
 		String stat = new String("UPDATE user SET password='" + key + "' WHERE id='" + id + "';");
 		if (databaseOperator.update(stat) > 0) {
