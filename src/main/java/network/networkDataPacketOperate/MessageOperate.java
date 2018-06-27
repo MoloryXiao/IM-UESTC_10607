@@ -591,13 +591,18 @@ public class MessageOperate {
 
     /**
      * 打包搜索群的结果
-     * @param group 搜索到的群（仅需要ID、群名、群描述）
+     * @param group 搜索到的群（仅需要ID、群名、群描述）(如果没有找到群则直接传入null）
      * @return 标准通信协议包
      */
     public static Message packageSearchGroupRes(Group group) {
         String text = "Z";
-        text += group.getGid() + "\f" + group.getName() + "\f" + group.getDescription();
-        return new Message(text, null);
+        if (group == null) {
+        	text += "null";
+		}
+		else {
+			text += group.getGid() + "\f" + group.getName() + "\f" + group.getDescription();
+		}
+		return new Message(text, null);
     }
 
     /**
