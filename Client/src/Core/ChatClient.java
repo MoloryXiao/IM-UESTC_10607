@@ -18,7 +18,10 @@ import javax.swing.UIManager;
 
 import network.NetworkForClient.NetworkForClient;
 import network.commonClass.Account;
+import network.commonClass.AddGroupRequest;
+import network.commonClass.AddGroupResult;
 import network.commonClass.Envelope;
+import network.commonClass.Group;
 import network.commonClass.Message;
 import network.commonClass.Group;
 import network.messageOperate.MessageOperate;
@@ -41,9 +44,11 @@ public class ChatClient{
 	private final String host_name = "39.108.95.130";	// server location
 //	private final String host_name = "192.168.1.103";	// local area for test
 //	private final String host_name = "127.0.0.1";
+
 	private final int contact_port = 9090;
 	
 	private volatile boolean isFriendsListWindCreated = false;
+	private volatile boolean isAddFriendWindowCreated = false;
 	
 	private RecvSendController 					rs_controller;				// 收发线程控制器
 	private NetworkForClient 					net_controller;				// 通信接口控制器
@@ -132,6 +137,7 @@ public class ChatClient{
 					
 				case WindowProducer.ADD_FRIEND_WIND:		// 创建添加好友窗口
 					createAddFriendWindow();
+					isAddFriendWindowCreated = true;
 					break;
 					
 				case WindowProducer.INFO_MINE_WIND:			// 创建个人信息窗口
@@ -177,40 +183,47 @@ public class ChatClient{
 					gainFriendAccInfo(str_newMessage);
 					break;
 					
-				case MessageOperate.FRIENDLIST:		// 处理服务器反馈的好友列表
+				case MessageOperate.FRIENDLIST:			// 处理服务器反馈的好友列表
 					gainFriendslistInfo(str_newMessage);
 					break;
-
+				
+				case MessageOperate.GET_GROUP_LIST:		// 处理服务器反馈的群组好友列表
+					gainGroupFriendslistInfo(str_newMessage);
+					break;
+					
 				case MessageOperate.CHAT:			// 处理服务器转发的聊天内容
 					gainChatEnvelope(str_newMessage);
 					break;
-				
+					
 				case MessageOperate.SEARCH:			// 处理服务器反馈的搜索好友结果
 					gainSearchFriendInfo(str_newMessage);
+					break;
+					
+				case MessageOperate.SEARCH_GROUP:	// 处理服务器反馈的搜索群组结果
+					gainSearchGroupInfo(str_newMessage);
 					break;
 					
 				case MessageOperate.ADDFRIEND:		// 处理好友的添加请求
 					gainAddFriendRequest(str_newMessage);
 					break;
 				
+				case MessageOperate.USER_ADD_GROUP:	// 处理群组的添加请求
+					gainAddGroupRequest(str_newMessage);
+					break;
+				
 				case MessageOperate.BACKADD:		// 处理添加好友结果
-					gainAddFriendInfo(str_newMessage);
+					gainAddFriendResult(str_newMessage);
 					break;
 					
-				case MessageOperate.GET_GROUP_LIST:		// 处理服务器反馈的群组列表
-					gainGroupFriendslistInfo(str_newMessage);
+				case MessageOperate.ADD_GROUP_BACK:	// 处理添加群组结果
+					gainAddGroupResult(str_newMessage);
 					break;
-					
+							
 				case MessageOperate.UPDATE_GROUP:
 					gainGroupDetailedInfo(str_newMessage);
 					break;
-					
-				case MessageOperate.ADD_GROUP:		// 处理添加群组请求
-					gainGroupChatEnvelope(str_newMessage);
-					break;
-					
-//				case MessageOperate.group			// 处理推出群组
-//					break;
+				
+//				case MessageOperate.ADD_GROUP
 				default: 
 					break;
 						
@@ -263,7 +276,11 @@ public class ChatClient{
 		wind_addfriend = new AddFriendWindow((LoginWindow.getLoginInfoResource()).getLoginYhm());
 		
 		//将好友列表添加到管理好友-删除好友面板中，为删除好友面板提供好友列表
-		wind_addfriend.setDeleteFriendPanelList(wind_friendsList.getFriendList());					
+		wind_addfriend.ShowFriendsListInDeleteFriendPanel(wind_friendsList.getFriendsList());	
+		
+		//将好友列表添加到管理好友-删除群组面板中，为删除群组面板提供群组列表
+		wind_addfriend.ShowGroupsListInDeleteGroupPanel(wind_friendsList.getGroupList());
+		
 	}
 	
 	/**
@@ -380,7 +397,9 @@ public class ChatClient{
 		
 		wind_friendsList.updateFriendsList(arrayList_account_friendsInfo);
 
-		
+		if(isAddFriendWindowCreated) {											//如果添加好友列表
+			wind_addfriend.ShowFriendsListInDeleteFriendPanel(arrayList_account_friendsInfo);
+		}
 		if(!flag_timer1) {
 			flag_timer1 = true;
 			timerFriendsList();			// 启动定时任务 - 定时拉取好友列表
@@ -394,8 +413,13 @@ public class ChatClient{
 	private void gainGroupFriendslistInfo(Message message) {
 		
 		ArrayList<Group> groups_Info =  MessageOperate.unpackageGroupList(message);    //待修改  解包群组列表	
-		wind_friendsList.updateGroupsList(groups_Info);	
-//		System.out.println("LoginInfo: obtaining the friendList from server... - OK");
+		
+		wind_friendsList.updateGroupsList(groups_Info);									//更新好友列表
+		
+		
+		if(isAddFriendWindowCreated) {
+			wind_addfriend.ShowGroupsListInDeleteGroupPanel(groups_Info);
+		}
 		
 		if(!flag_timer1) {
 			flag_timer1 = true;
@@ -405,16 +429,16 @@ public class ChatClient{
 	
 	private void gainGroupDetailedInfo(Message message) {
 		
-		Group groups_Info =  MessageOperate.unpackageUpdateGroup(message);    //待修改  解包群组列表	
-//		System.out.println("group detailed info:" + groups_Info.size());
+		Group groups_Info =  MessageOperate.unpackageUpdateGroup(message);    
 		ArrayList<Account> accounts = groups_Info.getMember();
 		for(int i =0;i<accounts.size();i++) {
 			System.out.println(accounts.get(i).getNikeName());
 		}
 		System.out.println("hash group size:" + hashMap_window_groupChat.size());
-		
+
 		while(!hashMap_window_groupChat.containsKey(groups_Info.getId()));						//阻塞等待群窗口创建出来，才设置群窗口的成员
 		hashMap_window_groupChat.get(groups_Info.getId()).setGroupFriendName(groups_Info.getMember());
+		
 //		wind_friendsList.asdfasdfupdateGroupsList(groups_Info);	 // here we need to debug
 	}
 	/**
@@ -457,28 +481,7 @@ public class ChatClient{
 	}
 	
 	/**
-	 * 处理来自群聊的消息
-	 */
-	private void gainGroupChatEnvelope(Message str)			//GroupChatEnvelope!!!
-	{
-		Envelope evp = new Envelope();
-		evp = MessageOperate.unpackEnvelope(str);
-		String friendID = evp.getSourceAccountId();			// 信发送消息的ID	，		   待修改！！！
-		String groupID = evp.getTargetAccountId();			//	封源地址即为群号ID ， 待修改！！！
-		String message = evp.getText();
-		
-		if(!hashMap_window_groupChat.containsKey(groupID))	// 若groupID窗口还没有创建 则存入信封仓库中
-			GroupEnvelopeRepertory.addToBox(groupID, evp);
-		else {		// 若已创建则直接打到对应窗口上
-			hashMap_window_groupChat.get(groupID).sendMessageToGroupShowTextField(message , friendID);	// 根据发送方的ID定位到好友窗口并显示
-			System.out.println("chatInfoRecv: " + groupID + " send “" + message + "” to " + friendID);	//群发送消息给了个人
-		}
-
-	}
-	
-	
-	/**
-	 * 获取好友请求
+	 * 处理新的好友请求
 	 * @param str
 	 */
 	private void gainAddFriendRequest(Message str){
@@ -489,18 +492,41 @@ public class ChatClient{
 	}
 	
 	/**
+	 * 处理新的用户添加群组请求
+	 * @param str
+	 */
+	private void gainAddGroupRequest(Message str){
+		while(!isFriendsListWindCreated) ;
+		AddGroupRequest tmp = MessageOperate.unpackageAskGroupOwnerUserAddGroup(str);
+		
+		wind_friendsList.setNewAddGroupFriendID(tmp.getTargetGroupId() ,tmp.getWantToAddGroupUser());
+		
+		System.out.println("gid:" + tmp.getTargetGroupId() + "uid:" + tmp.getWantToAddGroupUser().getId());
+		
+		wind_friendsList.setNewGroupRequesttBottonVisible(true);
+	}
+	/**
 	 * 处理服务器反馈的搜索好友结果
 	 * @param str
 	 */
 	private void gainSearchFriendInfo(Message str) {
-		wind_addfriend.showFriendInfotInSearchFriendPanel(MessageOperate.unpackSearchResultMsg(str));
+//		wind_addfriend.showFriendInfotInSearchFriendPanel(MessageOperate.unpackSearchResultMsg(str));
+		wind_addfriend.ShowFriendInSearchFriendPanel(MessageOperate.unpackSearchResultMsg(str));
+	}
+	
+	/**
+	 * 处理服务器反馈的搜索群组结果
+	 * @param str
+	 */
+	private void gainSearchGroupInfo(Message str) {
+		wind_addfriend.ShowGroupListInSearchGroupPanel(MessageOperate.unpackageSearchGroupRes(str));
 	}
 	
 	/**
 	 * 处理服务器反馈的添加好友结果
 	 * @param str
 	 */
-	private void gainAddFriendInfo(Message str) {
+	private void gainAddFriendResult(Message str) {
 		System.out.println("【 Add Result】"+MessageOperate.unpackAddFriendResultMsg(str));
 		if(MessageOperate.unpackAddFriendResultMsg(str)) {
 			System.out.println("AddFriendInfo: add the friend success... - OK");
@@ -513,13 +539,27 @@ public class ChatClient{
 		}
 	}
 	
-	private void gainAddGroupRequest(Message str){
-		while(!isFriendsListWindCreated) ;
-		String friend_id = MessageOperate.unpackAddFriendMsg(str);
+	/**
+	 * 处理服务器反馈的添加群组结果
+	 * @param str
+	 */
+	private void gainAddGroupResult(Message str) {
+//		System.out.println("【 Add Group Result】" + MessageOperate.unpackageAddGroupResFromOwner(str));
+		AddGroupResult tmp = MessageOperate.unpackageAddGroupResFromOwner(str);
 		
-		wind_friendsList.setNewAddGroupFriendID(friend_id);
-		wind_friendsList.setNewFriendRequesttBottonVisible(true);
+		System.out.println("result:" + tmp.isAccept());
+		
+		if(tmp.isAccept()) {
+			System.out.println("AddGroupInfo: add the friend to " + tmp.getUid() + " success... - OK");
+			RecvSendController.addToSendQueue(MessageOperate.packageAskGetGroupList());
+			wind_friendsList.addGroupSuccessHint();
+		}
+		else { 
+			System.out.println("AddFriendInfo: add the friend faliure... - OK");
+			wind_friendsList.addGroupFailureHing();;
+		}
 	}
+	
 	/**
 	 * 定时任务1：定时拉取好友列表
 	 * 前提：好友列表窗口已被创建

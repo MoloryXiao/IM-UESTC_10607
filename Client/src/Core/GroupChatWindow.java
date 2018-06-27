@@ -3,8 +3,6 @@ package Core;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
@@ -14,20 +12,15 @@ import java.awt.event.WindowEvent;
 import java.awt.event.WindowFocusListener;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.Vector;
 
 import javax.swing.*;
 
-import com.sun.jmx.snmp.tasks.ThreadService;
-
-import javafx.scene.Group;
 import network.commonClass.Account;
 import network.commonClass.Envelope;
 import network.commonClass.Message;
 import network.messageOperate.MessageOperate;
-import javax.swing.border.Border;
 
 import Core.FriendsListWindow;
 /**

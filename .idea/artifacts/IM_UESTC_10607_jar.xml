@@ -1,0 +1,13 @@
+<component name="ArtifactManager">
+  <artifact name="IM-UESTC_10607:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/IM_UESTC_10607_jar</output-path>
+    <root id="root">
+      <element id="archive" name="IM-UESTC_10607.jar">
+        <element id="directory" name="META-INF">
+          <element id="file-copy" path="$PROJECT_DIR$/META-INF/MANIFEST.MF" />
+        </element>
+      </element>
+      <element id="library" level="project" name="beautyeye_lnf" />
+    </root>
+  </artifact>
+</component>
