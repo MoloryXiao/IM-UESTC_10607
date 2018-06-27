@@ -30,7 +30,7 @@ public class MessageOperate {
 	public static final int MYSELF = 11;
 	public static final int USER_DETAIL = 12;
 	public static final int GET_OTHER_USER_DETAIL = 13;
-	public static final int ADD_GROUP = 14;         // 创建组
+	public static final int CREATE_GROUP = 14;         // 创建组
 	public static final int GET_GROUP_LIST = 15;    // 获取群组列表
 	public static final int CHANGE_GROUP = 16;      // 修改群组信息
 	public static final int UPDATE_GROUP = 17;      // 更新群信息
@@ -76,7 +76,7 @@ public class MessageOperate {
 			case 'G':
 				return GET_OTHER_USER_DETAIL;
 			case 'Q':
-				return ADD_GROUP;
+				return CREATE_GROUP;
 			case 'P':
 				return GET_GROUP_LIST;
 			case 'E':
