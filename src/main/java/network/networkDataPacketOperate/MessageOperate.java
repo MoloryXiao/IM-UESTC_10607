@@ -30,7 +30,7 @@ public class MessageOperate {
 	public static final int MYSELF = 11;
 	public static final int USER_DETAIL = 12;
 	public static final int GET_OTHER_USER_DETAIL = 13;
-	public static final int ADD_GROUP = 14;         // 创建组
+	public static final int CREATE_GROUP = 14;         // 创建组
 	public static final int GET_GROUP_LIST = 15;    // 获取群组列表
 	public static final int CHANGE_GROUP = 16;      // 修改群组信息
 	public static final int UPDATE_GROUP = 17;      // 更新群信息
@@ -76,7 +76,7 @@ public class MessageOperate {
 			case 'G':
 				return GET_OTHER_USER_DETAIL;
 			case 'Q':
-				return ADD_GROUP;
+				return CREATE_GROUP;
 			case 'P':
 				return GET_GROUP_LIST;
 			case 'E':
@@ -591,13 +591,18 @@ public class MessageOperate {
 
     /**
      * 打包搜索群的结果
-     * @param group 搜索到的群（仅需要ID、群名、群描述）
+     * @param group 搜索到的群（仅需要ID、群名、群描述）(如果没有找到群则直接传入null）
      * @return 标准通信协议包
      */
     public static Message packageSearchGroupRes(Group group) {
         String text = "Z";
-        text += group.getGid() + "\f" + group.getName() + "\f" + group.getDescription();
-        return new Message(text, null);
+        if (group == null) {
+        	text += "null";
+		}
+		else {
+			text += group.getGid() + "\f" + group.getName() + "\f" + group.getDescription();
+		}
+		return new Message(text, null);
     }
 
     /**

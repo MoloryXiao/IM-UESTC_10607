@@ -687,7 +687,7 @@ label:
 					disposeSearchReq(message);
 					break;
 				
-				case MessageOperate.ADD_GROUP:              // 创建群组请求
+				case MessageOperate.CREATE_GROUP:              // 创建群组请求
 					// TODO disposeAddReq();
 					break;
 				
