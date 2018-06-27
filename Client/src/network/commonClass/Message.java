@@ -22,7 +22,7 @@ public class Message {
     public static final int BACKADD = 9;
     public static final int REGISTOR = 10;
     public static final int MYSELF = 11;
-    public static final int ADD_GROUP = 14;         // 创建组
+    public static final int CREATE_GROUP = 14;         // 创建组
     public static final int GET_GROUP_LIST = 15;    // 获取群组列表
     public static final int CHANGE_GROUP = 16;      // 更改群组信息
     public static final int UPDATE_GROUP = 17;      // 更新群信息
@@ -121,7 +121,7 @@ public class Message {
             case 'I':
                 return MYSELF;
             case 'Q':
-                return ADD_GROUP;
+                return CREATE_GROUP;
             case 'P':
                 return GET_GROUP_LIST;
             case 'E':
