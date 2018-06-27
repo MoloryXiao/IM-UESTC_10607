@@ -609,6 +609,8 @@ public class MessageOperate {
      * @return 群基本信息（仅包含ID、群名、群描述）
      */
     public static Group unpackageSearchGroupRes(Message msg) {
+        if (msg.getText().substring(1).equals("null"))
+            return null;
         String[] item = msg.getText().substring(1).split("\f");
         return new GroupBuilder().id(item[0]).name(item[1]).description(item[2]).createGroup();
     }
