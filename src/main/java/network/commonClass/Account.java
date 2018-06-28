@@ -196,14 +196,16 @@ public class Account extends AccountBase {
 	 * @return name 昵称
 	 */
 	public String getNikeName() {
-		return new String(name);
+		
+		return null == name ? null : new String(name);
 	}
 	/**
 	 * 描述：获取个性签名
 	 * @return signature 个性签名
 	 */
 	public String getSignature() {
-		return new String(signature);
+		
+		return null == signature ? null : new String(signature);
 	}
 	/**
 	 * 描述：设置是否在线
@@ -239,7 +241,8 @@ public class Account extends AccountBase {
 	 * @return 手机号码
 	 */
 	public String getMobliePhone() {
-		return new String(mobliePhone);
+		
+		return mobliePhone == null ? null : new String(mobliePhone);
 	}
 
 	/**
@@ -255,7 +258,8 @@ public class Account extends AccountBase {
 	 * @return 邮箱地址
 	 */
 	public String getMail() {
-		return new String(mail);
+		
+		return mail;
 	}
 
 	/**
@@ -319,7 +323,8 @@ public class Account extends AccountBase {
 	 * @return 归属地
 	 */
 	public String getHome() {
-		return new String(home);
+		
+		return home == null ? null : new String(home);
 	}
 
 	/**

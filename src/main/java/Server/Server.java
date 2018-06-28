@@ -17,11 +17,6 @@ import java.util.Vector;
 
 public class Server {
 	
-	/*===========================================================================================================*/
-	
-	// TODO group相关
-	
-	
 	/*======================================= ThreadSingleClient Database =======================================*/
 	
 	private static Map<String, ThreadSingleClient> singleClientThreadDb = new Hashtable<String, ThreadSingleClient>();
@@ -64,6 +59,14 @@ public class Server {
 	}
 	
 	/**
+	 * @return int 在客户服务子线程中的线程数，即在线用户数；
+	 */
+	public static int getOnlineCounter() {
+		
+		return singleClientThreadDb.size();
+	}
+	
+	/**
 	 * 判断该id的用户是否在线状态
 	 * 即通过用户服务子线程是否在线程库以及用户在线位是否为true来判断
 	 *
@@ -76,16 +79,17 @@ public class Server {
 				        && singleClientThreadDb.get(id).getAccountOnlineStatus()) || id.equals("9999");
 	}
 	
-	/**
-	 * @return int 在客户服务子线程中的线程数，即在线用户数；
-	 */
-	public static int getOnlineCounter() {
+	public static Account getOnlineAccount( String uid ) {
 		
-		return singleClientThreadDb.size();
+		if (singleClientThreadDb.containsKey(uid))
+			return singleClientThreadDb.get(uid).getAccount();
+		else
+			return null;
 	}
 	
 	/**
 	 * MOD #2 TIME：2018/06/22 15:23 version 0.8.1
+	 * <p>
 	 * DESCRIPTION：转发消息
 	 *
 	 * @param message 待转发消息
@@ -107,7 +111,31 @@ public class Server {
 	}
 	
 	/**
+	 * #1 ADD     ：2018/06/27 18:28 Version 0.8.4
+	 * <p>
+	 * DESCRIPTION：转发消息
+	 *
+	 * @param targetId 转发信息接受者Id
+	 * @param message  转发信息内容
+	 * @return 是否转发成功
+	 */
+	public static boolean sendToOne( String targetId, Message message ) {
+		
+		Boolean result = false;
+		
+		if (isUserOnline(targetId)) {
+			singleClientThreadDb.get(targetId).putMsgToSendQueue(message);
+			result = true;
+		}
+		
+		return result;
+		
+	}
+	
+	
+	/**
 	 * MOD #1 TIME：2018/06/22 15:46 version 0.8.1
+	 * <p>
 	 * DESCRIPTION：转发群消息
 	 *
 	 * @param message 待转发的群消息
@@ -139,7 +167,7 @@ public class Server {
 		
 		/*====================================== [ 初始化 ] ====================================== */
 		
-		LoggerProvider.logger.info("=================== IM-Server Version 0.8.3 ===================");
+		LoggerProvider.logger.info("=================== IM-Server Version 0.8.4 ===================");
 		
 		if (!FileOperator.buildRuntimeEnv()) {
 			LoggerProvider.logger.error("[ ERROR ] 无法保证运行文件环境！正在退出……");

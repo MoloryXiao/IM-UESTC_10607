@@ -58,9 +58,7 @@ public class ThreadRecv extends Thread {
 					
 				} else {
 					
-					System.out.println(e.getMessage());
-					
-					LoggerProvider.logger.error("[ ERROR ] 接受客户端信息发生错误！");
+					LoggerProvider.logger.error("[ ERROR ] 接受客户端信息发生错误！异常：" + e.getMessage());
 					
 				}
 			}

@@ -98,6 +98,12 @@ public class Group {
 		this.message = message;
 	}
 	
+	public void setOwner( Account owner ) {
+		
+		this.owner = owner;
+	}
+	
+	
 	public Account getOwner() {
 		
 		return owner;

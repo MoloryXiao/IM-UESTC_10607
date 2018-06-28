@@ -475,7 +475,7 @@ public class MessageOperate {
      */
 	public static Group unpackageAskCreateGroup(Message msg) {
 	    String[] item = msg.getText().substring(1).split("\f");
-	    return new GroupBuilder().id(item[0]).name(item[1])
+		return new GroupBuilder().owner(new AccountBuilder().id(item[0]).createAccount()).name(item[1])
                 .description(item[2]).createGroup();
     }
 

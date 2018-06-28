@@ -24,56 +24,6 @@ public class DatabaseOperator {
 	/*============================================ [ User  相关 ] =============================================== */
 	
 	/**
-	 * DESCRIPTION：获取用户简略信息，id，username，sign
-	 *
-	 * @param rs 数据库结果集
-	 * @return 包含用户简略信息的Account类型对象
-	 * @throws SQLException 结果集查询失败异常
-	 */
-	private static Account getAccountInfo( ResultSet rs ) throws SQLException {
-		// Retrieve by column name
-		return new AccountBuilder(rs.getString("id"),
-				rs.getString("username"), rs.getString("sign")).createAccount();
-	}
-	
-	/**
-	 * DESCRIPTION：获取用户详细信息
-	 *
-	 * @param rs 数据库结果集
-	 * @return 包含用户详细信息的Account类型对象
-	 * @throws SQLException 结果集查询失败异常
-	 */
-	private static Account getAccountDetails( ResultSet rs ) throws SQLException {
-		
-		Picture picture = null;
-		try {
-			picture = new Picture("./" + rs.getString("portrait"));
-		} catch (IOException e) {
-			LoggerProvider.logger.error("[ ERROR ] Database：图片打开失败！尝试打开默认图片！");
-			try {
-				picture = new Picture("./portrait/default/default.jpg");
-				LoggerProvider.logger.info("[  O K  ] Database：默认图片打开成功！");
-			} catch (IOException e1) {
-				LoggerProvider.logger.error("[ ERROR ] Database：默认图片打开失败！");
-			}
-		}
-		
-		// Retrieve by column name
-		return new AccountBuilder(rs.getString("id"),
-				rs.getString("username"), rs.getString("sign"))
-				       .mobilePhone(rs.getString("phone_number"))
-				       .mail(rs.getString("mail"))
-				       .stage((byte) Integer.parseInt(rs.getString("stage")))
-				       .old(Integer.parseInt(rs.getString("old")))
-				       .sex(rs.getString("sex").charAt(0) == '1')
-				       .home(rs.getString("home_address"))
-				       .picture(picture) // TODO 客户端需要处理为null的情况
-				       .online(Server.isUserOnline(rs.getString("id")))
-				       .createAccount();
-		
-	}
-	
-	/**
 	 * DESCRIPTION：查询数据库中用户详细信息
 	 *
 	 * @param sql 查询个人信息的sql语句
@@ -91,14 +41,39 @@ public class DatabaseOperator {
 			
 			if (rs != null) // 查询出现错误
 				
-				if (rs.next()) // Extract data from result set
+				if (rs.next()) { // Extract data from result set
 					
-					account = getAccountDetails(rs);
+					Picture picture = null;
+					
+					try {
+						picture = new Picture("./" + rs.getString("portrait"));
+					} catch (IOException e) {
+						LoggerProvider.logger.error("[ ERROR ] Database：图片打开失败！尝试打开默认图片！");
+						try {
+							picture = new Picture("./portrait/default/default.jpg");
+							LoggerProvider.logger.info("[  O K  ] Database：默认图片打开成功！");
+						} catch (IOException e1) {
+							LoggerProvider.logger.error("[ ERROR ] Database：默认图片打开失败！");
+						}
+					}
+					
+					// Retrieve by column name
+					account = new AccountBuilder(rs.getString("id"),
+							rs.getString("username"), rs.getString("sign"))
+							          .mobilePhone(rs.getString("phone_number"))
+							          .mail(rs.getString("mail"))
+							          .stage((byte) Integer.parseInt(rs.getString("stage")))
+							          .old(Integer.parseInt(rs.getString("old")))
+							          .sex(rs.getString("sex").charAt(0) == '1')
+							          .home(rs.getString("home_address"))
+							          .picture(picture) // TODO 客户端需要处理为null的情况
+							          .online(Server.isUserOnline(rs.getString("id")))
+							          .createAccount();
+				}
 			
 		} catch (SQLException e) {
 			
 			LoggerProvider.logger.error("[ ERROR ] Database：数据库查询结果集时出现问题(在函数 getUserDetails() 中)");
-			
 		}
 		
 		DatabaseConnector.closeConnection(conn, stmt, rs);
@@ -213,11 +188,7 @@ public class DatabaseOperator {
 							rs.getString("username"), false,
 							rs.getString("sign"));
 			}
-//			} else {
-//
-//				LoggerProvider.logger.info("[  O K  ] Database：数据库中查无此" + type + "用户：" + value);
-//
-//			}
+			
 		} catch (SQLException e) {
 			
 			LoggerProvider.logger.error("[ ERROR ] Database：数据库查询结果集时出现问题(在函数 searchUser() 中)");
@@ -332,7 +303,6 @@ public class DatabaseOperator {
 		DatabaseConnector.closeConnection(conn, stmt);
 		
 		return result;
-		
 	}
 	
 	
@@ -340,10 +310,8 @@ public class DatabaseOperator {
 		
 		boolean result = false;
 		
-		// TODO 图片更新机制的优化
-
-//		String filePath = Account.class.getProtectionDomain().getCodeSource().getLocation().getPath();
-//		filePath = filePath.substring(0, filePath.lastIndexOf('/') + 1); // 程序运行所以在相对路径
+		// TODO 图片更新机制的优化，即如果用户没有更新头像则，不需要重新保存
+		
 		String filePathS = "./portrait/user/" + myInfo.getId() + ".jpg";  // 用户头像保存相对路径
 		
 		/* 在服务器硬盘中保存用户头像 */
@@ -372,171 +340,6 @@ public class DatabaseOperator {
 	}
 	
 	/*============================================ [ Group 相关 ] =============================================== */
-	
-	public static Vector<Group> loadGroupDetails( int num ) {
-		
-		Connection conn = DatabaseConnector.getConnection();
-		Statement stmt = DatabaseConnector.getStatement(conn);
-		
-		/* 预先载入数个群组信息 */
-		String sql = "SELECT * FROM `t_group_base_info` LIMIT " + num;
-		ResultSet rs = DatabaseConnector.query(stmt, sql); // Execute a query
-		
-		Vector<String> groupIds = new Vector<>();
-		
-		try {
-			
-			if (rs != null)  // 查询出现错误
-				
-				while (rs.next()) { // Extract data from result set
-					
-					groupIds.add(rs.getString("p_group_id"));
-				}
-			
-		} catch (SQLException e) {
-			
-			LoggerProvider.logger.error("[ ERROR ] Database：数据库查询结果集时出现问题(在函数 loadGroupDetails() 中)");
-			
-			DatabaseConnector.closeConnection(conn, stmt, rs);
-			
-			return null;
-		}
-		
-		Vector<Group> groups = new Vector<>();
-		
-		for (String groupId : groupIds) {
-			groups.add(getGroupDetails(groupId));
-		}
-		
-		return groups;
-		
-	}
-	
-	
-	public static Group getGroupInfo( String groupId ) {
-		
-		/* 查询t_group_base_info表获取GID为groupId群的群信息 */
-		String sql = "SELECT * FROM `t_group_base_info` WHERE `p_group_id` =" + groupId;
-		
-		Connection conn = DatabaseConnector.getConnection();
-		Statement stmt = DatabaseConnector.getStatement(conn);
-		ResultSet rs = DatabaseConnector.query(stmt, sql); // Execute a query
-		
-		Group group = null;
-		
-		try {
-			
-			if (rs != null) {  // 查询出现错误
-				
-				while (rs.next()) { // Extract data from result set
-					
-					group = new Group(rs.getString("p_group_id"),
-							rs.getString("p_group_name"),
-							rs.getString("p_group_description"),
-							null);
-				}
-			}
-			
-		} catch (SQLException e) {
-			
-			LoggerProvider.logger.error("[ ERROR ] Database：数据库查询结果集时出现问题(在函数 getGroupInfo() 中)");
-			
-		}
-		
-		DatabaseConnector.closeConnection(conn, stmt, rs);
-		
-		return group;
-	}
-	
-	/**
-	 * [ DESCRIPTION ] 获取群详细信息，包括群属性与群成员列表
-	 *
-	 * @param groupId 需要获取群详细信息的群号
-	 * @return 含有详细信息的群对象
-	 */
-	public static Group getGroupDetails( String groupId ) {
-		
-		Group group = getGroupInfo(groupId);
-		
-		if (group == null) return null;
-		
-		/* 查询t_group_member表获取群成员列表 */
-		String sql = "SELECT `user`.*, p_group_member_identity,p_group_member_join_datetime "
-				             + "FROM `t_group_member`,`user` "
-				             + "WHERE `p_group_id` = " + group.getGid() + " "
-				             + "AND `p_group_member_id` = `user`.id";
-		
-		Connection conn = DatabaseConnector.getConnection();
-		Statement stmt = DatabaseConnector.getStatement(conn);
-		ResultSet rs = DatabaseConnector.query(stmt, sql);
-		
-		try {
-			
-			if (rs != null) {  // 查询出现错误
-				
-				/* 群详细信息包括群用户列表，该列表仅需要用户的简要信息即可 */
-				ArrayList<Account> members = new ArrayList<>();
-				
-				while (rs.next())  // Extract data from result set
-					members.add(getAccountInfo(rs));
-				
-				group.setMember(members);
-			}
-			
-		} catch (SQLException e) {
-			
-			LoggerProvider.logger.error("[ ERROR ] Database：数据库查询结果集时出现问题(在函数 getGroupDetails() 中)");
-		}
-		
-		DatabaseConnector.closeConnection(conn, stmt, rs);
-		
-		return group;
-	}
-	
-	public static Group createGroup( String ownerId ) {
-		
-		/*
-		当创建新群时，为群成员表记录创建者信息，用触发器实现，以下是触发器SQL代码
-		CREATE TRIGGER `insert_t_group_member` AFTER INSERT ON `t_group_base_info` FOR EACH ROW
-		INSERT INTO `rP87cbTu`.`t_group_member` ( `p_group_id`, `p_group_member_id`, `p_group_member_identity` )
-		VALUES	( new.p_group_id, new.p_group_creator_id, 0 );
-		 */
-		
-		String sql = "INSERT INTO " + DatabaseConnector.getDbName() + ".`t_group_base_info`(`p_group_creater_id`)"
-				             + "VALUES(" + ownerId + ") \n";
-		
-		Connection conn = DatabaseConnector.getConnection();
-		Statement stmt = DatabaseConnector.getStatement(conn);
-		DatabaseConnector.update(stmt, sql);
-		
-		String gid = null;
-		
-		try {
-			ResultSet rs = stmt.getGeneratedKeys();
-			if (rs != null)
-				gid = rs.getNString(1);
-			
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-		
-		Group group = getGroupDetails(gid);
-		
-		DatabaseConnector.closeConnection(conn, stmt);
-		
-		return group;
-		
-	}
-	
-	public static boolean delGroup( Group group ) {
-		
-		boolean result = true;
-		return result;
-	}
-	
-	public static void updateGroupInfo( Group group ) {
-	
-	}
 	
 	public static ArrayList<Group> getGroupsList( String uid ) {
 //		String sql = "SELECT * "
@@ -577,6 +380,244 @@ public class DatabaseOperator {
 		
 		return groupsList;
 		
+	}
+	
+	public static Vector<Group> loadGroupDetails( int num ) {
+		
+		Connection conn = DatabaseConnector.getConnection();
+		Statement stmt = DatabaseConnector.getStatement(conn);
+		
+		/* 预先载入数个群组信息 */
+		String sql = "SELECT * FROM `t_group_base_info` LIMIT " + num;
+		ResultSet rs = DatabaseConnector.query(stmt, sql); // Execute a query
+		
+		Vector<String> groupIds = new Vector<>();
+		
+		try {
+			
+			if (rs != null)  // 查询出现错误
+				
+				while (rs.next()) { // Extract data from result set
+					
+					groupIds.add(rs.getString("p_group_id"));
+				}
+			
+		} catch (SQLException e) {
+			
+			LoggerProvider.logger.error("[ ERROR ] Database：数据库查询结果集时出现问题(在函数 loadGroupDetails() 中)");
+			
+			DatabaseConnector.closeConnection(conn, stmt, rs);
+			
+			return null;
+		}
+		
+		Vector<Group> groups = new Vector<>();
+		
+		for (String groupId : groupIds) {
+			groups.add(getGroupDetails(groupId));
+		}
+		
+		return groups;
+		
+	}
+	
+	/**
+	 * DESCRIPTION：创建群组
+	 *
+	 * @param newGroup 创建群组的信息
+	 * @return 返回创建完成的群
+	 */
+	public static Group createGroup( Group newGroup ) {
+		
+		/*
+		当创建新群时，为群成员表记录创建者信息，用触发器实现，以下是触发器SQL代码
+		CREATE TRIGGER `insert_t_group_member` AFTER INSERT ON `t_group_base_info` FOR EACH ROW
+		INSERT INTO `rP87cbTu`.`t_group_member` ( `p_group_id`, `p_group_member_id`, `p_group_member_identity` )
+		VALUES	( new.p_group_id, new.p_group_creator_id, 0 );
+		 */
+		
+		String sql = "INSERT INTO " + DatabaseConnector.getDbName()
+				             + ".`t_group_base_info`(`p_group_creator_id`,`p_group_name`,`p_group_description`)"
+				             + "VALUES(" + newGroup.getOwner().getId() + ","
+				             + "\'" + newGroup.getName() + "\',"
+				             + newGroup.getDescription() + ");";
+		
+		Connection conn = DatabaseConnector.getConnection();
+		Statement stmt = DatabaseConnector.getStatement(conn);
+		ResultSet rs = null;
+		if (DatabaseConnector.update(stmt, sql) == 1) {
+			// TODO 不够优雅
+			rs = DatabaseConnector.query(stmt,
+					"SELECT p_group_id FROM " + DatabaseConnector.getDbName() + ".`t_group_base_info`"
+							+ "WHERE `p_group_name` = \'" + newGroup.getName() + "\' "
+							+ "AND `p_group_creator_id`=\'" + newGroup.getOwner().getId() + "\' "
+							+ "AND `p_group_description`=\'" + newGroup.getDescription() + "\'");
+		}
+		
+		String gid = null;
+		
+		try {
+
+//			ResultSet rs = stmt.getGeneratedKeys();
+			
+			if (rs != null) {
+				
+				if (rs.last())
+					
+					gid = rs.getString("p_group_id");
+			}
+			
+		} catch (SQLException e) {
+			
+			e.printStackTrace();
+			
+		}
+		
+		Group group = getGroupDetails(gid); // 创建之后重新获取群的详细信息
+		
+		DatabaseConnector.closeConnection(conn, stmt);
+		
+		return group;
+		
+	}
+	
+	public static Group getGroupInfo( String groupId ) {
+		
+		/* 查询t_group_base_info表获取GID为groupId群的群信息 */
+		String sql = "SELECT * FROM `t_group_base_info` WHERE `p_group_id` =" + groupId;
+		
+		Connection conn = DatabaseConnector.getConnection();
+		Statement stmt = DatabaseConnector.getStatement(conn);
+		ResultSet rs = DatabaseConnector.query(stmt, sql); // Execute a query
+		
+		Group group = null;
+		
+		try {
+			
+			if (rs != null) {  // 查询出现错误
+				
+				while (rs.next()) { // Extract data from result set
+					
+					group = new Group(rs.getString("p_group_id"),
+							rs.getString("p_group_name"),
+							rs.getString("p_group_description"),
+							null);
+					
+					group.setOwner(
+							getUserDetailsById(
+									rs.getString("p_group_creator_id")));
+				}
+			}
+			
+		} catch (SQLException e) {
+			
+			LoggerProvider.logger.error("[ ERROR ] Database：数据库查询结果集时出现问题(在函数 getGroupInfo() 中)");
+			
+		}
+		
+		DatabaseConnector.closeConnection(conn, stmt, rs);
+		
+		return group;
+	}
+	
+	/**
+	 * DESCRIPTION：获取群详细信息，包括群属性与群成员列表
+	 *
+	 * @param groupId 需要获取群详细信息的群号
+	 * @return 含有详细信息的群对象
+	 */
+	public static Group getGroupDetails( String groupId ) {
+		
+		/* 先调用获取基本信息函数 */
+		Group group = getGroupInfo(groupId);
+		
+		if (group == null) return null;
+		
+		/* 查询t_group_member表获取群成员列表 */
+		String sql = "SELECT `user`.*, p_group_member_identity,p_group_member_join_datetime "
+				             + "FROM `t_group_member`,`user` "
+				             + "WHERE `p_group_id` = " + group.getGid() + " "
+				             + "AND `p_group_member_id` = `user`.id";
+		
+		Connection conn = DatabaseConnector.getConnection();
+		Statement stmt = DatabaseConnector.getStatement(conn);
+		ResultSet rs = DatabaseConnector.query(stmt, sql);
+		
+		try {
+			
+			if (rs != null) {  // 查询出现错误
+				
+				/* 群详细信息包括群用户列表，该列表仅需要用户的简要信息即可 */
+				ArrayList<Account> members = new ArrayList<>();
+				
+				while (rs.next())  // Extract data from result set
+					members.add(new AccountBuilder(
+							rs.getString("id"),
+							rs.getString("username"),
+							rs.getString("sign")).createAccount());
+				
+				group.setMember(members);
+			}
+			
+		} catch (SQLException e) {
+			
+			LoggerProvider.logger.error("[ ERROR ] Database：数据库查询结果集时出现问题(在函数 getGroupDetails() 中)");
+		}
+		
+		DatabaseConnector.closeConnection(conn, stmt, rs);
+		
+		return group;
+	}
+	
+	public static boolean modGroupInfo( Group group ) {
+		
+		boolean result = false;
+		
+		String sql = "UPDATE " + DatabaseConnector.getDbName() + ".`t_group_base_info` SET "
+				             + "`p_group_name` = '" + group.getName() + "', "
+				             + "`p_group_description` = '" + group.getDescription() + "' "
+				             + " WHERE `id` = " + group.getGid();
+		
+		Connection conn = DatabaseConnector.getConnection();
+		Statement stmt = DatabaseConnector.getStatement(conn);
+		if (DatabaseConnector.update(stmt, sql) == 1) result = true;
+		
+		DatabaseConnector.closeConnection(conn, stmt);
+		
+		return result;
+		
+	}
+	
+	public static boolean quitGroup( String gid, String uid ) {
+		
+		boolean result = false;
+		
+		String sql = "DELETE FROM " + DatabaseConnector.getDbName() + ".`t_group_member` WHERE"
+				             + "( `p_group_id` = " + gid + " AND `p_group_member_id` = " + uid + " ) ";
+		
+		Connection conn = DatabaseConnector.getConnection();
+		Statement stmt = DatabaseConnector.getStatement(conn);
+		if (DatabaseConnector.update(stmt, sql) == 1) result = true;
+		
+		DatabaseConnector.closeConnection(conn, stmt);
+		
+		return result;
+	}
+	
+	public static boolean joinGroup( String gid, String uid ) {
+		
+		boolean result = false;
+		
+		String sql = "INSERT INTO " + DatabaseConnector.getDbName() + ".`t_group_member`(`p_group_id`, `p_group_member_id`) "
+				             + "VALUES (" + gid + "," + uid + ")";
+		
+		Connection conn = DatabaseConnector.getConnection();
+		Statement stmt = DatabaseConnector.getStatement(conn);
+		if (DatabaseConnector.update(stmt, sql) == 1) result = true;
+		
+		DatabaseConnector.closeConnection(conn, stmt);
+		
+		return result;
 	}
 	
 	
