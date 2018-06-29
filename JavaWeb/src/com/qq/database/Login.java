@@ -1,9 +1,12 @@
 package com.qq.database;
 
+import com.qq.database.AccountBase;
+
 /**
  * Created by ZiQin on 2018/3/25.
  */
 public class Login {
+
     private AccountBase account;
 
     private String password;

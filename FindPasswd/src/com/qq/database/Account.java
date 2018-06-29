@@ -1,5 +1,7 @@
 package com.qq.database;
 
+import com.qq.database.*;
+
 /**
  * Created by ZiQin on 2018/3/25.
  */

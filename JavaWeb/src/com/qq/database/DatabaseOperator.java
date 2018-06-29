@@ -1,6 +1,7 @@
 package com.qq.database;
 
 import java.sql.*;
+import com.qq.database.Account;
 
 /**
  * @author 97njczh
@@ -9,7 +10,7 @@ public class DatabaseOperator {
 	
 	// JDBC driver name and database URL
 	private static final String JDBC_DRIVER = "com.mysql.jdbc.Driver";
-	private static final String DB_URL = "jdbc:mysql://118.24.107.193:3306/rP87cbTu?useSSL=false";
+	private static final String DB_URL = "jdbc:mysql://118.24.107.193:3306/rP87cbTu?useSSL=false&useUnicode=true&characterEncoding=utf8";
 	
 	// Database credentials
 	private static final String USER = "root";
@@ -117,14 +118,13 @@ public class DatabaseOperator {
 		Account account = new Account();
 		
 		ResultSet rs = query("SELECT * FROM " + DB_NAME
-				                     + ".`user` where id = " + Id + ";");
+				                     + ".`t_user_base_info` where id = " + Id + ";");
 		
 		if (rs != null) {
 			
-			if (rs.next())
-				account = new Account(rs.getString("id"),
-						rs.getString("username"), false,
-						rs.getString("sign"));
+			if (rs.next()) {
+				account = new Account(rs.getString("id"), rs.getString("username"), false, rs.getString("sign"));
+			}
 			else {
 				System.out.println("[ ERROR ] 数据库中查无此ID：" + Id);
 			}

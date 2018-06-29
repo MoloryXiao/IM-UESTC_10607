@@ -15,7 +15,7 @@ import com.qq.database.DatabaseOperator;
 /**
  * 处理修改密码的Servlet服务
  * @author ZiQin
- * @version V 1.0.1
+ * @version V 1.0.2
  */
 @WebServlet("/ChangeKey")
 public class ChangeKey extends HttpServlet {
@@ -85,7 +85,7 @@ public class ChangeKey extends HttpServlet {
 		String id = (String) request.getSession().getAttribute("id");
 		DatabaseOperator databaseOperator = (DatabaseOperator) request.getSession().getAttribute("db");
 		String key = request.getParameter("key");
-		String stat = new String("UPDATE user SET password='" + key + "' WHERE id='" + id + "';");
+		String stat = new String("UPDATE t_user_base_info SET password='" + key + "' WHERE id='" + id + "';");
 		if (databaseOperator.update(stat) > 0) {
 			databaseOperator.disconnectDatabase();
 			return SUCCESS;

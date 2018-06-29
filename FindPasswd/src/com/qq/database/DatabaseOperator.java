@@ -117,7 +117,7 @@ public class DatabaseOperator {
 		Account account = new Account();
 		
 		ResultSet rs = query("SELECT * FROM " + DB_NAME
-				                     + ".`user` where id = " + Id + ";");
+				                     + ".`t_user_base_info` where id = " + Id + ";");
 		
 		if (rs != null) {
 			

@@ -15,7 +15,7 @@ import com.qq.database.DatabaseOperator;
 /**
  * 处理注册KIM号的Servlet服务
  * @author ZiQin
- * @version V1.0.0
+ * @version V1.1.1
  */
 @WebServlet("/RegistorID")
 public class RegistorID extends HttpServlet {
@@ -41,14 +41,20 @@ public class RegistorID extends HttpServlet {
 	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		
+		request.setCharacterEncoding("utf-8");
+		response.setContentType("text/html;charset=utf-8");
+		
 		try {
 			switch (registor(request, response)) {
 			case OK:
 				request.getRequestDispatcher("/ShowID.jsp").forward(request, response);
 				break;
 			case ERROR_ID_CREATEFAILE:
+//				System.out.println("CREATE FAIL");
 			case ERROR_DB_NOTCONNECT:
+//				System.out.println("NOT TO CONNECT");
 			case ERROR_DB_INITFAILE:
+//				System.out.println("INI FAIL");
 			default:
 				response.sendRedirect("Error.html");
 			}
@@ -92,10 +98,10 @@ public class RegistorID extends HttpServlet {
 		DatabaseOperator databaseOperator = new DatabaseOperator();
 		if (databaseOperator.setupDatabase()) {
 			if (databaseOperator.connectDatabase()) {
-				String statement = new String("INSERT INTO user (username, phone_number, password) VALUES ('" 
+				String statement = new String("INSERT INTO t_user_base_info (username, phone_number, password) VALUES ('" 
 					+ nickName + "', '" + phoneNumber + "', '" + password + "');");
 				if (databaseOperator.update(statement) > 0) {
-					ResultSet rs = databaseOperator.query("SELECT * FROM user WHERE phone_number='" + phoneNumber + "' AND + username='" + nickName + "' AND password='" + password + "';");
+					ResultSet rs = databaseOperator.query("SELECT * FROM t_user_base_info WHERE phone_number='" + phoneNumber + "' AND + username='" + nickName + "' AND password='" + password + "';");
 					rs.next();
 					String id = rs.getString("id");
 					request.setAttribute("userId", id);

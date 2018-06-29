@@ -58,9 +58,9 @@ public class CheckVCodeServlet extends HttpServlet {
 	 */
 	private void checkVcode(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		
-		volatile String vcode = (String) request.getSession().getAttribute("VCode"); 
+		String vcode = (String) request.getSession().getAttribute("VCode"); 
 		System.out.println(vcode);
-		volatile String vcodeByUser;
+		String vcodeByUser;
 		do {
 			vcodeByUser = request.getParameter("vcodetext");
 			System.out.println(vcodeByUser);

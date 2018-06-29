@@ -21,11 +21,11 @@
     <url-pattern>/vCode</url-pattern>
   </servlet-mapping>
   <servlet>
-  	<servlet-name>ChangeKey</servlet-name>
-  	<servlet-class>com.qq.web.ChangeKey</servlet-class>
+    <servlet-name>ChangeKey</servlet-name>
+    <servlet-class>com.qq.web.ChangeKey</servlet-class>
   </servlet>
   <servlet-mapping>
-  	<servlet-name>ChangeKey</servlet-name>
-  	<url-pattern>/change</url-pattern>
+    <servlet-name>ChangeKey</servlet-name>
+    <url-pattern>/change</url-pattern>
   </servlet-mapping>
 </web-app>
