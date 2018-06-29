@@ -17,7 +17,7 @@ import com.qq.sms.SmsServer;
 /**
  * 接收用户ID并发送验证短信的Servlet服务
  * @author ZiQin
- * @version V1.0.0
+ * @version V1.0.1
  */
 @WebServlet("/FindPasswordServlet")
 public class FindPasswordServlet extends HttpServlet {
@@ -112,13 +112,13 @@ public class FindPasswordServlet extends HttpServlet {
 		DatabaseOperator databaseOperator = new DatabaseOperator();
 		if (databaseOperator.setupDatabase()) {
 			if (databaseOperator.connectDatabase()) {
-				ResultSet rSet = databaseOperator.query("SELECT * FROM user WHERE id=\'" + id + "\';");
+				ResultSet rSet = databaseOperator.query("SELECT * FROM t_user_base_info WHERE id=\'" + id + "\';");
 				if (rSet.next()) {
 					String phoneNumber = rSet.getString("phone_number");
 					System.out.println(phoneNumber);
 					String vcode = createRandomVcode();
 					System.out.println(vcode);
-					SmsServer.sendsms(phoneNumber, vcode);
+					SmsServer.sendSms(phoneNumber, vcode);
 					request.getSession().setAttribute("VCode", vcode);
 					request.getSession().setAttribute("id",  id);
 					request.getSession().setAttribute("db", databaseOperator);
