@@ -91,7 +91,7 @@ public class DatabaseOperator {
 	public static Account getUserDetailsByLoginInfo( Login loginInfo ) {
 		
 		String sql = "SELECT * FROM " + DatabaseConnector.getDbName()
-				             + ".`user` WHERE id = " + loginInfo.getAccountId()
+				             + ".`t_user_base_info` WHERE id = " + loginInfo.getAccountId()
 				             + " AND `password` = \'" + loginInfo.getPassword() + "\'";
 		
 		return getUserDetails(sql);
@@ -107,7 +107,7 @@ public class DatabaseOperator {
 	public static Account getUserDetailsById( String uid ) {
 		
 		String sql = "SELECT * FROM " + DatabaseConnector.getDbName()
-				             + ".`user` WHERE id = " + uid;
+				             + ".`t_user_base_info` WHERE id = " + uid;
 		
 		return getUserDetails(sql);
 		
@@ -122,8 +122,8 @@ public class DatabaseOperator {
 	public static ArrayList<Account> getFriendsList( String id ) {
 		
 		String sql = "SELECT SlaveID, username, sign FROM " // Execute a query
-				             + DatabaseConnector.getDbName() + ".relationship a, "
-				             + DatabaseConnector.getDbName() + ".`user` b \n"
+				             + DatabaseConnector.getDbName() + ".t_user_relationship a, "
+				             + DatabaseConnector.getDbName() + ".`t_user_base_info` b \n"
 				             + "WHERE a.MasterId = " + id + " AND b.id = a.SlaveID;";
 		
 		Connection conn = DatabaseConnector.getConnection();
@@ -170,7 +170,7 @@ public class DatabaseOperator {
 	private static Account searchUser( String type, String value ) {
 		
 		String sql = "SELECT * FROM " + DatabaseConnector.getDbName()
-				             + ".`user` where " + type + " = " + value + ";";
+				             + ".`t_user_base_info` where " + type + " = " + value + ";";
 		
 		Connection conn = DatabaseConnector.getConnection();
 		Statement stmt = DatabaseConnector.getStatement(conn);
@@ -233,7 +233,7 @@ public class DatabaseOperator {
 		
 		boolean result = false;
 		
-		String sql = "SELECT * FROM " + DatabaseConnector.getDbName() + ".`relationship` WHERE"
+		String sql = "SELECT * FROM " + DatabaseConnector.getDbName() + ".`t_user_relationship` WHERE"
 				             + "( `MasterID` = " + masterId + " AND `SlaveID` = " + slaveId + " ) "
 				             + "OR ( `MasterID` = " + slaveId + " AND `SlaveID` = " + masterId + " )";
 		
@@ -269,7 +269,7 @@ public class DatabaseOperator {
 		
 		boolean result = false;
 		
-		String sql = "INSERT INTO " + DatabaseConnector.getDbName() + ".`relationship` (`MasterID`, `SlaveID`) "
+		String sql = "INSERT INTO " + DatabaseConnector.getDbName() + ".`t_user_relationship` (`MasterID`, `SlaveID`) "
 				             + "VALUES (" + masterId + "," + slaveId + "), (" + slaveId + "," + masterId + ")\n";
 		
 		Connection conn = DatabaseConnector.getConnection();
@@ -292,7 +292,7 @@ public class DatabaseOperator {
 		
 		boolean result = false;
 		
-		String sql = "DELETE FROM " + DatabaseConnector.getDbName() + ".`relationship` WHERE"
+		String sql = "DELETE FROM " + DatabaseConnector.getDbName() + ".`t_user_relationship` WHERE"
 				             + "( `MasterID` = " + targetId + " AND `SlaveID` = " + sourceId + " ) "
 				             + "OR ( `MasterID` = " + sourceId + " AND `SlaveID` = " + targetId + " )";
 		
@@ -318,7 +318,7 @@ public class DatabaseOperator {
 		Picture picture = myInfo.getPicture();
 		picture.savePicture(filePathS, "jpg");
 		
-		String sql = "UPDATE " + DatabaseConnector.getDbName() + ".`user`  SET "
+		String sql = "UPDATE " + DatabaseConnector.getDbName() + ".`t_user_base_info`  SET "
 				             + "`phone_number` = '" + myInfo.getMobliePhone() + "', "
 				             + "`username` = '" + myInfo.getNikeName() + "', "
 				             + "`sign` = '" + myInfo.getSignature() + "', "
@@ -534,10 +534,10 @@ public class DatabaseOperator {
 		if (group == null) return null;
 		
 		/* 查询t_group_member表获取群成员列表 */
-		String sql = "SELECT `user`.*, p_group_member_identity,p_group_member_join_datetime "
-				             + "FROM `t_group_member`,`user` "
+		String sql = "SELECT `t_user_base_info`.*, p_group_member_identity,p_group_member_join_datetime "
+				             + "FROM `t_group_member`,`t_user_base_info` "
 				             + "WHERE `p_group_id` = " + group.getGid() + " "
-				             + "AND `p_group_member_id` = `user`.id";
+				             + "AND `p_group_member_id` = `t_user_base_info`.id";
 		
 		Connection conn = DatabaseConnector.getConnection();
 		Statement stmt = DatabaseConnector.getStatement(conn);
