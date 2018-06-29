@@ -27,7 +27,7 @@ public class LoginWindow extends JFrame{
 	private static final int 	i_window_width = 520;
 	private static final int 	i_window_height = 400;
 	private static LoginInfo	info_login;
-	private static final int	magic_number = 1234;
+	private static final int	magic_number = 0;	// 相关代码已被注释
 		
 	JButton 			btn_login;
 	JPanel 				panel_bottom,panel_middle;
@@ -276,11 +276,11 @@ public class LoginWindow extends JFrame{
 				
 				System.out.println("LoginInfo: send to server. yhm: "+yhm);
 				System.out.println("LoginInfo: send to server. psw: "+psw);
-				try {
-					Thread.sleep(magic_number);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
+//				try {
+//					Thread.sleep(magic_number);
+//				} catch (InterruptedException e) {
+//					e.printStackTrace();
+//				}
 				RecvSendController.addToSendQueue(MessageOperate.packageLoginMsg(yhm, psw));
 			}
 		};
