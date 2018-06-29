@@ -7,11 +7,6 @@ import network.commonClass.*;
 
 import java.util.ArrayList;
 
-import javax.sound.midi.Soundbank;
-
-import com.sun.java_cup.internal.runtime.Scanner;
-
-
 /**
  * 标准通信协议处理类
  * @author ZiQin

@@ -356,7 +356,7 @@ public class ChatClient{
 			rewriteLoginFile();
 		}else {
 			// 由于登陆失败会被关闭套接字 故需要关闭与服务器交流的收发线程 
-			RecvSendController.closeSocket();			
+			RecvSendController.closeConnection();	
 			System.out.println("LoginError: Verification does not pass.");
 			JOptionPane.showMessageDialog(null, "信息验证失败！请检查输入的账号与密码！",
 					"Error", JOptionPane.ERROR_MESSAGE);

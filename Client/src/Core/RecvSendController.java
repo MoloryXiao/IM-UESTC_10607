@@ -32,15 +32,9 @@ public class RecvSendController {
 		}
 		return flag;
 	}
-	public static void closeSocket() {
+	public static void closeConnection() {
 		setRecvSendThreadStatus(false);
 		net_controller.endConnect();
-		// 也有可能是连接失效
-//		String hostName = net_controller.getHostName();
-//		int port = net_controller.getPort();
-//		net_controller = new NetworkForClient(hostName,port);
-//		thread_recv = new RecvThread(RecvSendController.net_controller);
-//		thread_send = new SendThread(RecvSendController.net_controller);
 	}
 	
 	public static void setRecvSendThreadStatus(boolean status) {

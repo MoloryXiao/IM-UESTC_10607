@@ -21,8 +21,6 @@ package Core;
 import java.awt.*;
 import javax.swing.*;
 
-import com.sun.jndi.toolkit.ctx.Continuation;
-
 import network.commonClass.Account;
 import network.commonClass.Group;
 import network.messageOperate.MessageOperate;
