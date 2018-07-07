@@ -94,8 +94,8 @@ public class InfoModificationWindow extends JFrame{
 		panel_nickName.setPreferredSize(new Dimension(i_window_width,12));		// 设置panel大小
 		panel_nickName.setBorder(BorderFactory.createEmptyBorder(10,0,0,0));
 		
-		panel_phone = new JPanel();			// 电话号码面板：包含电话Label、电话TextField
-		label_phone = new JLabel("电 话：");
+		panel_phone = new JPanel();			// 手机号码面板：包含手机Label、手机TextField
+		label_phone = new JLabel("手 机：");
 		textField_phone = new JTextField(20);
 		textField_phone.setText(this.account_modify.getMobliePhone());
 		panel_phone.setPreferredSize(new Dimension(i_window_width,12));		// 设置panel大小

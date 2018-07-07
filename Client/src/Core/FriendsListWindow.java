@@ -367,6 +367,7 @@ public class FriendsListWindow extends JFrame{
 		temp_pic.reduceImage(70, 70);
 		temp_pic.reduceImageToCircle();
 		label_head_image.setIcon(new ImageIcon(temp_pic.getPictureBytes()));
+		label_head_image.setToolTipText(this.account_mine.getNikeName());
 		
 		label_name.setToolTipText("昵称："+this.account_mine.getNikeName());
 		label_sign.setToolTipText("个性签名："+this.account_mine.getSignature());
