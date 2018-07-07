@@ -572,7 +572,6 @@ public class MessageOperate {
      * @return 标准通信协议数据报
      */
     public static Message packageUpdateGroup(String id) {
-    	System.out.println("iii");
         return new Message("Y" + id, null);
     }
 

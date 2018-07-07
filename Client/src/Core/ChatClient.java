@@ -216,7 +216,7 @@ public class ChatClient{
 					gainAddGroupResult(str_newMessage);
 					break;
 							
-				case MessageOperate.UPDATE_GROUP:
+				case MessageOperate.UPDATE_GROUP:	
 					gainGroupDetailedInfo(str_newMessage);
 					break;
 				
