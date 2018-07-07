@@ -1,10 +1,8 @@
-package Core;
+package Windows;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
@@ -15,6 +13,8 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import javax.swing.*;
 
+import Core.ChatClient;
+import RecvSendControll.RecvSendController;
 import network.commonClass.Account;
 import network.commonClass.Envelope;
 import network.commonClass.Picture;
@@ -33,6 +33,9 @@ import network.messageOperate.MessageOperate;
  * 【添加】消息收发队列方法
  */
 public class ChatWindow extends JFrame{
+
+	private static final long serialVersionUID = -7521762289393171989L;
+	
 	private Account		account_parent;		// 当前用户账户
 	private Account		account_mine;		// 好友账户
 	

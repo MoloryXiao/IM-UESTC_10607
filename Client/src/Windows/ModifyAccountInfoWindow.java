@@ -1,4 +1,4 @@
-package Core;
+package Windows;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
@@ -23,7 +23,7 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
-import network.Builder.AccountBuilder;
+import RecvSendControll.RecvSendController;
 import network.commonClass.Account;
 import network.commonClass.Picture;
 import network.messageOperate.MessageOperate;
@@ -43,10 +43,12 @@ import java.util.List;
  * @version 1.0/0618
  * Init.
  */
-public class InfoModificationWindow extends JFrame{
+public class ModifyAccountInfoWindow extends JFrame{
+
+	private static final long serialVersionUID = 5724057651006461296L;
+	
 	private int i_window_width = 400;
 	private int i_window_height = 615;
-	private int userName = 122392319;
 	private Account account_modify;
 	
 	private boolean isImageModified = false;
@@ -65,7 +67,7 @@ public class InfoModificationWindow extends JFrame{
 		textField_phone,textField_mail,textField_location,
 		textField_person,textField_signature;
 	
-	public InfoModificationWindow(AccountInfoShowWindow wind_father,Account account) {
+	public ModifyAccountInfoWindow(ShowAccountInfoWindow wind_father,Account account) {
 		this.account_modify = account.clone();
 		
 		this.setTitle("KIM Info-Modification");
@@ -140,7 +142,7 @@ public class InfoModificationWindow extends JFrame{
 		label_loadImage = new JLabel(new ImageIcon("image/default.png"));			// 上传的头像
 		btn_upload = new JButton("上传→");		// 上传按钮
 		
-		String destPath = "image/" + InfoModificationWindow.this.account_modify.getId() +".jpg";	// 拷贝时用到的新文件路径
+		String destPath = "image/" + ModifyAccountInfoWindow.this.account_modify.getId() +".jpg";	// 拷贝时用到的新文件路径
 		btn_upload.addActionListener(new ActionListener() {		// 按钮点击事件
 			public void actionPerformed(ActionEvent e) {	
 				JFileChooser chooser = new JFileChooser();		// 设置选择器  
@@ -279,7 +281,7 @@ public class InfoModificationWindow extends JFrame{
 		btn_exec = new JButton("取消");
 		btn_exec.addActionListener(new ActionListener(){
 			public void actionPerformed(ActionEvent e) {
-				InfoModificationWindow.this.dispose();
+				ModifyAccountInfoWindow.this.dispose();
 			};
 		});
 		btn_ok = new JButton("完成");
@@ -300,7 +302,7 @@ public class InfoModificationWindow extends JFrame{
 				// 更新好友列表窗口的个人信息
 				RecvSendController.addToSendQueue(MessageOperate.packageAskUserDetail());
 				
-				InfoModificationWindow.this.dispose();
+				ModifyAccountInfoWindow.this.dispose();
 			}
 		});
 		FlowLayout flowLayout_Bottom = new FlowLayout();

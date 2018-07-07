@@ -1,6 +1,5 @@
-package Core;
+package RecvSendControll;
 
-import java.io.IOException;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -36,10 +35,6 @@ public class RecvThread extends Thread {
 					RecvSendController.closeConnection();
 					//e.printStackTrace();
 				}
-//				catch (InterruptedException e) {
-//					System.out.println("RecvThreadError: queue_put.");
-//					e.printStackTrace();
-//				}
 			}			
 		}
 	}

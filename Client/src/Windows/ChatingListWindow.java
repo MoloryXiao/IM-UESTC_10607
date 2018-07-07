@@ -1,4 +1,4 @@
-package Core;
+package Windows;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -9,10 +9,12 @@ import java.awt.event.MouseListener;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Iterator;
 import java.util.Vector;
 import javax.swing.*;
 
+import RecvSendControll.RecvSendController;
+import Repertory.EnvelopeRepertory;
+import Repertory.GroupEnvelopeRepertory;
 import network.commonClass.Account;
 import network.commonClass.Envelope;
 import network.commonClass.Group;
@@ -34,7 +36,10 @@ import network.messageOperate.MessageOperate;
  * 【添加】消息收发队列方法
  * 【添加】更新个人信息的方法
  */
-public class FriendsListWindow extends JFrame{	
+public class ChatingListWindow extends JFrame{	
+
+	private static final long serialVersionUID = -5491561328761495340L;
+	
 	private static final int 	i_window_width = 320,i_window_height = 700;
 	private int 				i_loc_X,i_loc_Y;
 	
@@ -57,12 +62,11 @@ public class FriendsListWindow extends JFrame{
 	private JTabbedPane 		tabbed_pane;
 	private JList<String> 		jList_str_friendsName;
 	private JList<String>		jList_str_groupsName;		//add
-	private JButton				btn_manage_friend,btn_logout,btn_logoff,
+	private JButton				btn_manage_friend,btn_logout,
 								btn_new_friend_request,btn_new_group_friend_request;
 	
 	private ArrayList<Account> 	arrayList_account_friends;
-	private ArrayList<Group>	arrayList_account_groups;		
-	private ArrayList<Account>  arrayList_account_group_member;
+	private ArrayList<Group>	arrayList_account_groups;
 	
 	private Account 			account_newWindow;
 	private Group				group_newWindow;
@@ -73,7 +77,7 @@ public class FriendsListWindow extends JFrame{
 	/**
 	 * FriendsListWindow 构造函数
 	 */
-	public FriendsListWindow(){				
+	public ChatingListWindow(){				
 		/* 设置窗口基本信息 */
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);					// 设置关闭键操作
 		this.setIconImage((new ImageIcon("./Client/image/chick.png")).getImage());		// 设置图标
@@ -500,10 +504,10 @@ public class FriendsListWindow extends JFrame{
 		this.group_newWindow = new Group();
 		this.group_newWindow = group_account;
 		
-		System.out.println(group_account.getId()+" " +group_account.getName());
-		ArrayList<Account> test = new ArrayList<>();
-		test = group_account.getMember();
-		if(null == test) System.out.println("member null");
+//		System.out.println(group_account.getId()+" " +group_account.getName());
+//		ArrayList<Account> test = new ArrayList<>();
+//		test = group_account.getMember();		
+//		if(null == test) System.out.println("member null");
 //		for(int i=0;i<test.size();i++) {
 //			System.out.println(test.get(i).getNikeName());
 //		}

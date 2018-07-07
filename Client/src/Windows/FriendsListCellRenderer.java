@@ -1,4 +1,4 @@
-package Core;
+package Windows;
 
 import java.awt.Color;
 import java.awt.Component;
@@ -12,6 +12,9 @@ import javax.swing.JList;
  *
  */
 public class FriendsListCellRenderer extends DefaultListCellRenderer{
+
+	private static final long serialVersionUID = 9044820369566411487L;
+	
 	private int []rows;
 	private int count;
 	private Color row_color;
@@ -25,7 +28,7 @@ public class FriendsListCellRenderer extends DefaultListCellRenderer{
 		this.row_color = color;
 	}
 	
-	 public Component getListCellRendererComponent(JList list,Object value,int index,
+	 public Component getListCellRendererComponent(JList<?> list,Object value,int index,
              boolean isSelected,boolean cellHasFocus ) {
 		 super.getListCellRendererComponent(list,value,index,isSelected,cellHasFocus);
 		 if(rows != null){

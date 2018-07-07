@@ -1,4 +1,4 @@
-package Core;
+package RecvSendControll;
 
 import network.NetworkForClient.NetworkForClient;
 import network.commonClass.Message;

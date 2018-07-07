@@ -1,4 +1,4 @@
-package Core;
+package Windows;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -7,7 +7,6 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowFocusListener;
 import java.text.SimpleDateFormat;
@@ -19,10 +18,9 @@ import javax.swing.*;
 
 import network.commonClass.Account;
 import network.commonClass.Envelope;
-import network.commonClass.Message;
 import network.messageOperate.MessageOperate;
 
-import Core.FriendsListWindow;
+import RecvSendControll.RecvSendController;
 /**
  * 好友聊天窗口
  * @author LeeKadima 
@@ -30,6 +28,8 @@ import Core.FriendsListWindow;
 
 
 public class GroupChatWindow extends JFrame{
+
+	private static final long serialVersionUID = -1149978137959065356L;
 	
 	private Account					account_me;							// 当前用户账户	
 	private ArrayList<Account>		arrayList_account_groupMembers;		// 好友账户
@@ -78,7 +78,7 @@ public class GroupChatWindow extends JFrame{
 	private String				group_name;
 	private String				group_signature;
 //	---------------------
-	private FriendsListWindow	wind_friendsList;
+	private ChatingListWindow	wind_friendsList;
 
 	/**
 	 * 构造函数
@@ -87,7 +87,7 @@ public class GroupChatWindow extends JFrame{
 	 */
 	//
 	
-	public GroupChatWindow(Account me , network.commonClass.Group group_info , FriendsListWindow friendsListWindow) {
+	public GroupChatWindow(Account me , network.commonClass.Group group_info , ChatingListWindow friendsListWindow) {
 		DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		
 		/* 设置窗口定位信息 */		

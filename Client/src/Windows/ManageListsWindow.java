@@ -1,26 +1,9 @@
-package Core;
-
-//import java.awt.BorderLayout;
-//import java.awt.Dimension;
-//import javax.swing.JButton;
-//import javax.swing.JFrame;
-//import javax.swing.JPanel;
-//import javax.swing.JTabbedPane;
-//
-//import java.awt.BorderLayout;
-//import java.awt.Color;
-//import java.awt.Dimension;
-//import java.awt.event.ActionListener;
-//import java.awt.event.FocusEvent;
-//import java.awt.event.FocusListener;
-//
-//import javax.swing.JButton;
-//import javax.swing.JPanel;
-//import javax.swing.JTextArea;
+package Windows;
 
 import java.awt.*;
 import javax.swing.*;
 
+import RecvSendControll.RecvSendController;
 import network.commonClass.Account;
 import network.commonClass.Group;
 import network.messageOperate.MessageOperate;
@@ -39,7 +22,10 @@ import java.util.Vector;
  * @version 
  */
 
-public class AddFriendWindow extends JFrame {
+public class ManageListsWindow extends JFrame {
+
+	private static final long serialVersionUID = -2248326706398790768L;
+	
 	private static final String ADD_FRIEND_WINDOW_TITLE = "添加好友";
 	private static final int ADD_FRIEND_WINDOW_WIDTH = 850;
 	private static final int ADD_FRIEND_WINDOW_HEIGHT = 550;
@@ -49,7 +35,7 @@ public class AddFriendWindow extends JFrame {
 							search_group_option,delete_group_option,
 							create_group_option;
 	private JPanel 			center_panel;
-	private search_panel	search_friend_panel,delete_friend_panel,search_group_panel,delete_group_panel;
+	private Search_panel	search_friend_panel,delete_friend_panel,search_group_panel,delete_group_panel;
 
 	private String			mine_id;
 	Vector<String> 			friend_info;
@@ -60,7 +46,7 @@ public class AddFriendWindow extends JFrame {
 	private JLabel			cue_create_group_description;
 	private JButton			create_group_button;
 	
-	public AddFriendWindow(String login_id) {
+	public ManageListsWindow(String login_id) {
 		
 		this.setTitle(ADD_FRIEND_WINDOW_TITLE);		
 		this.setSize(ADD_FRIEND_WINDOW_WIDTH, ADD_FRIEND_WINDOW_HEIGHT);
@@ -92,7 +78,7 @@ public class AddFriendWindow extends JFrame {
 		search_friend_option = new JPanel();
 		search_friend_option.setLayout(new BorderLayout());
 		
-		search_friend_panel = new search_panel("请输入对方的Kim号码" , search_panel.ADD_FRIEND_TYPE_PANEL);
+		search_friend_panel = new Search_panel("请输入对方的Kim号码" , Search_panel.ADD_FRIEND_TYPE_PANEL);
 		search_friend_panel.setMyAccountID(mine_id);
 		
 		ActionListener search_button_click_listener = new ActionListener() {					//设置添加好友选项卡内搜索按钮监听器
@@ -132,7 +118,7 @@ public class AddFriendWindow extends JFrame {
 		delete_friend_option = new JPanel();
 		delete_friend_option.setLayout(new BorderLayout());
 		
-		delete_friend_panel = new search_panel("请输入查找号码" , search_panel.DELETE_FRIEND_TYPE_PANEL);
+		delete_friend_panel = new Search_panel("请输入查找号码" , Search_panel.DELETE_FRIEND_TYPE_PANEL);
 		delete_friend_option.add(delete_friend_panel,BorderLayout.CENTER);	
 		option_tabbed.addTab("删除好友", delete_friend_option);
 
@@ -141,7 +127,7 @@ public class AddFriendWindow extends JFrame {
 		search_group_option = new JPanel();
 		search_group_option.setLayout(new BorderLayout());
 		
-		search_group_panel = new search_panel("请输入群组号码" , search_panel.ADD_GROUP_TYPE_PANEL);
+		search_group_panel = new Search_panel("请输入群组号码" , Search_panel.ADD_GROUP_TYPE_PANEL);
 		search_group_panel.setMyAccountID(mine_id);
 		
 		ActionListener group_search_button_click_listener = new ActionListener() {		//设置添加群组选项卡内搜索按钮监听器
@@ -183,7 +169,7 @@ public class AddFriendWindow extends JFrame {
 		delete_group_option= new JPanel();
 		delete_group_option.setLayout(new BorderLayout());
 		
-		delete_group_panel = new search_panel("请输入查找号码" , search_panel.DELETE_GROUP_TYPE_PANEL);
+		delete_group_panel = new Search_panel("请输入查找号码" , Search_panel.DELETE_GROUP_TYPE_PANEL);
 		delete_group_option.add(delete_group_panel,BorderLayout.CENTER);	
 		option_tabbed.addTab("删除群组", delete_group_option);
 
@@ -289,8 +275,9 @@ public class AddFriendWindow extends JFrame {
 	
 }
 
+class Search_panel extends JPanel{
 
-class search_panel extends JPanel{
+	private static final long serialVersionUID = 1184185757728214931L;
 	
 	public  static final int ADD_FRIEND_TYPE_PANEL 		= 0;
 	public  static final int DELETE_FRIEND_TYPE_PANEL 	= 1;
@@ -317,7 +304,7 @@ class search_panel extends JPanel{
 	private network.commonClass.Group				search_result_group;
 	static private ArrayList<network.commonClass.Group>	search_result_groups;
 	
-	public search_panel(String text_area_str , int type) {
+	public Search_panel(String text_area_str , int type) {
 		
 		text_area_string = text_area_str;
 		panel_type = type;

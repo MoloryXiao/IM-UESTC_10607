@@ -1,4 +1,4 @@
-package Core;
+package Windows;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
@@ -27,7 +27,10 @@ import network.commonClass.Picture;
  * @version 1.0/0618
  * Init.
  */
-public class AccountInfoShowWindow extends JFrame{
+public class ShowAccountInfoWindow extends JFrame{
+
+	private static final long serialVersionUID = 1903185424161033403L;
+	
 	private int i_window_width = 350;
 	private int i_window_height = 550;
 	
@@ -40,7 +43,7 @@ public class AccountInfoShowWindow extends JFrame{
 		label_mail,label_level,label_location,label_person,label_signature;
 	private JButton btn_edit,btn_exit;	
 	
-	public AccountInfoShowWindow(Account account,boolean modify){
+	public ShowAccountInfoWindow(Account account,boolean modify){
 		this.accountShow = account.clone();
 		this.modifyPermission = modify;
 		
@@ -148,7 +151,7 @@ public class AccountInfoShowWindow extends JFrame{
 		btn_exit = new JButton("关闭");
 		btn_exit.addActionListener(new ActionListener(){
 			public void actionPerformed(ActionEvent e) {
-				AccountInfoShowWindow.this.dispose();
+				ShowAccountInfoWindow.this.dispose();
 			}
 		});	
 		FlowLayout flowLayout_Bottom = new FlowLayout();
