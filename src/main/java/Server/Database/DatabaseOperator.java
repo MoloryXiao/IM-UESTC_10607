@@ -440,7 +440,7 @@ public class DatabaseOperator {
 				             + ".`t_group_base_info`(`p_group_creator_id`,`p_group_name`,`p_group_description`)"
 				             + "VALUES(" + newGroup.getOwner().getId() + ","
 				             + "\'" + newGroup.getName() + "\',"
-				             + newGroup.getDescription() + ");";
+				             + "\'" + newGroup.getDescription() + "\');";
 		
 		Connection conn = DatabaseConnector.getConnection();
 		Statement stmt = DatabaseConnector.getStatement(conn);

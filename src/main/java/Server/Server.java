@@ -167,7 +167,7 @@ public class Server {
 		
 		/*====================================== [ 初始化 ] ====================================== */
 		
-		LoggerProvider.logger.info("=================== IM-Server Version 0.8.4 ===================");
+		LoggerProvider.logger.info("=================== IM-Server Version 0.8.6 ===================");
 		
 		if (!FileOperator.buildRuntimeEnv()) {
 			LoggerProvider.logger.error("[ ERROR ] 无法保证运行文件环境！正在退出……");
